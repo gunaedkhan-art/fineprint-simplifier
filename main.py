@@ -49,6 +49,15 @@ except Exception as e:
 
 app = FastAPI()
 
+@app.on_event("startup")
+async def startup_event():
+    """Handle startup events and log any issues"""
+    print("🚀 Application starting up...")
+    try:
+        print("✓ FastAPI app created successfully")
+    except Exception as e:
+        print(f"✗ Startup error: {e}")
+
 # Serve static files (CSS, JS)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -117,6 +126,11 @@ async def health_check():
         "app": "Fineprint Simplifier"
     }
 
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint for testing"""
+    return {"message": "pong"}
+
 # Include admin router if available
 if admin_router:
     try:
@@ -135,18 +149,36 @@ async def pricing_page(request: Request):
 @app.get("/api/pricing")
 async def get_pricing():
     """Get pricing information"""
-    return {
-        "free_tier": {
-            "documents_per_month": FREE_TIER_LIMITS["documents_per_month"],
-            "features": FREE_TIER_LIMITS["features"],
-            "feature_descriptions": {k: FEATURE_DESCRIPTIONS[k] for k in FREE_TIER_LIMITS["features"]}
-        },
-        "paid_tier": {
-            "features": PAID_TIER_FEATURES,
-            "feature_descriptions": {k: FEATURE_DESCRIPTIONS[k] for k in PAID_TIER_FEATURES}
-        },
-        "pricing": PRICING
-    }
+    try:
+        return {
+            "free_tier": {
+                "documents_per_month": FREE_TIER_LIMITS.get("documents_per_month", 3),
+                "features": FREE_TIER_LIMITS.get("features", []),
+                "feature_descriptions": {k: FEATURE_DESCRIPTIONS.get(k, "") for k in FREE_TIER_LIMITS.get("features", [])}
+            },
+            "paid_tier": {
+                "features": PAID_TIER_FEATURES,
+                "feature_descriptions": {k: FEATURE_DESCRIPTIONS.get(k, "") for k in PAID_TIER_FEATURES}
+            },
+            "pricing": PRICING
+        }
+    except Exception as e:
+        # Fallback pricing if config fails
+        return {
+            "free_tier": {
+                "documents_per_month": 3,
+                "features": ["basic_analysis"],
+                "feature_descriptions": {"basic_analysis": "Basic document analysis"}
+            },
+            "paid_tier": {
+                "features": ["advanced_analysis", "comparison"],
+                "feature_descriptions": {
+                    "advanced_analysis": "Advanced analysis features",
+                    "comparison": "Document comparison"
+                }
+            },
+            "pricing": {"monthly": 9.99, "yearly": 99.99}
+        }
 
 
 @app.get("/api/usage/{user_id}")
