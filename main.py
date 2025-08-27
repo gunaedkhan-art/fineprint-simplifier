@@ -33,6 +33,13 @@ except Exception as e:
     print(f"✗ user_management import failed: {e}")
     user_manager = None
 
+try:
+    from matcher import find_risks_in_text
+    print("✓ matcher imported successfully")
+except Exception as e:
+    print(f"✗ matcher import failed: {e}")
+    find_risks_in_text = None
+
 app = FastAPI()
 
 # Serve static files (CSS, JS)
@@ -58,11 +65,12 @@ async def root(request: Request):
 @app.get("/test")
 async def test():
     return {
-        "message": "Fineprint Simplifier is running with core_patterns, pricing_config, and user_management!",
+        "message": "Fineprint Simplifier is running with core_patterns, pricing_config, user_management, and matcher!",
         "risk_patterns_count": len(RISK_PATTERNS),
         "good_patterns_count": len(GOOD_PATTERNS),
         "pricing_loaded": bool(PRICING),
-        "user_manager_loaded": user_manager is not None
+        "user_manager_loaded": user_manager is not None,
+        "matcher_loaded": find_risks_in_text is not None
     }
 
 if __name__ == "__main__":
