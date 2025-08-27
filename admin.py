@@ -68,44 +68,61 @@ async def admin_logout(request: Request):
 @router.get("/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(request: Request, auth: bool = Depends(check_admin_auth)):
     """Admin dashboard"""
-    # Load all patterns for overview
-    custom_patterns = load_custom_patterns()
-    pending_patterns = load_pending_patterns()
-    
-    # Count patterns
-    custom_risk_count = sum(len(patterns) for patterns in custom_patterns.get("risks", {}).values())
-    custom_good_count = sum(len(patterns) for patterns in custom_patterns.get("good_points", {}).values())
-    
-    # Handle mixed format in pending patterns (some are dicts with "patterns" key, some are lists)
-    pending_risk_count = 0
-    for data in pending_patterns.get("risks", {}).values():
-        if isinstance(data, dict) and "patterns" in data:
-            pending_risk_count += len(data["patterns"])
-        elif isinstance(data, list):
-            pending_risk_count += len(data)
-    
-    pending_good_count = 0
-    for data in pending_patterns.get("good_points", {}).values():
-        if isinstance(data, dict) and "patterns" in data:
-            pending_good_count += len(data["patterns"])
-        elif isinstance(data, list):
-            pending_good_count += len(data)
-    
-    stats = {
-        "core_risk_patterns": len(RISK_PATTERNS),
-        "core_good_patterns": len(GOOD_PATTERNS),
-        "custom_risk_patterns": custom_risk_count,
-        "custom_good_patterns": custom_good_count,
-        "pending_risk_patterns": pending_risk_count,
-        "pending_good_patterns": pending_good_count,
-        "total_custom_categories": len(custom_patterns.get("risks", {})) + len(custom_patterns.get("good_points", {})),
-        "total_pending_categories": len(pending_patterns.get("risks", {})) + len(pending_patterns.get("good_points", {}))
-    }
-    
-    return templates.TemplateResponse("admin_dashboard.html", {
-        "request": request,
-        "stats": stats
-    })
+    try:
+        # Load all patterns for overview
+        custom_patterns = load_custom_patterns()
+        pending_patterns = load_pending_patterns()
+        
+        # Count patterns
+        custom_risk_count = sum(len(patterns) for patterns in custom_patterns.get("risks", {}).values())
+        custom_good_count = sum(len(patterns) for patterns in custom_patterns.get("good_points", {}).values())
+        
+        # Handle mixed format in pending patterns (some are dicts with "patterns" key, some are lists)
+        pending_risk_count = 0
+        for data in pending_patterns.get("risks", {}).values():
+            if isinstance(data, dict) and "patterns" in data:
+                pending_risk_count += len(data["patterns"])
+            elif isinstance(data, list):
+                pending_risk_count += len(data)
+        
+        pending_good_count = 0
+        for data in pending_patterns.get("good_points", {}).values():
+            if isinstance(data, dict) and "patterns" in data:
+                pending_good_count += len(data["patterns"])
+            elif isinstance(data, list):
+                pending_good_count += len(data)
+        
+        stats = {
+            "core_risk_patterns": len(RISK_PATTERNS),
+            "core_good_patterns": len(GOOD_PATTERNS),
+            "custom_risk_patterns": custom_risk_count,
+            "custom_good_patterns": custom_good_count,
+            "pending_risk_patterns": pending_risk_count,
+            "pending_good_patterns": pending_good_count,
+            "total_custom_categories": len(custom_patterns.get("risks", {})) + len(custom_patterns.get("good_points", {})),
+            "total_pending_categories": len(pending_patterns.get("risks", {})) + len(pending_patterns.get("good_points", {}))
+        }
+        
+        return templates.TemplateResponse("admin_dashboard.html", {
+            "request": request,
+            "stats": stats
+        })
+    except Exception as e:
+        # Return a simple error page if there's an issue
+        return templates.TemplateResponse("admin_dashboard.html", {
+            "request": request,
+            "stats": {
+                "core_risk_patterns": 0,
+                "core_good_patterns": 0,
+                "custom_risk_patterns": 0,
+                "custom_good_patterns": 0,
+                "pending_risk_patterns": 0,
+                "pending_good_patterns": 0,
+                "total_custom_categories": 0,
+                "total_pending_categories": 0
+            },
+            "error": f"Error loading dashboard: {str(e)}"
+        })
 
 @router.get("/patterns", response_class=HTMLResponse)
 async def admin_patterns_page(request: Request, auth: bool = Depends(check_admin_auth)):
