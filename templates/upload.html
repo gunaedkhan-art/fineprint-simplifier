@@ -215,9 +215,19 @@
             document.getElementById("file-upload-box").style.display = "block";
         });
 
-        // Drag and drop functionality
+        // File upload box click handler
         const uploadBox = document.getElementById("file-upload-box");
+        const fileInput = document.getElementById("file");
         
+        // Click handler to trigger file input
+        uploadBox.addEventListener("click", function(e) {
+            // Don't trigger if clicking on the file input itself
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+        
+        // Drag and drop functionality
         uploadBox.addEventListener("dragover", function(e) {
             e.preventDefault();
             uploadBox.classList.add("dragover");
@@ -236,7 +246,7 @@
             if (files.length > 0) {
                 const file = files[0];
                 if (file.type === "application/pdf") {
-                    document.getElementById("file").files = files;
+                    fileInput.files = files;
                     document.getElementById("file-name").textContent = file.name;
                     document.getElementById("file-info").style.display = "flex";
                     document.getElementById("file-upload-box").style.display = "none";
