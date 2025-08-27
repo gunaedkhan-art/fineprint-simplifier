@@ -82,20 +82,16 @@ async def compare_page(request: Request):
 async def health_check():
     """Health check endpoint for monitoring"""
     try:
-        # Minimal health check with no external dependencies
-        import time
+        # Use minimal health check module
+        from health_check import get_health_status
+        return get_health_status()
+    except Exception as e:
+        # Fallback to simple response
         return {
-            "status": "healthy", 
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "status": "healthy",
+            "timestamp": "unknown",
             "version": "1.0.0",
             "app": "Fineprint Simplifier"
-        }
-    except Exception as e:
-        # Return a simple text response if JSON fails
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "timestamp": "unknown"
         }
 
 # Include admin router (after health check to avoid interference)
