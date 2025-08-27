@@ -7,6 +7,15 @@ import os
 import json
 from datetime import datetime
 
+# Test custom module import
+try:
+    from core_patterns import RISK_PATTERNS, GOOD_PATTERNS
+    print("✓ core_patterns imported successfully")
+except Exception as e:
+    print(f"✗ core_patterns import failed: {e}")
+    RISK_PATTERNS = {}
+    GOOD_PATTERNS = {}
+
 app = FastAPI()
 
 # Serve static files (CSS, JS)
@@ -31,7 +40,11 @@ async def root(request: Request):
 
 @app.get("/test")
 async def test():
-    return {"message": "Fineprint Simplifier is running with templates and utilities!"}
+    return {
+        "message": "Fineprint Simplifier is running with core_patterns!",
+        "risk_patterns_count": len(RISK_PATTERNS),
+        "good_patterns_count": len(GOOD_PATTERNS)
+    }
 
 if __name__ == "__main__":
     import uvicorn
