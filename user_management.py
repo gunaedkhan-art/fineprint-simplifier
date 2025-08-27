@@ -64,7 +64,8 @@ class UserManager:
         
         # Check if user can upload
         if user["subscription"] == "free":
-            if user["usage"]["documents_this_month"] >= FREE_TIER_LIMITS["documents_per_month"]:
+            # Allow upload if user has no email (visitor) or hasn't reached limit
+            if user.get("email") and user["usage"]["documents_this_month"] >= FREE_TIER_LIMITS["documents_per_month"]:
                 return False
         
         # Update usage
@@ -123,12 +124,20 @@ class UserManager:
             user["usage"]["documents_this_month"] = 0
             self._save_users()
         
+        # For visitors (no email), allow uploads
+        can_upload = True
+        if user["subscription"] == "free" and user.get("email"):
+            can_upload = user["usage"]["documents_this_month"] < FREE_TIER_LIMITS["documents_per_month"]
+        elif user["subscription"] == "paid":
+            can_upload = True
+        
         return {
             "subscription": user["subscription"],
+            "email": user.get("email"),
             "documents_this_month": user["usage"]["documents_this_month"],
             "total_documents": user["usage"]["total_documents"],
             "monthly_limit": FREE_TIER_LIMITS["documents_per_month"] if user["subscription"] == "free" else "unlimited",
-            "can_upload": user["subscription"] == "paid" or user["usage"]["documents_this_month"] < FREE_TIER_LIMITS["documents_per_month"]
+            "can_upload": can_upload
         }
 
 # Global user manager instance
