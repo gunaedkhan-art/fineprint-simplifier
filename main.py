@@ -21,13 +21,6 @@ from admin import router as admin_router
 
 app = FastAPI()
 
-# Include admin router
-try:
-    app.include_router(admin_router)
-except Exception as e:
-    print(f"Warning: Could not include admin router: {e}")
-    # Continue without admin functionality
-
 # Serve static files (CSS, JS)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -89,19 +82,28 @@ async def compare_page(request: Request):
 async def health_check():
     """Health check endpoint for monitoring"""
     try:
-        # Simple health check that doesn't depend on complex logic
+        # Minimal health check with no external dependencies
+        import time
         return {
             "status": "healthy", 
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "version": "1.0.0",
             "app": "Fineprint Simplifier"
         }
     except Exception as e:
+        # Return a simple text response if JSON fails
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": "unknown"
         }
+
+# Include admin router (after health check to avoid interference)
+try:
+    app.include_router(admin_router)
+except Exception as e:
+    print(f"Warning: Could not include admin router: {e}")
+    # Continue without admin functionality
 
 @app.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
