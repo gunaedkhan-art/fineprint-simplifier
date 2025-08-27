@@ -16,8 +16,8 @@ router = APIRouter(prefix="/admin")
 templates = Jinja2Templates(directory="templates")
 
 # Admin credentials (in production, use proper authentication)
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 
 # Session management (simple in-memory for demo)
 admin_sessions = set()
