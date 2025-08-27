@@ -26,6 +26,13 @@ except Exception as e:
     FEATURE_DESCRIPTIONS = {}
     PRICING = {}
 
+try:
+    from user_management import user_manager
+    print("✓ user_management imported successfully")
+except Exception as e:
+    print(f"✗ user_management import failed: {e}")
+    user_manager = None
+
 app = FastAPI()
 
 # Serve static files (CSS, JS)
@@ -51,10 +58,11 @@ async def root(request: Request):
 @app.get("/test")
 async def test():
     return {
-        "message": "Fineprint Simplifier is running with core_patterns and pricing_config!",
+        "message": "Fineprint Simplifier is running with core_patterns, pricing_config, and user_management!",
         "risk_patterns_count": len(RISK_PATTERNS),
         "good_patterns_count": len(GOOD_PATTERNS),
-        "pricing_loaded": bool(PRICING)
+        "pricing_loaded": bool(PRICING),
+        "user_manager_loaded": user_manager is not None
     }
 
 if __name__ == "__main__":
