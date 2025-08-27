@@ -59,10 +59,19 @@ async def startup_event():
         print(f"✗ Startup error: {e}")
 
 # Serve static files (CSS, JS)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    print("✓ Static files mounted successfully")
+except Exception as e:
+    print(f"✗ Static files mounting failed: {e}")
 
 # Set up Jinja2 templating
-templates = Jinja2Templates(directory="templates")
+try:
+    templates = Jinja2Templates(directory="templates")
+    print("✓ Jinja2 templates setup successfully")
+except Exception as e:
+    print(f"✗ Jinja2 templates setup failed: {e}")
+    templates = None
 
 CUSTOM_FILE = "custom_patterns.json"
 PENDING_FILE = "pending_patterns.json"
@@ -119,17 +128,17 @@ async def compare_page(request: Request):
 async def health_check():
     """Health check endpoint for monitoring"""
     # Absolute minimal health check with no external dependencies
-    return {
-        "status": "healthy",
-        "timestamp": "2025-08-27T00:00:00",
-        "version": "1.0.0",
-        "app": "Fineprint Simplifier"
-    }
+    return {"status": "healthy"}
 
 @app.get("/ping")
 async def ping():
     """Simple ping endpoint for testing"""
     return {"message": "pong"}
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"message": "Fineprint Simplifier is running!"}
 
 # Include admin router if available
 if admin_router:
