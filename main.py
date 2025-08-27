@@ -40,6 +40,13 @@ except Exception as e:
     print(f"✗ matcher import failed: {e}")
     find_risks_in_text = None
 
+try:
+    from pdf_parser import extract_text_from_pdf
+    print("✓ pdf_parser imported successfully")
+except Exception as e:
+    print(f"✗ pdf_parser import failed: {e}")
+    extract_text_from_pdf = None
+
 app = FastAPI()
 
 # Serve static files (CSS, JS)
@@ -65,12 +72,13 @@ async def root(request: Request):
 @app.get("/test")
 async def test():
     return {
-        "message": "Fineprint Simplifier is running with core_patterns, pricing_config, user_management, and matcher!",
+        "message": "Fineprint Simplifier is running with core_patterns, pricing_config, user_management, matcher, and pdf_parser!",
         "risk_patterns_count": len(RISK_PATTERNS),
         "good_patterns_count": len(GOOD_PATTERNS),
         "pricing_loaded": bool(PRICING),
         "user_manager_loaded": user_manager is not None,
-        "matcher_loaded": find_risks_in_text is not None
+        "matcher_loaded": find_risks_in_text is not None,
+        "pdf_parser_loaded": extract_text_from_pdf is not None
     }
 
 if __name__ == "__main__":
