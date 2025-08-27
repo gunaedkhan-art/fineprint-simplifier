@@ -54,6 +54,13 @@ except Exception as e:
     print(f"✗ analyzer import failed: {e}")
     analyze_pdf = None
 
+try:
+    from admin import router as admin_router
+    print("✓ admin router imported successfully")
+except Exception as e:
+    print(f"✗ admin router import failed: {e}")
+    admin_router = None
+
 app = FastAPI()
 
 # Serve static files (CSS, JS)
@@ -61,6 +68,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Set up Jinja2 templating
 templates = Jinja2Templates(directory="templates")
+
+# Include admin router if available
+if admin_router:
+    try:
+        app.include_router(admin_router)
+        print("✓ admin router included successfully")
+    except Exception as e:
+        print(f"✗ admin router inclusion failed: {e}")
 
 @app.get("/health")
 async def health_check():
@@ -79,14 +94,15 @@ async def root(request: Request):
 @app.get("/test")
 async def test():
     return {
-        "message": "Fineprint Simplifier is running with core_patterns, pricing_config, user_management, matcher, pdf_parser, and analyzer!",
+        "message": "Fineprint Simplifier is running with all modules including admin router!",
         "risk_patterns_count": len(RISK_PATTERNS),
         "good_patterns_count": len(GOOD_PATTERNS),
         "pricing_loaded": bool(PRICING),
         "user_manager_loaded": user_manager is not None,
         "matcher_loaded": find_risks_in_text is not None,
         "pdf_parser_loaded": extract_text_from_pdf is not None,
-        "analyzer_loaded": analyze_pdf is not None
+        "analyzer_loaded": analyze_pdf is not None,
+        "admin_router_loaded": admin_router is not None
     }
 
 if __name__ == "__main__":
