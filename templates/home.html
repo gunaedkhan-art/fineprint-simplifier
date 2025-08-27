@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinePrint Simplifier - Contract Analysis Made Simple</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">📋 FinePrint Simplifier</h1>
+                <p class="tagline">Understand your contracts in plain English</p>
+            </div>
+        </header>
+
+        <!-- User Status Banner -->
+        <div id="user-status-banner" class="user-status-banner" style="display: none;">
+            <div class="user-info">
+                <span id="user-status-text"></span>
+                <span id="usage-info" style="margin-left: 20px;"></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h2>Stop Signing Contracts You Don't Understand</h2>
+                    <p>Upload any contract and get an instant analysis of risks, benefits, and hidden terms in plain English.</p>
+                    
+                    <!-- Visitor CTA -->
+                    <div id="visitor-cta" class="cta-section">
+                        <a href="/upload" class="btn-primary btn-large">Start Analyzing Now</a>
+                        <p class="cta-subtitle">Free analysis available - no signup required</p>
+                    </div>
+
+                    <!-- Free User CTA -->
+                    <div id="free-user-cta" class="cta-section" style="display: none;">
+                        <a href="/upload" class="btn-primary btn-large">Analyze Document</a>
+                        <p class="cta-subtitle">You have <span id="free-uploads-left"></span> free analyses remaining this month</p>
+                    </div>
+
+                    <!-- Paid User CTA -->
+                    <div id="paid-user-cta" class="cta-section" style="display: none;">
+                        <a href="/upload" class="btn-primary btn-large">Analyze Document</a>
+                        <p class="cta-subtitle">Unlimited analyses with advanced features</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tools Grid -->
+            <section class="tools-section">
+                <h3>Our Tools</h3>
+                <div class="tools-grid">
+                    <!-- Single Document Analysis -->
+                    <div class="tool-card">
+                        <div class="tool-icon">📄</div>
+                        <h4>Single Document Analysis</h4>
+                        <p>Upload one contract and get a detailed breakdown of risks and benefits.</p>
+                        <a href="/upload" class="btn-secondary">Analyze Document</a>
+                    </div>
+
+                    <!-- Document Comparison -->
+                    <div class="tool-card" id="comparison-card">
+                        <div class="tool-icon">⚖️</div>
+                        <h4>Document Comparison</h4>
+                        <p>Compare two contracts side-by-side to see which is better for you.</p>
+                        <a href="/compare" class="btn-secondary" id="comparison-link">Compare Documents</a>
+                        <div class="pro-badge" id="comparison-badge">PRO</div>
+                    </div>
+
+                    <!-- Export Results -->
+                    <div class="tool-card" id="export-card">
+                        <div class="tool-icon">📊</div>
+                        <h4>Export Analysis</h4>
+                        <p>Download your analysis results as PDF, Word, or Excel files.</p>
+                        <a href="/export" class="btn-secondary" id="export-link">Export Results</a>
+                        <div class="pro-badge" id="export-badge">PRO</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features-section">
+                <h3>Why Choose FinePrint Simplifier?</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h4>Comprehensive Analysis</h4>
+                        <p>Identifies hidden risks, favorable terms, and important clauses you might miss.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h4>Instant Results</h4>
+                        <p>Get your analysis in seconds, not hours. No waiting for legal reviews.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h4>Easy to Understand</h4>
+                        <p>Plain English explanations with severity ratings for each finding.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h4>Secure & Private</h4>
+                        <p>Your documents are processed securely and never stored permanently.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pricing Section -->
+            <section class="pricing-section">
+                <h3>Simple, Transparent Pricing</h3>
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <h4>Free</h4>
+                        <div class="price">$0</div>
+                        <ul>
+                            <li>3 document analyses per month</li>
+                            <li>Basic risk assessment</li>
+                            <li>Plain English summaries</li>
+                            <li>Email required for results</li>
+                        </ul>
+                        <a href="/upload" class="btn-outline">Start Free</a>
+                    </div>
+                    <div class="pricing-card featured">
+                        <h4>Pro</h4>
+                        <div class="price">$9.99<span>/month</span></div>
+                        <ul>
+                            <li>Unlimited document analyses</li>
+                            <li>Advanced risk scoring</li>
+                            <li>Side-by-side comparison</li>
+                            <li>Export to PDF/Word/Excel</li>
+                            <li>Priority support</li>
+                        </ul>
+                        <a href="/pricing" class="btn-primary">Upgrade to Pro</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2024 FinePrint Simplifier. Making contracts understandable for everyone.</p>
+                <div class="footer-links">
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/contact">Contact</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let userUsage = null;
+
+        // Initialize user management
+        function initializeUser() {
+            // Get user ID from URL parameters or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('user_id');
+            
+            if (urlUserId) {
+                currentUserId = urlUserId;
+                localStorage.setItem('fineprint_user_id', currentUserId);
+            } else {
+                currentUserId = localStorage.getItem('fineprint_user_id');
+            }
+            
+            // Load user usage if logged in
+            if (currentUserId) {
+                loadUserUsage();
+            } else {
+                showVisitorView();
+            }
+        }
+
+        async function loadUserUsage() {
+            try {
+                const response = await fetch(`/api/usage/${currentUserId}`);
+                userUsage = await response.json();
+                displayUserStatus();
+            } catch (error) {
+                console.error('Error loading usage:', error);
+                showVisitorView();
+            }
+        }
+
+        function displayUserStatus() {
+            if (!userUsage) {
+                showVisitorView();
+                return;
+            }
+
+            const statusBanner = document.getElementById("user-status-banner");
+            const statusText = document.getElementById("user-status-text");
+            const usageInfo = document.getElementById("usage-info");
+
+            statusBanner.style.display = "block";
+
+            if (userUsage.subscription === 'paid') {
+                statusText.textContent = "Pro User";
+                statusText.className = "status-pro";
+                usageInfo.textContent = "Unlimited analyses";
+                showPaidUserView();
+            } else {
+                statusText.textContent = "Free User";
+                statusText.className = "status-free";
+                usageInfo.textContent = `${userUsage.documents_this_month}/${userUsage.monthly_limit} analyses used this month`;
+                showFreeUserView();
+            }
+        }
+
+        function showVisitorView() {
+            document.getElementById("visitor-cta").style.display = "block";
+            document.getElementById("free-user-cta").style.display = "none";
+            document.getElementById("paid-user-cta").style.display = "none";
+            
+            // Show PRO badges for paid features
+            document.getElementById("comparison-badge").style.display = "inline-block";
+            document.getElementById("export-badge").style.display = "inline-block";
+        }
+
+        function showFreeUserView() {
+            document.getElementById("visitor-cta").style.display = "none";
+            document.getElementById("free-user-cta").style.display = "block";
+            document.getElementById("paid-user-cta").style.display = "none";
+            
+            document.getElementById("free-uploads-left").textContent = 
+                userUsage.monthly_limit - userUsage.documents_this_month;
+            
+            // Show PRO badges for paid features
+            document.getElementById("comparison-badge").style.display = "inline-block";
+            document.getElementById("export-badge").style.display = "inline-block";
+        }
+
+        function showPaidUserView() {
+            document.getElementById("visitor-cta").style.display = "none";
+            document.getElementById("free-user-cta").style.display = "none";
+            document.getElementById("paid-user-cta").style.display = "block";
+            
+            // Hide PRO badges for paid users
+            document.getElementById("comparison-badge").style.display = "none";
+            document.getElementById("export-badge").style.display = "none";
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUser();
+        });
+    </script>
+</body>
+</html>

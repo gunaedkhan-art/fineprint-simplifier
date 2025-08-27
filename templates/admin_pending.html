@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Review - Admin</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .admin-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .admin-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .admin-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .admin-nav a.active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .admin-nav a.logout {
+            background-color: rgba(220, 53, 69, 0.8);
+        }
+        
+        .admin-nav a.logout:hover {
+            background-color: rgba(220, 53, 69, 1);
+        }
+        
+        .pending-header {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .pending-header h2 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+        
+        .pending-header p {
+            color: #6c757d;
+            margin: 0;
+            line-height: 1.5;
+        }
+        
+        .pending-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .pending-patterns {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .pending-patterns h2 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+        
+        .pattern-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .pattern-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .pattern-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .pattern-tab:hover {
+            color: #667eea;
+        }
+        
+        .pattern-content {
+            display: none;
+        }
+        
+        .pattern-content.active {
+            display: block;
+        }
+        
+        .pattern-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .pattern-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .pattern-info h3 {
+            margin: 0 0 5px 0;
+            color: #495057;
+            font-size: 1.1rem;
+        }
+        
+        .pattern-category {
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        
+        .pattern-text {
+            background: white;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        .pattern-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .score-btn {
+            background: #28a745;
+            color: white;
+        }
+        
+        .score-btn:hover {
+            background: #218838;
+        }
+        
+        .reject-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .reject-btn:hover {
+            background: #c82333;
+        }
+        
+        .scoring-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        
+        .close-btn:hover {
+            color: #495057;
+        }
+        
+        .scoring-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .score-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .score-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .score-display {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .no-patterns {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .no-patterns h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 6px;
+            padding: 12px;
+            color: #155724;
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            padding: 12px;
+            color: #721c24;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="admin-header-content">
+            <h1>⏳ Pending Review</h1>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard">Dashboard</a>
+                <a href="/admin/patterns">Patterns</a>
+                <a href="/admin/pending" class="active">Pending Review</a>
+                <a href="/admin/search">Search</a>
+                <a href="/admin/logout" class="logout">Logout</a>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="pending-header">
+            <h2>Pattern Review Queue</h2>
+            <p>Review and score patterns that were automatically detected from uploaded documents. Approve useful patterns by assigning a severity score, or reject false positives.</p>
+        </div>
+        
+        <div class="pending-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPending">0</div>
+                <div class="stat-label">Total Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="riskPending">0</div>
+                <div class="stat-label">Risk Patterns</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="goodPending">0</div>
+                <div class="stat-label">Good Point Patterns</div>
+            </div>
+        </div>
+        
+        <div class="pending-patterns">
+            <h2>Patterns Awaiting Review</h2>
+            
+            <div class="pattern-tabs">
+                <button class="pattern-tab active" data-tab="risks">Risk Patterns</button>
+                <button class="pattern-tab" data-tab="good_points">Good Point Patterns</button>
+            </div>
+            
+            <div id="risksContent" class="pattern-content active">
+                <div id="risksPatternsList"></div>
+            </div>
+            
+            <div id="good_pointsContent" class="pattern-content">
+                <div id="goodPointsPatternsList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scoring Modal -->
+    <div id="scoringModal" class="scoring-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Score Pattern</h3>
+                <button class="close-btn" onclick="closeScoringModal()">&times;</button>
+            </div>
+            
+            <form id="scoringForm" class="scoring-form">
+                <input type="hidden" id="modalPatternText" name="patternText">
+                <input type="hidden" id="modalCategory" name="category">
+                <input type="hidden" id="modalPatternType" name="patternType">
+                
+                <div class="form-group">
+                    <label for="modalScore">Severity Score (1-5)</label>
+                    <input type="range" id="modalScore" name="score" min="1" max="5" value="3" class="score-slider">
+                    <div class="score-display" id="scoreDisplay">3</div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="action-btn reject-btn" onclick="rejectPattern()">Reject</button>
+                    <button type="submit" class="action-btn score-btn">Score & Approve</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let currentPatterns = {};
+        
+        // Tab switching
+        document.querySelectorAll('.pattern-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.pattern-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.pattern-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                const tabName = tab.dataset.tab;
+                document.getElementById(tabName + 'Content').classList.add('active');
+                
+                // Load patterns for this tab
+                loadPendingPatterns();
+            });
+        });
+        
+        // Load pending patterns
+        async function loadPendingPatterns() {
+            try {
+                const response = await fetch('/admin/api/pending-patterns');
+                currentPatterns = await response.json();
+                displayPendingPatterns();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading pending patterns:', error);
+            }
+        }
+        
+        // Display pending patterns
+        function displayPendingPatterns() {
+            // Display risk patterns
+            const risksContainer = document.getElementById('risksPatternsList');
+            risksContainer.innerHTML = '';
+            
+            if (currentPatterns.risks && Object.keys(currentPatterns.risks).length > 0) {
+                for (const [category, data] of Object.entries(currentPatterns.risks)) {
+                    if (data.patterns && data.patterns.length > 0) {
+                        data.patterns.forEach(pattern => {
+                            risksContainer.appendChild(createPatternItem(pattern, category, 'risks'));
+                        });
+                    }
+                }
+            } else {
+                risksContainer.innerHTML = '<div class="no-patterns"><h3>No pending risk patterns</h3><p>All risk patterns have been reviewed.</p></div>';
+            }
+            
+            // Display good point patterns
+            const goodPointsContainer = document.getElementById('goodPointsPatternsList');
+            goodPointsContainer.innerHTML = '';
+            
+            if (currentPatterns.good_points && Object.keys(currentPatterns.good_points).length > 0) {
+                for (const [category, data] of Object.entries(currentPatterns.good_points)) {
+                    if (data.patterns && data.patterns.length > 0) {
+                        data.patterns.forEach(pattern => {
+                            goodPointsContainer.appendChild(createPatternItem(pattern, category, 'good_points'));
+                        });
+                    }
+                }
+            } else {
+                goodPointsContainer.innerHTML = '<div class="no-patterns"><h3>No pending good point patterns</h3><p>All good point patterns have been reviewed.</p></div>';
+            }
+        }
+        
+        // Create pattern item element
+        function createPatternItem(pattern, category, patternType) {
+            const div = document.createElement('div');
+            div.className = 'pattern-item';
+            
+            const categoryName = category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            div.innerHTML = `
+                <div class="pattern-header">
+                    <div class="pattern-info">
+                        <h3>${categoryName}</h3>
+                        <div class="pattern-category">${patternType === 'risks' ? 'Risk Pattern' : 'Good Point Pattern'}</div>
+                    </div>
+                </div>
+                
+                <div class="pattern-text">${pattern}</div>
+                
+                <div class="pattern-actions">
+                    <button class="action-btn score-btn" onclick="openScoringModal('${pattern}', '${category}', '${patternType}')">Score & Approve</button>
+                    <button class="action-btn reject-btn" onclick="rejectPattern('${pattern}', '${category}', '${patternType}')">Reject</button>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        // Update statistics
+        function updateStats() {
+            let totalPending = 0;
+            let riskPending = 0;
+            let goodPending = 0;
+            
+            if (currentPatterns.risks) {
+                for (const data of Object.values(currentPatterns.risks)) {
+                    riskPending += data.patterns ? data.patterns.length : 0;
+                }
+            }
+            
+            if (currentPatterns.good_points) {
+                for (const data of Object.values(currentPatterns.good_points)) {
+                    goodPending += data.patterns ? data.patterns.length : 0;
+                }
+            }
+            
+            totalPending = riskPending + goodPending;
+            
+            document.getElementById('totalPending').textContent = totalPending;
+            document.getElementById('riskPending').textContent = riskPending;
+            document.getElementById('goodPending').textContent = goodPending;
+        }
+        
+        // Open scoring modal
+        function openScoringModal(patternText, category, patternType) {
+            document.getElementById('modalPatternText').value = patternText;
+            document.getElementById('modalCategory').value = category;
+            document.getElementById('modalPatternType').value = patternType;
+            document.getElementById('scoringModal').style.display = 'block';
+        }
+        
+        // Close scoring modal
+        function closeScoringModal() {
+            document.getElementById('scoringModal').style.display = 'none';
+        }
+        
+        // Update score display
+        document.getElementById('modalScore').addEventListener('input', function() {
+            document.getElementById('scoreDisplay').textContent = this.value;
+        });
+        
+        // Handle scoring form submission
+        document.getElementById('scoringForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch('/admin/api/score-pattern', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Pattern scored and approved successfully!', 'success');
+                    closeScoringModal();
+                    loadPendingPatterns();
+                } else {
+                    showMessage('Error scoring pattern: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error scoring pattern: ' + error.message, 'error');
+            }
+        });
+        
+        // Reject pattern
+        async function rejectPattern(patternText, category, patternType) {
+            if (!patternText) {
+                // Get from modal
+                patternText = document.getElementById('modalPatternText').value;
+                category = document.getElementById('modalCategory').value;
+                patternType = document.getElementById('modalPatternType').value;
+            }
+            
+            if (confirm('Are you sure you want to reject this pattern?')) {
+                const formData = new FormData();
+                formData.append('patternText', patternText);
+                formData.append('category', category);
+                formData.append('patternType', patternType);
+                
+                try {
+                    const response = await fetch('/admin/api/reject-pattern', {
+                        method: 'DELETE',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showMessage('Pattern rejected successfully!', 'success');
+                        closeScoringModal();
+                        loadPendingPatterns();
+                    } else {
+                        showMessage('Error rejecting pattern: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error rejecting pattern: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+            messageDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('scoringModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeScoringModal();
+            }
+        });
+        
+        // Load initial patterns
+        loadPendingPatterns();
+    </script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze Document - FinePrint Simplifier</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">📋 FinePrint Simplifier</h1>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/upload" class="nav-link active">Analyze</a>
+                    <a href="/compare" class="nav-link">Compare</a>
+                    <a href="/pricing" class="nav-link">Pricing</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- User Status Banner -->
+        <div id="user-status-banner" class="user-status-banner" style="display: none;">
+            <div class="user-info">
+                <span id="user-status-text"></span>
+                <span id="usage-info" style="margin-left: 20px;"></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="upload-container">
+                <div class="upload-section">
+                    <h2>Analyze Your Document</h2>
+                    <p>Upload any contract or legal document to get an instant analysis of risks, benefits, and important terms.</p>
+                    
+                    <!-- Upload Form -->
+                    <form id="upload-form" class="upload-form">
+                        <input type="hidden" id="user-id-input" name="user_id" value="">
+                        
+                        <div class="file-upload-area">
+                            <div class="file-upload-box" id="file-upload-box">
+                                <div class="upload-icon">📄</div>
+                                <h3>Choose a PDF file</h3>
+                                <p>Drag and drop your document here, or click to browse</p>
+                                <input type="file" id="file" name="file" accept=".pdf" required>
+                            </div>
+                            <div id="file-info" class="file-info" style="display: none;">
+                                <span id="file-name"></span>
+                                <button type="button" id="remove-file" class="btn-remove">✕</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-large" id="analyze-btn">
+                            <span id="analyze-text">Analyze Document</span>
+                            <span id="analyzing-text" style="display: none;">Analyzing...</span>
+                        </button>
+                    </form>
+
+                    <!-- Usage Display -->
+                    <div id="usage-display" class="usage-display" style="display: none;">
+                        <div class="usage-info">
+                            <span>Documents this month: <span id="documents-this-month">0</span>/<span id="monthly-limit">3</span></span>
+                            <span>Total documents: <span id="total-documents">0</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Upgrade Prompt -->
+                    <div id="upgrade-prompt" class="upgrade-prompt" style="display: none;">
+                        <h3>Upgrade to Pro for Unlimited Analyses</h3>
+                        <p>You've reached your monthly limit. Upgrade to Pro for unlimited document analyses and advanced features.</p>
+                        <a href="/pricing" class="btn-primary">Upgrade Now</a>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" class="results-section" style="display: none;"></div>
+
+                <!-- Email Collection Modal for Free Users -->
+                <div id="emailModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <h3>Get Your Analysis Results</h3>
+                        <p>Please provide your email to view your analysis results. We'll send you a copy and may contact you about our services.</p>
+                        
+                        <form id="email-form">
+                            <div class="form-group">
+                                <label for="userEmail">Email Address:</label>
+                                <input type="email" id="userEmail" name="email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="emailConsent" name="consent">
+                                    I agree to receive emails about FinePrint Simplifier services
+                                </label>
+                            </div>
+                            
+                            <div class="modal-actions">
+                                <button type="button" onclick="closeEmailModal()" class="btn-secondary">Cancel</button>
+                                <button type="submit" class="btn-primary">View Results</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Legal Disclaimer -->
+                <div id="legal-disclaimer-results" class="legal-disclaimer" style="display: none;">
+                    <p><strong>Legal Disclaimer:</strong> This analysis is for informational purposes only and should not be considered legal advice. Always consult with a qualified attorney for legal matters.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2024 FinePrint Simplifier. Making contracts understandable for everyone.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let userUsage = null;
+
+        // Initialize user management
+        function initializeUser() {
+            // Get user ID from URL parameters or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('user_id');
+            
+            if (urlUserId) {
+                currentUserId = urlUserId;
+                localStorage.setItem('fineprint_user_id', currentUserId);
+            } else {
+                currentUserId = localStorage.getItem('fineprint_user_id');
+                if (!currentUserId) {
+                    // Generate a new user ID for visitors
+                    currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('fineprint_user_id', currentUserId);
+                }
+            }
+            
+            // Set user ID in hidden input
+            document.getElementById("user-id-input").value = currentUserId;
+            
+            // Load user usage
+            loadUserUsage();
+        }
+
+        async function loadUserUsage() {
+            try {
+                const response = await fetch(`/api/usage/${currentUserId}`);
+                userUsage = await response.json();
+                displayUsage();
+                displayUserStatus();
+            } catch (error) {
+                console.error('Error loading usage:', error);
+            }
+        }
+
+        function displayUsage() {
+            if (!userUsage) return;
+            
+            document.getElementById("documents-this-month").textContent = userUsage.documents_this_month;
+            document.getElementById("monthly-limit").textContent = userUsage.monthly_limit;
+            document.getElementById("total-documents").textContent = userUsage.total_documents;
+            
+            // Show/hide usage display
+            document.getElementById("usage-display").style.display = "block";
+            
+            // Show upgrade prompt if limit reached
+            if (!userUsage.can_upload) {
+                document.getElementById("upgrade-prompt").style.display = "block";
+            } else {
+                document.getElementById("upgrade-prompt").style.display = "none";
+            }
+        }
+
+        function displayUserStatus() {
+            if (!userUsage) return;
+
+            const statusBanner = document.getElementById("user-status-banner");
+            const statusText = document.getElementById("user-status-text");
+            const usageInfo = document.getElementById("usage-info");
+
+            statusBanner.style.display = "block";
+
+            if (userUsage.subscription === 'paid') {
+                statusText.textContent = "Pro User";
+                statusText.className = "status-pro";
+                usageInfo.textContent = "Unlimited analyses";
+            } else {
+                statusText.textContent = "Free User";
+                statusText.className = "status-free";
+                usageInfo.textContent = `${userUsage.documents_this_month}/${userUsage.monthly_limit} analyses used this month`;
+            }
+        }
+
+        // File upload handling
+        document.getElementById("file").addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById("file-name").textContent = file.name;
+                document.getElementById("file-info").style.display = "flex";
+                document.getElementById("file-upload-box").style.display = "none";
+            }
+        });
+
+        document.getElementById("remove-file").addEventListener("click", function() {
+            document.getElementById("file").value = "";
+            document.getElementById("file-info").style.display = "none";
+            document.getElementById("file-upload-box").style.display = "block";
+        });
+
+        // Drag and drop functionality
+        const uploadBox = document.getElementById("file-upload-box");
+        
+        uploadBox.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            uploadBox.classList.add("dragover");
+        });
+
+        uploadBox.addEventListener("dragleave", function(e) {
+            e.preventDefault();
+            uploadBox.classList.remove("dragover");
+        });
+
+        uploadBox.addEventListener("drop", function(e) {
+            e.preventDefault();
+            uploadBox.classList.remove("dragover");
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === "application/pdf") {
+                    document.getElementById("file").files = files;
+                    document.getElementById("file-name").textContent = file.name;
+                    document.getElementById("file-info").style.display = "flex";
+                    document.getElementById("file-upload-box").style.display = "none";
+                } else {
+                    alert("Please upload a PDF file.");
+                }
+            }
+        });
+
+        // Form submission
+        document.getElementById("upload-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById("file");
+            if (!fileInput.files.length) {
+                alert("Please select a PDF");
+                return;
+            }
+            
+            // Check if user can upload
+            if (userUsage && !userUsage.can_upload) {
+                alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
+                return;
+            }
+            
+            // Show analyzing state
+            document.getElementById("analyze-text").style.display = "none";
+            document.getElementById("analyzing-text").style.display = "inline";
+            document.getElementById("analyze-btn").disabled = true;
+            
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("user_id", currentUserId);
+
+            try {
+                const res = await fetch("/analyze", { method: "POST", body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Store results temporarily
+                    window.tempAnalysisResults = data;
+                    
+                    // Check if user needs to provide email
+                    if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
+                        document.getElementById("emailModal").style.display = "block";
+                    } else {
+                        // Show results directly
+                        displayAnalysisResults(data.analysis);
+                        processAnalysisData(data);
+                    }
+                } else {
+                    if (data.error === "Monthly limit reached") {
+                        alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
+                    } else {
+                        alert("Error: " + (data.error || "Unknown error"));
+                    }
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error analyzing document. Please try again.");
+            } finally {
+                // Reset button state
+                document.getElementById("analyze-text").style.display = "inline";
+                document.getElementById("analyzing-text").style.display = "none";
+                document.getElementById("analyze-btn").disabled = false;
+            }
+        });
+
+        // Email modal functions
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        async function submitEmailAndShowResults() {
+            const email = document.getElementById('userEmail').value.trim();
+            const consent = document.getElementById('emailConsent').checked;
+            
+            if (!email) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            try {
+                // Update user with email
+                const response = await fetch(`/api/update-email/${currentUserId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        consent: consent
+                    })
+                });
+                
+                if (response.ok) {
+                    // Close modal and show results
+                    closeEmailModal();
+                    displayAnalysisResults(window.tempAnalysisResults.analysis);
+                    processAnalysisData(window.tempAnalysisResults);
+                    
+                    // Update usage display
+                    await loadUserUsage();
+                } else {
+                    alert('Error saving email. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error saving email. Please try again.');
+            }
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Email form submission
+        document.getElementById("email-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            submitEmailAndShowResults();
+        });
+
+        // Analysis results display functions
+        function displayAnalysisResults(analysis) {
+            const resultsDiv = document.getElementById("results");
+            
+            if (!analysis || !analysis.success) {
+                resultsDiv.innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Analysis Failed</h3>
+                        <p>${analysis?.error || 'Unable to analyze the document. Please try again.'}</p>
+                    </div>
+                `;
+                resultsDiv.style.display = "block";
+                return;
+            }
+            
+            // Add quality assessment info if available
+            let qualityInfo = "";
+            if (analysis.quality_assessment) {
+                const qualityColors = {
+                    'excellent': '#28a745',
+                    'good': '#28a745', 
+                    'fair': '#ffc107',
+                    'poor': '#dc3545',
+                    'unreadable': '#dc3545'
+                };
+                const qualityColor = qualityColors[analysis.quality_assessment] || '#6c757d';
+                qualityInfo = `
+                    <div class="quality-assessment" style="background-color: ${qualityColor}; color: white; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
+                        <strong>Document Quality: ${analysis.quality_assessment.toUpperCase()}</strong>
+                        ${analysis.readable_pages && analysis.total_pages ? 
+                            `<br>Readable pages: ${analysis.readable_pages}/${analysis.total_pages}` : ''}
+                    </div>
+                `;
+            }
+
+            const risks = analysis.risks || {};
+            const goodPoints = analysis.good_points || {};
+            const rating = analysis.contract_rating || {};
+            const totalMatches = analysis.total_matches || 0;
+
+            let html = `
+                <div class="analysis-container">
+                    <div class="analysis-header">
+                        <h2>📋 Document Analysis Results</h2>
+                        <div class="analysis-summary">
+                            <div class="summary-item">
+                                <span class="summary-label">Total Findings:</span>
+                                <span class="summary-value">${totalMatches}</span>
+                            </div>
+                        </div>
+                    </div>
+                    ${qualityInfo}
+            `;
+
+            // Contract Rating Section
+            if (rating.rating && typeof rating.score_out_of_10 === 'number') {
+                const scoreClass = rating.score_out_of_10 >= 7 ? 'score-good' : 
+                                  rating.score_out_of_10 >= 4 ? 'score-neutral' : 'score-poor';
+                
+                html += `
+                    <div class="rating-section">
+                        <h3>📊 Contract Rating</h3>
+                        <div class="rating-card ${scoreClass}">
+                            <div class="rating-score">${rating.score_out_of_10}/10</div>
+                            <div class="rating-description">${rating.rating}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Good Points Section
+            if (Object.keys(goodPoints).length > 0) {
+                html += `
+                    <div class="findings-section good-points">
+                        <h3>✅ Favorable Terms Found</h3>
+                        <div class="findings-grid">
+                `;
+                
+                for (const [category, matches] of Object.entries(goodPoints)) {
+                    if (matches && matches.length > 0) {
+                        html += `
+                            <div class="finding-category">
+                                <h4>${formatCategoryName(category)}</h4>
+                                <div class="finding-items">
+                        `;
+                        
+                        matches.forEach(item => {
+                            const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                            const pageNum = item.page || 'N/A';
+                            const score = item.score || 3; // Default score if not present
+                            const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
+                            html += `
+                                <div class="finding-item good">
+                                    <div class="finding-text">${matchText}</div>
+                                    <div class="finding-meta">
+                                        <span>Page ${pageNum}</span>
+                                        <span class="severity-score ${scoreClass}">Severity: ${score}/5</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Risks Section
+            if (Object.keys(risks).length > 0) {
+                html += `
+                    <div class="findings-section risks">
+                        <h3>⚠️ Potential Risks Found</h3>
+                        <div class="findings-grid">
+                `;
+                
+                for (const [category, matches] of Object.entries(risks)) {
+                    if (matches && matches.length > 0) {
+                        html += `
+                            <div class="finding-category">
+                                <h4>${formatCategoryName(category)}</h4>
+                                <div class="finding-items">
+                        `;
+                        
+                        matches.forEach(item => {
+                            const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                            const pageNum = item.page || 'N/A';
+                            const score = item.score || 3; // Default score if not present
+                            const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
+                            html += `
+                                <div class="finding-item risk">
+                                    <div class="finding-text">${matchText}</div>
+                                    <div class="finding-meta">
+                                        <span>Page ${pageNum}</span>
+                                        <span class="severity-score ${scoreClass}">Risk Level: ${score}/5</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            // No Findings Message
+            if (Object.keys(risks).length === 0 && Object.keys(goodPoints).length === 0) {
+                html += `
+                    <div class="no-findings">
+                        <h3>🔍 No Specific Findings</h3>
+                        <p>No risks or favorable terms were detected in this document. This could mean:</p>
+                        <ul>
+                            <li>The document uses standard, balanced language</li>
+                            <li>The terms are written in a way not covered by current patterns</li>
+                            <li>The document may need manual review</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = "block";
+            
+            // Show the legal disclaimer when results are displayed
+            document.getElementById("legal-disclaimer-results").style.display = "block";
+        }
+
+        function processAnalysisData(data) {
+            // Pattern data processing moved to admin area
+        }
+
+        function formatCategoryName(category) {
+            return category
+                .split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUser();
+        });
+    </script>
+</body>
+</html>

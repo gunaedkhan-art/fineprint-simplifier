@@ -1,0 +1,22 @@
+{
+  "risks": {
+    "early_termination": [
+      "early cancellation penalty",
+      "exit fee",
+      "cancel fee"
+    ],
+    "general": [
+      "governed by the laws of",
+      "may share your information with",
+      "recurring payments",
+      "charged automatically"
+    ]
+  },
+  "good_points": {
+    "data_protection": [
+      "all customer data encrypted at rest",
+      "complies with ISO 27001"
+    ],
+    "general": []
+  }
+}

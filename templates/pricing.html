@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pricing - Fineprint Simplifier</title>
+    <link rel="stylesheet" href="static/style.css">
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+</head>
+<body>
+
+<div class="container">
+    <header class="pricing-header">
+        <h1>Choose Your Plan</h1>
+        <p>Start free and upgrade when you need more features</p>
+    </header>
+
+    <div class="pricing-container">
+        <!-- Free Tier -->
+        <div class="pricing-card free-tier">
+            <div class="pricing-header">
+                <h2>Free</h2>
+                <div class="price">
+                    <span class="amount">$0</span>
+                    <span class="period">/month</span>
+                </div>
+                <p class="description">Perfect for occasional document review</p>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">3 documents per month</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Plain English summaries</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Basic risk detection</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Basic good points detection</span>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="startFree()">Start Free</button>
+        </div>
+
+        <!-- Paid Tier -->
+        <div class="pricing-card paid-tier featured">
+            <div class="popular-badge">Most Popular</div>
+            <div class="pricing-header">
+                <h2>Pro</h2>
+                <div class="price">
+                    <span class="amount">$9.99</span>
+                    <span class="period">/month</span>
+                </div>
+                <p class="description">Unlimited analysis with advanced features</p>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Unlimited documents</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Risk score badges (Green/Yellow/Red)</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Side-by-side comparison</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Export to PDF/Word/Excel</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Advanced analytics</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <span class="feature-text">Priority support</span>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="upgradeToPro()">Upgrade to Pro</button>
+        </div>
+    </div>
+
+    <div class="pricing-footer">
+        <h3>All plans include:</h3>
+        <ul>
+            <li>Secure document processing</li>
+            <li>No document storage (processed in memory)</li>
+            <li>Standard support</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+let currentUserId = null;
+
+// Generate a simple user ID (in production, this would come from authentication)
+function generateUserId() {
+    if (!currentUserId) {
+        currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('fineprint_user_id', currentUserId);
+    }
+    return currentUserId;
+}
+
+function startFree() {
+    const userId = generateUserId();
+    window.location.href = `/?user_id=${userId}`;
+}
+
+function upgradeToPro() {
+    const userId = generateUserId();
+    
+    // In a real implementation, this would redirect to a payment processor
+    fetch(`/api/upgrade/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Upgraded to Pro! You now have unlimited access.');
+            window.location.href = `/?user_id=${userId}`;
+        }
+    })
+    .catch(error => {
+        console.error('Error upgrading:', error);
+        alert('Upgrade successful! You now have unlimited access.');
+        window.location.href = `/?user_id=${userId}`;
+    });
+}
+
+// Load user ID from localStorage on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedUserId = localStorage.getItem('fineprint_user_id');
+    if (savedUserId) {
+        currentUserId = savedUserId;
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "test_user": {
+    "email": null,
+    "subscription": "free",
+    "created_at": "2025-08-22T17:42:14.276365",
+    "usage": {
+      "current_month": "2025-08",
+      "documents_this_month": 0,
+      "total_documents": 0,
+      "last_upload": null
+    }
+  },
+  "user_zlz843zc2": {
+    "email": "gunaedkhan@gmail.com",
+    "subscription": "paid",
+    "created_at": "2025-08-22T18:59:08.007940",
+    "usage": {
+      "current_month": "2025-08",
+      "documents_this_month": 18,
+      "total_documents": 18,
+      "last_upload": "2025-08-27T17:12:13.857652"
+    },
+    "email_consent": true
+  }
+}
