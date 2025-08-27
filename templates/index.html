@@ -132,7 +132,7 @@
     </div>
 
     <!-- Admin functionality moved to /admin -->
-</div>
+    </div>
 
 <!-- Pattern functionality moved to /admin -->
 
@@ -179,9 +179,9 @@ async function loadUserUsage() {
 function displayUsage() {
     if (!userUsage) return;
     
-    document.getElementById("documents-this-month").textContent = userUsage.documents_this_month;
-    document.getElementById("monthly-limit").textContent = userUsage.monthly_limit;
-    document.getElementById("total-documents").textContent = userUsage.total_documents;
+    document.getElementById("documents-this-month").textContent = userUsage.documents_this_month || 0;
+    document.getElementById("monthly-limit").textContent = userUsage.monthly_limit || 3;
+    document.getElementById("total-documents").textContent = userUsage.total_documents || 0;
     
     // Show/hide usage display
     document.getElementById("usage-display").style.display = "block";
@@ -500,9 +500,9 @@ async function submitEmailAndShowResults() {
     
     if (!email) {
         alert('Please enter a valid email address.');
-        return;
-    }
-    
+            return;
+        }
+
     if (!isValidEmail(email)) {
         alert('Please enter a valid email address.');
         return;

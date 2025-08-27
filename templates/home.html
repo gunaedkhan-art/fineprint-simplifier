@@ -36,7 +36,7 @@
                     <!-- Visitor CTA -->
                     <div id="visitor-cta" class="cta-section">
                         <a href="/upload" class="btn-primary btn-large">Start Analyzing Now</a>
-                        <p class="cta-subtitle">Free analysis available - no signup required</p>
+                        <p class="cta-subtitle">Free analysis available - provide email to view results</p>
                     </div>
 
                     <!-- Free User CTA -->
@@ -212,7 +212,7 @@
             } else {
                 statusText.textContent = "Free User";
                 statusText.className = "status-free";
-                usageInfo.textContent = `${userUsage.documents_this_month}/${userUsage.monthly_limit} analyses used this month`;
+                usageInfo.textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3} analyses used this month`;
                 showFreeUserView();
             }
         }
@@ -232,8 +232,8 @@
             document.getElementById("free-user-cta").style.display = "block";
             document.getElementById("paid-user-cta").style.display = "none";
             
-            document.getElementById("free-uploads-left").textContent = 
-                userUsage.monthly_limit - userUsage.documents_this_month;
+            const uploadsLeft = (userUsage.monthly_limit || 3) - (userUsage.documents_this_month || 0);
+            document.getElementById("free-uploads-left").textContent = uploadsLeft;
             
             // Show PRO badges for paid features
             document.getElementById("comparison-badge").style.display = "inline-block";
