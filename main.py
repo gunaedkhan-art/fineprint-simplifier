@@ -3,6 +3,9 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import os
+import json
+from datetime import datetime
 
 app = FastAPI()
 
@@ -17,7 +20,7 @@ async def health_check():
     """Health check endpoint for monitoring"""
     return {
         "status": "healthy",
-        "timestamp": "2025-08-27T00:00:00",
+        "timestamp": datetime.now().isoformat(),
         "version": "1.0.0",
         "app": "Fineprint Simplifier"
     }
@@ -28,7 +31,7 @@ async def root(request: Request):
 
 @app.get("/test")
 async def test():
-    return {"message": "Fineprint Simplifier is running with templates!"}
+    return {"message": "Fineprint Simplifier is running with templates and utilities!"}
 
 if __name__ == "__main__":
     import uvicorn
