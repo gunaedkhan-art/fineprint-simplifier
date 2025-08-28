@@ -242,6 +242,15 @@ async def create_test_user():
     else:
         return {"error": "User management not available"}
 
+@app.post("/api/debug/delete-user/{user_id}")
+async def delete_user(user_id: str):
+    """Delete a user for testing purposes"""
+    if user_manager:
+        user_manager.delete_user(user_id)
+        return {"success": True, "message": f"User {user_id} deleted"}
+    else:
+        return {"error": "User management not available"}
+
 
 @app.post("/api/update-email/{user_id}")
 async def update_user_email(user_id: str, request: Request):

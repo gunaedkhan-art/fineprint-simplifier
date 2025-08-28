@@ -197,10 +197,22 @@ class UserManager:
             user["usage"]["last_upload"] = None
             user["email"] = None  # Make them a visitor again
             user["subscription"] = "free"  # Reset to free tier
+            # Remove any inconsistent fields
+            if "email_consent" in user:
+                del user["email_consent"]
             self._save_users()
             print(f"DEBUG: Reset usage and subscription for user {user_id}")
         else:
             print(f"DEBUG: User {user_id} not found for reset")
+    
+    def delete_user(self, user_id: str):
+        """Delete a user completely for testing purposes"""
+        if user_id in self.users:
+            del self.users[user_id]
+            self._save_users()
+            print(f"DEBUG: Deleted user {user_id}")
+        else:
+            print(f"DEBUG: User {user_id} not found for deletion")
 
 # Global user manager instance
 user_manager = UserManager()
