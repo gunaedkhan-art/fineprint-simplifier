@@ -223,6 +223,25 @@ async def reset_user_usage(user_id: str):
     else:
         return {"error": "User management not available"}
 
+@app.get("/api/debug/users")
+async def debug_users():
+    """Debug endpoint to see all users"""
+    if user_manager:
+        return {"users": user_manager.users}
+    else:
+        return {"error": "User management not available"}
+
+@app.post("/api/debug/create-test-user")
+async def create_test_user():
+    """Create a fresh test user"""
+    if user_manager:
+        import uuid
+        test_user_id = f"test_user_{uuid.uuid4().hex[:8]}"
+        user_manager.create_user(test_user_id)
+        return {"success": True, "user_id": test_user_id, "message": "Test user created"}
+    else:
+        return {"error": "User management not available"}
+
 
 @app.post("/api/update-email/{user_id}")
 async def update_user_email(user_id: str, request: Request):
