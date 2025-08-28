@@ -200,6 +200,21 @@ async def get_pricing():
 async def get_usage(user_id: str):
     """Get user usage information"""
     if user_manager:
+        user = user_manager.get_user(user_id)
+        
+        # If user doesn't exist or has no email, they're a visitor
+        if not user or not user.get("email"):
+            # Visitors can always upload (no limits)
+            return {
+                "subscription": "free",
+                "email": None,
+                "documents_this_month": 0,
+                "total_documents": 0,
+                "monthly_limit": 3,
+                "can_upload": True  # Visitors can always upload
+            }
+        
+        # For logged-in users, get normal usage summary
         return user_manager.get_usage_summary(user_id)
     else:
         return {"error": "User management not available"}

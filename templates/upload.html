@@ -192,10 +192,16 @@
                 statusText.textContent = "Pro User";
                 statusText.className = "status-pro";
                 usageInfo.textContent = "Unlimited analyses";
-            } else {
+            } else if (userUsage.email) {
+                // Logged in free user
                 statusText.textContent = "Free User";
                 statusText.className = "status-free";
                 usageInfo.textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3} analyses used this month`;
+            } else {
+                // Visitor
+                statusText.textContent = "Visitor";
+                statusText.className = "status-visitor";
+                usageInfo.textContent = "Upload to see analysis summary";
             }
         }
 
@@ -266,8 +272,8 @@
                 return;
             }
             
-            // Check if user can upload
-            if (userUsage && !userUsage.can_upload) {
+            // Check if user can upload (only for logged-in users)
+            if (userUsage && userUsage.email && !userUsage.can_upload) {
                 alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
                 return;
             }
