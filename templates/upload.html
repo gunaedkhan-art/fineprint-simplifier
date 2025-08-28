@@ -164,17 +164,24 @@
         function displayUsage() {
             if (!userUsage) return;
             
-            document.getElementById("documents-this-month").textContent = userUsage.documents_this_month || 0;
-            document.getElementById("monthly-limit").textContent = userUsage.monthly_limit || 3;
-            document.getElementById("total-documents").textContent = userUsage.total_documents || 0;
-            
-            // Show/hide usage display
-            document.getElementById("usage-display").style.display = "block";
-            
-            // Show upgrade prompt if limit reached
-            if (!userUsage.can_upload) {
-                document.getElementById("upgrade-prompt").style.display = "block";
+            // Only show usage for logged-in users (free or paid)
+            if (userUsage.email) {
+                document.getElementById("documents-this-month").textContent = userUsage.documents_this_month || 0;
+                document.getElementById("monthly-limit").textContent = userUsage.monthly_limit || 3;
+                document.getElementById("total-documents").textContent = userUsage.total_documents || 0;
+                
+                // Show usage display for logged-in users
+                document.getElementById("usage-display").style.display = "block";
+                
+                // Show upgrade prompt if limit reached
+                if (!userUsage.can_upload) {
+                    document.getElementById("upgrade-prompt").style.display = "block";
+                } else {
+                    document.getElementById("upgrade-prompt").style.display = "none";
+                }
             } else {
+                // Hide usage display for visitors
+                document.getElementById("usage-display").style.display = "none";
                 document.getElementById("upgrade-prompt").style.display = "none";
             }
         }
