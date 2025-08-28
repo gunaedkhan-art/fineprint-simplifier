@@ -70,12 +70,20 @@ class UserManager:
             user["usage"]["documents_this_month"] = 0
         
         # Check if user can upload
-        if user["subscription"] == "free":
+        print(f"DEBUG: Subscription: {user['subscription']}")
+        if user["subscription"] == "paid":
+            print(f"DEBUG: Paid user - allowing upload")
+            # Paid users can always upload
+            pass
+        elif user["subscription"] == "free":
             print(f"DEBUG: Free user check - email: {user.get('email')}, docs this month: {user['usage']['documents_this_month']}")
             # Allow upload if user has no email (visitor) or hasn't reached limit
             if user.get("email") and user["usage"]["documents_this_month"] >= FREE_TIER_LIMITS["documents_per_month"]:
-                print(f"DEBUG: User has email and reached limit - denying upload")
+                print(f"DEBUG: Free user with email has reached limit - denying upload")
                 return False
+        else:
+            print(f"DEBUG: Unknown subscription type: {user['subscription']}")
+            return False
         
         print(f"DEBUG: Allowing upload - updating usage")
         # Update usage
@@ -167,8 +175,9 @@ class UserManager:
             user["usage"]["total_documents"] = 0
             user["usage"]["last_upload"] = None
             user["email"] = None  # Make them a visitor again
+            user["subscription"] = "free"  # Reset to free tier
             self._save_users()
-            print(f"DEBUG: Reset usage for user {user_id}")
+            print(f"DEBUG: Reset usage and subscription for user {user_id}")
         else:
             print(f"DEBUG: User {user_id} not found for reset")
 
