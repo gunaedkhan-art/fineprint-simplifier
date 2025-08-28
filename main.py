@@ -301,9 +301,11 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     status_code=429
                 )
         else:
-            # Visitor - allow upload but don't count against limits yet
+            # Visitor - create user if doesn't exist and allow upload
             if user_manager:
-                user_manager.update_usage(user_id)
+                if not user:
+                    user_manager.create_user(user_id)
+                # For visitors, we'll update usage after successful analysis
     
     # Save file temporarily
     import tempfile
@@ -430,6 +432,10 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             good_point_count = len(analysis_result["good_points"])
 
         if is_visitor:
+            # Update usage for visitors after successful analysis
+            if user_manager:
+                user_manager.update_usage(user_id)
+            
             # Visitor response - only show summary
             response_data = {
                 "is_visitor": True,
