@@ -208,6 +208,15 @@ async def upgrade_user(user_id: str):
     else:
         return {"error": "User management not available"}
 
+@app.post("/api/reset-usage/{user_id}")
+async def reset_user_usage(user_id: str):
+    """Reset user usage for testing purposes"""
+    if user_manager:
+        user_manager.reset_user_usage(user_id)
+        return {"success": True, "message": "User usage reset successfully"}
+    else:
+        return {"error": "User management not available"}
+
 
 @app.post("/api/update-email/{user_id}")
 async def update_user_email(user_id: str, request: Request):

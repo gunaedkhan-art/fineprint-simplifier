@@ -51,23 +51,33 @@ class UserManager:
     
     def update_usage(self, user_id: str) -> bool:
         """Update user usage and check if they can upload"""
+        print(f"DEBUG: update_usage called for user_id: {user_id}")
+        
         if user_id not in self.users:
+            print(f"DEBUG: Creating new user for {user_id}")
             self.create_user(user_id)
         
         user = self.users[user_id]
         current_month = datetime.now().strftime("%Y-%m")
         
+        print(f"DEBUG: User data: {user}")
+        print(f"DEBUG: Current month: {current_month}, User month: {user['usage']['current_month']}")
+        
         # Reset monthly usage if it's a new month
         if user["usage"]["current_month"] != current_month:
+            print(f"DEBUG: Resetting monthly usage for new month")
             user["usage"]["current_month"] = current_month
             user["usage"]["documents_this_month"] = 0
         
         # Check if user can upload
         if user["subscription"] == "free":
+            print(f"DEBUG: Free user check - email: {user.get('email')}, docs this month: {user['usage']['documents_this_month']}")
             # Allow upload if user has no email (visitor) or hasn't reached limit
             if user.get("email") and user["usage"]["documents_this_month"] >= FREE_TIER_LIMITS["documents_per_month"]:
+                print(f"DEBUG: User has email and reached limit - denying upload")
                 return False
         
+        print(f"DEBUG: Allowing upload - updating usage")
         # Update usage
         user["usage"]["documents_this_month"] += 1
         user["usage"]["total_documents"] += 1
@@ -112,14 +122,20 @@ class UserManager:
     
     def get_usage_summary(self, user_id: str) -> Dict:
         """Get user usage summary"""
+        print(f"DEBUG: get_usage_summary called for user_id: {user_id}")
+        
         if user_id not in self.users:
+            print(f"DEBUG: User not found")
             return {"error": "User not found"}
         
         user = self.users[user_id]
         current_month = datetime.now().strftime("%Y-%m")
         
+        print(f"DEBUG: User data: {user}")
+        
         # Reset monthly usage if it's a new month
         if user["usage"]["current_month"] != current_month:
+            print(f"DEBUG: Resetting monthly usage for new month")
             user["usage"]["current_month"] = current_month
             user["usage"]["documents_this_month"] = 0
             self._save_users()
@@ -131,7 +147,7 @@ class UserManager:
         elif user["subscription"] == "paid":
             can_upload = True
         
-        return {
+        result = {
             "subscription": user["subscription"],
             "email": user.get("email"),
             "documents_this_month": user["usage"]["documents_this_month"],
@@ -139,6 +155,22 @@ class UserManager:
             "monthly_limit": FREE_TIER_LIMITS["documents_per_month"] if user["subscription"] == "free" else "unlimited",
             "can_upload": can_upload
         }
+        
+        print(f"DEBUG: Returning usage summary: {result}")
+        return result
+
+    def reset_user_usage(self, user_id: str):
+        """Reset user usage for testing purposes"""
+        if user_id in self.users:
+            user = self.users[user_id]
+            user["usage"]["documents_this_month"] = 0
+            user["usage"]["total_documents"] = 0
+            user["usage"]["last_upload"] = None
+            user["email"] = None  # Make them a visitor again
+            self._save_users()
+            print(f"DEBUG: Reset usage for user {user_id}")
+        else:
+            print(f"DEBUG: User {user_id} not found for reset")
 
 # Global user manager instance
 user_manager = UserManager()
