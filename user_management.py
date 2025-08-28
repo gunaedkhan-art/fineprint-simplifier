@@ -49,6 +49,11 @@ class UserManager:
             return None
         return self.users[user_id]
     
+    def is_visitor(self, user_id: str) -> bool:
+        """Check if user is a visitor (no email)"""
+        user = self.get_user(user_id)
+        return user is not None and not user.get("email")
+    
     def update_usage(self, user_id: str) -> bool:
         """Update user usage and check if they can upload"""
         print(f"DEBUG: update_usage called for user_id: {user_id}")
@@ -86,24 +91,26 @@ class UserManager:
         if user["subscription"] == "paid":
             print(f"DEBUG: Paid user - allowing upload")
             # Paid users can always upload
-            pass
+            user["usage"]["documents_this_month"] += 1
+            user["usage"]["total_documents"] += 1
+            user["usage"]["last_upload"] = datetime.now().isoformat()
+            self._save_users()
+            return True
         elif user["subscription"] == "free":
             print(f"DEBUG: Free user check - docs this month: {user['usage']['documents_this_month']}")
             if user["usage"]["documents_this_month"] >= FREE_TIER_LIMITS["documents_per_month"]:
                 print(f"DEBUG: Free user has reached limit - denying upload")
                 return False
+            else:
+                print(f"DEBUG: Free user - allowing upload")
+                user["usage"]["documents_this_month"] += 1
+                user["usage"]["total_documents"] += 1
+                user["usage"]["last_upload"] = datetime.now().isoformat()
+                self._save_users()
+                return True
         else:
             print(f"DEBUG: Unknown subscription type: {user['subscription']}")
             return False
-        
-        print(f"DEBUG: Allowing upload - updating usage")
-        # Update usage
-        user["usage"]["documents_this_month"] += 1
-        user["usage"]["total_documents"] += 1
-        user["usage"]["last_upload"] = datetime.now().isoformat()
-        
-        self._save_users()
-        return True
     
     def revert_usage(self, user_id: str):
         """Revert the usage count (for failed uploads)"""
