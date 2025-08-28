@@ -49,14 +49,20 @@ except Exception as e:
 
 app = FastAPI()
 
-@app.on_event("startup")
-async def startup_event():
-    """Handle startup events and log any issues"""
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app):
+    """Handle startup and shutdown events"""
     print("🚀 Application starting up...")
     try:
         print("✓ FastAPI app created successfully")
     except Exception as e:
         print(f"✗ Startup error: {e}")
+    yield
+    print("🛑 Application shutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 # Serve static files (CSS, JS)
 try:

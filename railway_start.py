@@ -35,7 +35,8 @@ def main():
             host="0.0.0.0",
             port=port,
             reload=False,
-            log_level="info"
+            log_level="info",
+            access_log=True
         )
     except Exception as e:
         print(f"Error starting server: {e}")
