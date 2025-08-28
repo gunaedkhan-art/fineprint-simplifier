@@ -282,17 +282,28 @@ async def update_user_email(user_id: str, request: Request):
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
-    # Check user usage limits
+    # Check if user is a visitor (no email) or logged in user
+    user = None
+    is_visitor = True
+    
     if user_manager:
-        if not user_manager.update_usage(user_id):
-            return JSONResponse(
-                content={
-                    "error": "Monthly limit reached", 
-                    "upgrade_required": True,
-                    "usage": user_manager.get_usage_summary(user_id)
-                }, 
-                status_code=429
-            )
+        user = user_manager.get_user(user_id)
+        if user and user.get("email"):
+            is_visitor = False
+            # Check usage limits for logged in users
+            if not user_manager.update_usage(user_id):
+                return JSONResponse(
+                    content={
+                        "error": "Monthly limit reached", 
+                        "upgrade_required": True,
+                        "usage": user_manager.get_usage_summary(user_id)
+                    }, 
+                    status_code=429
+                )
+        else:
+            # Visitor - allow upload but don't count against limits yet
+            if user_manager:
+                user_manager.update_usage(user_id)
     
     # Save file temporarily
     import tempfile
@@ -402,20 +413,51 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
 
         save_pending_patterns(pending)
 
-        response_data = {
-            "analysis": analysis_result,
-            "pages": raw_pages,  # send raw text for highlighting
-            "custom_patterns": patterns,
-            "pending_patterns": pending,
-            "quality_assessment": quality_assessment,
-            "readable_pages": readable_pages,
-            "total_pages": total_pages,
-            "total_characters": total_characters,
-            "quality_issues": quality_issues
-        }
+        # Count findings for visitor summary
+        risk_count = 0
+        good_point_count = 0
         
-        print(f"DEBUG: Returning response with {len(raw_pages)} pages")
-        print(f"DEBUG: First page text preview: {raw_pages[0]['text'][:100] if raw_pages else 'No pages'}")
+        if isinstance(analysis_result.get("risks"), dict):
+            for category_risks in analysis_result["risks"].values():
+                risk_count += len(category_risks)
+        elif isinstance(analysis_result.get("risks"), list):
+            risk_count = len(analysis_result["risks"])
+            
+        if isinstance(analysis_result.get("good_points"), dict):
+            for category_good_points in analysis_result["good_points"].values():
+                good_point_count += len(category_good_points)
+        elif isinstance(analysis_result.get("good_points"), list):
+            good_point_count = len(analysis_result["good_points"])
+
+        if is_visitor:
+            # Visitor response - only show summary
+            response_data = {
+                "is_visitor": True,
+                "visitor_summary": {
+                    "risk_count": risk_count,
+                    "good_point_count": good_point_count,
+                    "total_pages": total_pages,
+                    "quality_assessment": quality_assessment
+                },
+                "message": "Analysis complete! Sign up to see detailed results."
+            }
+        else:
+            # Logged in user response - full analysis
+            response_data = {
+                "is_visitor": False,
+                "analysis": analysis_result,
+                "pages": raw_pages,  # send raw text for highlighting
+                "custom_patterns": patterns,
+                "pending_patterns": pending,
+                "quality_assessment": quality_assessment,
+                "readable_pages": readable_pages,
+                "total_pages": total_pages,
+                "total_characters": total_characters,
+                "quality_issues": quality_issues
+            }
+        
+        print(f"DEBUG: Returning response for {'visitor' if is_visitor else 'logged in user'}")
+        print(f"DEBUG: Risk count: {risk_count}, Good point count: {good_point_count}")
         
         return JSONResponse(content=response_data)
     finally:

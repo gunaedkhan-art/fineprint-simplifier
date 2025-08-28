@@ -70,16 +70,27 @@ class UserManager:
             user["usage"]["documents_this_month"] = 0
         
         # Check if user can upload
-        print(f"DEBUG: Subscription: {user['subscription']}")
+        print(f"DEBUG: Subscription: {user['subscription']}, Email: {user.get('email')}")
+        
+        # Visitors (no email) can always upload once
+        if not user.get("email"):
+            print(f"DEBUG: Visitor - allowing upload")
+            # Update usage
+            user["usage"]["documents_this_month"] += 1
+            user["usage"]["total_documents"] += 1
+            user["usage"]["last_upload"] = datetime.now().isoformat()
+            self._save_users()
+            return True
+        
+        # Logged in users check limits
         if user["subscription"] == "paid":
             print(f"DEBUG: Paid user - allowing upload")
             # Paid users can always upload
             pass
         elif user["subscription"] == "free":
-            print(f"DEBUG: Free user check - email: {user.get('email')}, docs this month: {user['usage']['documents_this_month']}")
-            # Allow upload if user has no email (visitor) or hasn't reached limit
-            if user.get("email") and user["usage"]["documents_this_month"] >= FREE_TIER_LIMITS["documents_per_month"]:
-                print(f"DEBUG: Free user with email has reached limit - denying upload")
+            print(f"DEBUG: Free user check - docs this month: {user['usage']['documents_this_month']}")
+            if user["usage"]["documents_this_month"] >= FREE_TIER_LIMITS["documents_per_month"]:
+                print(f"DEBUG: Free user has reached limit - denying upload")
                 return False
         else:
             print(f"DEBUG: Unknown subscription type: {user['subscription']}")
@@ -148,9 +159,12 @@ class UserManager:
             user["usage"]["documents_this_month"] = 0
             self._save_users()
         
-        # For visitors (no email), allow uploads
+        # Determine if user can upload
         can_upload = True
-        if user["subscription"] == "free" and user.get("email"):
+        if not user.get("email"):
+            # Visitors can always upload once
+            can_upload = True
+        elif user["subscription"] == "free":
             can_upload = user["usage"]["documents_this_month"] < FREE_TIER_LIMITS["documents_per_month"]
         elif user["subscription"] == "paid":
             can_upload = True

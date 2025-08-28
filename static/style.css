@@ -2405,6 +2405,125 @@ h2, h3 {
     opacity: 1;
 }
 
+/* Visitor Summary Styles */
+.visitor-summary-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.visitor-summary-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.visitor-summary-header h2 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.visitor-message {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.visitor-summary-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.summary-stat {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.risk-count {
+    color: #dc3545;
+}
+
+.good-point-count {
+    color: #28a745;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.visitor-cta-section {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.visitor-cta-section h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.cta-buttons .btn-primary,
+.cta-buttons .btn-secondary {
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.cta-buttons .btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.cta-buttons .btn-primary:hover {
+    background: #0056b3;
+}
+
+.cta-buttons .btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.cta-buttons .btn-secondary:hover {
+    background: #545b62;
+}
+
+.cta-note {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .header-content {
@@ -2438,5 +2557,15 @@ h2, h3 {
     
     .footer-links {
         justify-content: center;
+    }
+    
+    .visitor-summary-stats {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
     }
 }
