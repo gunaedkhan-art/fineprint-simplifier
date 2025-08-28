@@ -251,6 +251,16 @@ async def delete_user(user_id: str):
     else:
         return {"error": "User management not available"}
 
+@app.post("/api/debug/clear-all-users")
+async def clear_all_users():
+    """Clear all user data for testing purposes"""
+    if user_manager:
+        user_manager.users = {}
+        user_manager._save_users()
+        return {"success": True, "message": "All users cleared"}
+    else:
+        return {"error": "User management not available"}
+
 
 @app.post("/api/update-email/{user_id}")
 async def update_user_email(user_id: str, request: Request):
@@ -291,15 +301,17 @@ async def update_user_email(user_id: str, request: Request):
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
-    # Check if user is a visitor (no email) or logged in user
-    user = None
+    # For visitors, we don't check any existing user data - just allow the upload
+    # and create a fresh user record after successful analysis
     is_visitor = True
+    user = None
     
+    # Only check existing user data if they have an email (logged in user)
     if user_manager:
         user = user_manager.get_user(user_id)
         if user and user.get("email"):
             is_visitor = False
-            # Check usage limits for logged in users
+            # Check usage limits for logged in users only
             if not user_manager.update_usage(user_id):
                 return JSONResponse(
                     content={
@@ -309,12 +321,6 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     }, 
                     status_code=429
                 )
-        else:
-            # Visitor - create user if doesn't exist and allow upload
-            if user_manager:
-                if not user:
-                    user_manager.create_user(user_id)
-                # For visitors, we'll update usage after successful analysis
     
     # Save file temporarily
     import tempfile
@@ -441,9 +447,10 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             good_point_count = len(analysis_result["good_points"])
 
         if is_visitor:
-            # Update usage for visitors after successful analysis
+            # For visitors, create a fresh user record after successful analysis
             if user_manager:
-                user_manager.update_usage(user_id)
+                user_manager.create_user(user_id)  # This creates a clean visitor record
+                user_manager.update_usage(user_id)  # Update usage for the new record
             
             # Visitor response - only show summary
             response_data = {
