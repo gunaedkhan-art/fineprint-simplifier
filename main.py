@@ -129,6 +129,10 @@ async def upload_page(request: Request):
 async def compare_page(request: Request):
     return templates.TemplateResponse("compare.html", {"request": request})
 
+@app.get("/how-it-works", response_class=HTMLResponse)
+async def how_it_works_page(request: Request):
+    return templates.TemplateResponse("how-it-works.html", {"request": request})
+
 
 @app.get("/health")
 async def health_check():

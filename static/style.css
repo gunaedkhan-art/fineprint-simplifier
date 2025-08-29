@@ -2574,3 +2574,223 @@ h2, h3 {
         align-items: center;
     }
 }
+
+/* How It Works Page Styles */
+.process-section {
+    padding: 4rem 0;
+    background-color: white;
+}
+
+.process-section h3 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 3rem;
+    color: #2c3e50;
+}
+
+.process-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.process-step {
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.step-number {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 1rem auto;
+}
+
+.process-step h4 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.process-step p {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+.document-types-section {
+    padding: 4rem 0;
+    background-color: #f8f9fa;
+}
+
+.document-types-section h3 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 3rem;
+    color: #2c3e50;
+}
+
+.document-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.document-category {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.document-category h4 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+.document-category ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.document-category li {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #f8f9fa;
+    color: #6c757d;
+    line-height: 1.5;
+}
+
+.document-category li:last-child {
+    border-bottom: none;
+}
+
+.document-category li strong {
+    color: #2c3e50;
+}
+
+.use-cases-section {
+    padding: 4rem 0;
+    background-color: white;
+}
+
+.use-cases-section h3 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 3rem;
+    color: #2c3e50;
+}
+
+.use-cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.use-case {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.use-case:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.use-case h4 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.use-case p {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+.faq-section {
+    padding: 4rem 0;
+    background-color: #f8f9fa;
+}
+
+.faq-section h3 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 3rem;
+    color: #2c3e50;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.faq-item {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.faq-item h4 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.faq-item p {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* Responsive Design for How It Works Page */
+@media (max-width: 768px) {
+    .process-grid,
+    .document-grid,
+    .use-cases-grid,
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .document-grid {
+        gap: 2rem;
+    }
+    
+    .process-step,
+    .document-category,
+    .use-case,
+    .faq-item {
+        padding: 1.5rem;
+    }
+}
