@@ -8,7 +8,7 @@ from collections import defaultdict
 from pdf_parser import extract_text_from_pdf
 from preprocess_text import preprocess_text
 from matcher import find_risks_in_text
-from analyzer import analyze_pdf
+from analyzer import analyze_pdf, analyze_text_content
 import os
 import json
 import re
@@ -507,6 +507,96 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             os.unlink(temp_path)
         except:
             pass
+
+
+@app.post("/analyze-text")
+async def analyze_text(request: Request):
+    """Analyze pasted text instead of uploaded file"""
+    try:
+        data = await request.json()
+        text_content = data.get("text", "").strip()
+        user_id = data.get("user_id", "")
+        
+        if not text_content:
+            return JSONResponse(
+                content={"error": "No text provided"}, 
+                status_code=400
+            )
+        
+        # For visitors, we don't check any existing user data - just allow the analysis
+        # and create a fresh user record after successful analysis
+        is_visitor = True
+        user = None
+        
+        # Only check existing user data if they have an email (logged in user)
+        if user_manager:
+            user = user_manager.get_user(user_id)
+            if user and user.get("email"):
+                is_visitor = False
+                # Check usage limits for logged in users only
+                if not user_manager.update_usage(user_id):
+                    return JSONResponse(
+                        content={
+                            "error": "Monthly limit reached", 
+                            "upgrade_required": True,
+                            "usage": user_manager.get_usage_summary(user_id)
+                        }, 
+                        status_code=429
+                    )
+        
+        # Load patterns
+        patterns = load_custom_patterns()
+        pending = load_pending_patterns()
+
+        # Run analysis on the provided text
+        analysis_result = analyze_text_content(text_content)
+
+        # Add new patterns to pending
+        for category in ["risks", "good_points"]:
+            if category in analysis_result:
+                new_patterns = analysis_result.get(f"new_patterns", {}).get(category, {})
+                for subcategory, phrases in new_patterns.items():
+                    pending.setdefault(category, {}).setdefault(subcategory, []).extend(phrases)
+        
+        save_pending_patterns(pending)
+
+        # Update usage for successful analysis
+        if user_manager:
+            if is_visitor:
+                # Create or update visitor record
+                user_manager.create_user(user_id)
+                user_manager.update_usage(user_id)
+            else:
+                # Already updated usage above for logged in users
+                pass
+
+        # Prepare response data
+        risk_count = sum(len(v) for v in analysis_result.get("risks", {}).values())
+        good_point_count = sum(len(v) for v in analysis_result.get("good_points", {}).values())
+        
+        response_data = {
+            "success": True,
+            "risks": analysis_result.get("risks", {}),
+            "good_points": analysis_result.get("good_points", {}),
+            "contract_rating": analysis_result.get("contract_rating", 5),
+            "total_matches": risk_count + good_point_count,
+            "is_visitor": is_visitor,
+            "risk_count": risk_count,
+            "good_point_count": good_point_count,
+            "analysis_type": "text"
+        }
+        
+        print(f"DEBUG: Returning response for {'visitor' if is_visitor else 'logged in user'}")
+        print(f"DEBUG: Risk count: {risk_count}, Good point count: {good_point_count}")
+        
+        return JSONResponse(content=response_data)
+        
+    except Exception as e:
+        print(f"Error in analyze_text: {str(e)}")
+        return JSONResponse(
+            content={"error": f"Analysis failed: {str(e)}"}, 
+            status_code=500
+        )
 
 
 @app.post("/add_pattern")

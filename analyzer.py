@@ -47,3 +47,33 @@ def analyze_pdf(file_path: str) -> dict:
                          sum(len(v) for v in goods_overall.values()),
         "pages": page_matches
     }
+
+
+def analyze_text_content(text_content: str) -> dict:
+    """
+    Analyzes provided text content directly without PDF extraction.
+    Returns a dict with matches and scoring.
+    """
+    if not text_content:
+        return {"success": False, "error": "No text provided"}
+
+    # Overall matches using core patterns only
+    risks_overall = find_risks_in_text(text_content)
+    goods_overall = find_good_points_in_text(text_content)
+
+    # Detect new potential patterns and store in pending_patterns.json
+    all_existing_matches = {**risks_overall, **goods_overall}
+    new_patterns = detect_new_patterns(text_content, all_existing_matches)
+
+    # Calculate contract rating
+    contract_rating = score_contract(risks_overall, goods_overall)
+
+    return {
+        "success": True,
+        "risks": risks_overall,
+        "good_points": goods_overall,
+        "contract_rating": contract_rating,
+        "total_matches": sum(len(v) for v in risks_overall.values()) +
+                         sum(len(v) for v in goods_overall.values()),
+        "new_patterns": new_patterns
+    }
