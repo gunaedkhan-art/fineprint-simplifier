@@ -535,7 +535,7 @@
             const resultsDiv = document.getElementById("results");
             
             let qualityInfo = "";
-            if (summary.quality_assessment) {
+            if (summary && summary.quality_assessment) {
                 const qualityColors = {
                     'excellent': '#28a745',
                     'good': '#28a745', 

@@ -570,17 +570,24 @@ async def analyze_text(request: Request):
         risk_count = sum(len(v) for v in analysis_result.get("risks", {}).values())
         good_point_count = sum(len(v) for v in analysis_result.get("good_points", {}).values())
         
-        response_data = {
-            "success": True,
-            "risks": analysis_result.get("risks", {}),
-            "good_points": analysis_result.get("good_points", {}),
-            "contract_rating": analysis_result.get("contract_rating", 5),
-            "total_matches": risk_count + good_point_count,
-            "is_visitor": is_visitor,
-            "risk_count": risk_count,
-            "good_point_count": good_point_count,
-            "analysis_type": "text"
-        }
+        if is_visitor:
+            # Visitor response - only show summary
+            response_data = {
+                "is_visitor": True,
+                "visitor_summary": {
+                    "risk_count": risk_count,
+                    "good_point_count": good_point_count,
+                    "analysis_type": "text"
+                },
+                "message": "Analysis complete! Sign up to see detailed results."
+            }
+        else:
+            # Logged in user response - full analysis
+            response_data = {
+                "is_visitor": False,
+                "analysis": analysis_result,
+                "analysis_type": "text"
+            }
         
         print(f"DEBUG: Returning response for {'visitor' if is_visitor else 'logged in user'}")
         print(f"DEBUG: Risk count: {risk_count}, Good point count: {good_point_count}")
