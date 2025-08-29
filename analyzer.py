@@ -74,6 +74,5 @@ def analyze_text_content(text_content: str) -> dict:
         "good_points": goods_overall,
         "contract_rating": contract_rating,
         "total_matches": sum(len(v) for v in risks_overall.values()) +
-                         sum(len(v) for v in goods_overall.values()),
-        "new_patterns": new_patterns
+                         sum(len(v) for v in goods_overall.values())
     }

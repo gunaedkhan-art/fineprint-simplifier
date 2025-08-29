@@ -551,12 +551,8 @@ async def analyze_text(request: Request):
         # Run analysis on the provided text
         analysis_result = analyze_text_content(text_content)
 
-        # Add new patterns to pending
-        for category in ["risks", "good_points"]:
-            if category in analysis_result:
-                new_patterns = analysis_result.get(f"new_patterns", {}).get(category, {})
-                for subcategory, phrases in new_patterns.items():
-                    pending.setdefault(category, {}).setdefault(subcategory, []).extend(phrases)
+        # Add new patterns to pending (already handled by detect_new_patterns function)
+        # The detect_new_patterns function automatically saves new patterns to pending_patterns.json
         
         save_pending_patterns(pending)
 
