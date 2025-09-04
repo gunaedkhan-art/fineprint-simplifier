@@ -16,7 +16,7 @@
 1. Go to [Stripe Dashboard > Products](https://dashboard.stripe.com/products)
 2. Click "Add Product"
 3. Set up your Pro subscription:
-   - **Name**: FinePrint Simplifier Pro
+   - **Name**: Small Print Checker Pro
    - **Description**: Unlimited document analysis with advanced features
    - **Pricing**: $9.99/month (recurring)
    - **Billing**: Monthly
