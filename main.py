@@ -709,7 +709,7 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             }
         else:
             # Logged in user response - full analysis
-        response_data = {
+            response_data = {
                 "is_visitor": False,
             "analysis": analysis_result,
             "pages": raw_pages,  # send raw text for highlighting
@@ -966,12 +966,12 @@ async def get_pending_patterns():
             else:
                 # Legacy format (list of phrases)
                 for phrase in data:
-                formatted_patterns.append({
-                    "type": "risk" if category == "risks" else "good_point",
-                    "category": subcategory,
+                    formatted_patterns.append({
+                        "type": "risk" if category == "risks" else "good_point",
+                        "category": subcategory,
                         "phrase": phrase,
                         "scored": False
-                })
+                    })
     
     return JSONResponse(content=formatted_patterns)
 
