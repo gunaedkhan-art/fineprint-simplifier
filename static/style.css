@@ -101,6 +101,12 @@ body {
     gap: var(--space-4);
 }
 
+.logo-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
 .logo {
     font-size: var(--font-size-2xl);
     font-weight: 700;
@@ -887,6 +893,33 @@ body {
     border-radius: var(--radius-sm);
     font-size: var(--font-size-xs);
     font-weight: 600;
+}
+
+/* User Status Banner */
+.user-status-banner {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    min-height: calc(100vh - 200px);
 }
 
 /* Utility Classes */
