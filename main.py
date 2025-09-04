@@ -145,10 +145,7 @@ async def ping():
     """Simple ping endpoint for testing"""
     return {"message": "pong"}
 
-@app.get("/")
-async def root():
-    """Root endpoint"""
-    return {"message": "Fineprint Simplifier is running!"}
+# Root endpoint removed - using the home page route above instead
 
 # Include admin router if available
 if admin_router:
