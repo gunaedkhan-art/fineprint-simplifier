@@ -2,17 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pricing - Small Print Checker</title>
-    <link rel="stylesheet" href="static/style.css">
-    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 </head>
 <body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="/" class="logo-link">
+                        <h1 class="logo">📋 Small Print Checker</h1>
+                        <p class="tagline">Understand your contracts in plain English</p>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/upload" class="nav-link">Analyze</a>
+                    <a href="/compare" class="nav-link">Compare</a>
+                    <a href="/how-it-works" class="nav-link">How It Works</a>
+                    <a href="/pricing" class="nav-link active">Pricing</a>
+                </nav>
+            </div>
+        </header>
 
-<div class="container">
-    <header class="pricing-header">
-        <h1>Choose Your Plan</h1>
-        <p>Start free and upgrade when you need more features</p>
-    </header>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Choose Your Plan</h1>
+                <p class="page-subtitle">Start free and upgrade when you need more features</p>
+            </div>
 
     <div class="pricing-container">
         <!-- Free Tier -->
@@ -244,6 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkSubscriptionStatus();
 });
 </script>
-
+        </main>
+    </div>
 </body>
 </html>

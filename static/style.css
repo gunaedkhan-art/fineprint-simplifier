@@ -935,6 +935,77 @@ body {
     min-height: calc(100vh - 200px);
 }
 
+/* Page Headers */
+.page-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+    padding: var(--space-8) 0;
+}
+
+.page-title {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+}
+
+.page-subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Upload Container */
+.upload-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+.upload-section {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Input Toggle */
+.input-toggle {
+    display: flex;
+    background: var(--surface-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-1);
+    margin-bottom: var(--space-6);
+    gap: var(--space-1);
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+    background: var(--background-color);
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.toggle-btn:hover:not(.active) {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
 /* Utility Classes */
 .text-center { text-align: center; }
 .text-left { text-align: left; }
