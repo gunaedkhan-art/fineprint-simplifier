@@ -709,11 +709,11 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             }
         else:
             # Logged in user response - full analysis
-            response_data = {
+        response_data = {
                 "is_visitor": False,
-                "analysis": analysis_result,
-                "pages": raw_pages,  # send raw text for highlighting
-                "custom_patterns": patterns,
+            "analysis": analysis_result,
+            "pages": raw_pages,  # send raw text for highlighting
+            "custom_patterns": patterns,
                 "pending_patterns": pending,
                 "quality_assessment": quality_assessment,
                 "readable_pages": readable_pages,
@@ -1064,7 +1064,7 @@ async def score_pattern(data: dict):
 @app.post("/reject_pattern")
 async def reject_pattern(data: dict):
     phrase = data.get("phrase")
-    
+
     pending = load_pending_patterns()
     
     # Remove the pattern from any location
