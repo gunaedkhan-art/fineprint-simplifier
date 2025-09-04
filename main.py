@@ -966,12 +966,12 @@ async def get_pending_patterns():
             else:
                 # Legacy format (list of phrases)
                 for phrase in data:
-                    formatted_patterns.append({
-                        "type": "risk" if category == "risks" else "good_point",
-                        "category": subcategory,
+                formatted_patterns.append({
+                    "type": "risk" if category == "risks" else "good_point",
+                    "category": subcategory,
                         "phrase": phrase,
                         "scored": False
-                    })
+                })
     
     return JSONResponse(content=formatted_patterns)
 
