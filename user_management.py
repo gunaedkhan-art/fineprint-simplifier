@@ -33,6 +33,10 @@ class UserManager:
                 "email": email,
                 "subscription": "free",
                 "created_at": datetime.now().isoformat(),
+                "stripe_customer_id": None,
+                "stripe_subscription_id": None,
+                "subscription_status": "free",
+                "subscription_expires": None,
                 "usage": {
                     "current_month": datetime.now().strftime("%Y-%m"),
                     "documents_this_month": 0,
@@ -145,6 +149,36 @@ class UserManager:
         
         self.users[user_id]["subscription"] = subscription_type
         self._save_users()
+    
+    def update_stripe_subscription(self, user_id: str, customer_id: str, subscription_id: str, status: str, expires_at: int = None):
+        """Update user's Stripe subscription information"""
+        if user_id not in self.users:
+            self.create_user(user_id)
+        
+        user = self.users[user_id]
+        user["stripe_customer_id"] = customer_id
+        user["stripe_subscription_id"] = subscription_id
+        user["subscription_status"] = status
+        
+        if expires_at:
+            user["subscription_expires"] = datetime.fromtimestamp(expires_at).isoformat()
+        
+        # Update subscription type based on status
+        if status in ["active", "trialing"]:
+            user["subscription"] = "paid"
+        else:
+            user["subscription"] = "free"
+        
+        self._save_users()
+    
+    def cancel_stripe_subscription(self, user_id: str):
+        """Cancel user's Stripe subscription"""
+        if user_id in self.users:
+            user = self.users[user_id]
+            user["subscription"] = "free"
+            user["subscription_status"] = "canceled"
+            user["stripe_subscription_id"] = None
+            self._save_users()
     
     def get_usage_summary(self, user_id: str) -> Dict:
         """Get user usage summary"""

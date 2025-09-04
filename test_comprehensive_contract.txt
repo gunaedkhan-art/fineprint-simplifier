@@ -1,0 +1,35 @@
+SERVICE AGREEMENT
+
+This Service Agreement ("Agreement") is entered into between Company ABC ("Provider") and Customer XYZ ("Client") on January 1, 2024.
+
+TERMS AND CONDITIONS:
+
+1. SERVICE PROVISION
+Provider agrees to deliver web development services to Client. The service may be unavailable during scheduled maintenance periods.
+
+2. PAYMENT TERMS
+Client agrees to pay $5,000 monthly. A late payment fee of $50 will be charged for payments received more than 15 days after the due date. All payments are non-refundable once services have commenced.
+
+3. TERMINATION
+Either party may terminate this agreement with 30 days written notice. However, an early termination fee of $2,000 will apply if Client terminates before the 12-month minimum term. The contract will automatically renew for additional 12-month periods unless cancelled in writing 60 days before expiration.
+
+4. DISPUTE RESOLUTION
+Any disputes arising from this agreement shall be resolved through binding arbitration. Client waives their right to sue in court and agrees that the arbitrator's decision is final with no right to appeal.
+
+5. LIABILITY LIMITATIONS
+Provider's liability is limited to the amount paid by Client in the 12 months preceding any claim. Client agrees to indemnify Provider against any third-party claims.
+
+6. DATA PROTECTION
+Client data will be kept secure and confidential in accordance with GDPR requirements. Provider reserves the right to change these terms at any time without notice.
+
+7. GRACE PERIOD
+Client has a grace period of 14 days from the signing date to cancel without penalty.
+
+8. MONEY-BACK GUARANTEE
+If Client is not satisfied with the service within the first 30 days, they may request a full refund.
+
+9. ADDITIONAL CHARGES
+Additional charges may apply for services beyond the scope of this agreement. Processing fees are extra and not included in the base price.
+
+10. FORCE MAJEURE
+Provider is not liable for service interruptions due to circumstances beyond their control.

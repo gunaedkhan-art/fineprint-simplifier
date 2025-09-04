@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Error - FinePrint Simplifier</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="error-page">
+            <div class="error-icon">❌</div>
+            <h1>Payment Error</h1>
+            <p class="error-message">
+                We encountered an issue processing your payment.
+            </p>
+            
+            {% if error %}
+            <div class="error-details">
+                <p><strong>Error:</strong> {{ error }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="action-buttons">
+                <a href="/pricing" class="btn-primary">Try Again</a>
+                <a href="/" class="btn-secondary">Back to Home</a>
+            </div>
+            
+            <div class="support-info">
+                <h3>Need Help?</h3>
+                <p>If you continue to experience issues, please contact our support team:</p>
+                <p>Email: <a href="mailto:support@fineprintsimplifier.com">support@fineprintsimplifier.com</a></p>
+                <p>We'll help you get your Pro subscription activated.</p>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .error-page {
+            text-align: center;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            font-size: 1.2rem;
+            color: #dc2626;
+            margin-bottom: 2rem;
+        }
+        
+        .error-details {
+            background: #fef2f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .error-details p {
+            margin: 0;
+            color: #7f1d1d;
+        }
+        
+        .action-buttons {
+            margin: 2rem 0;
+        }
+        
+        .action-buttons a {
+            display: inline-block;
+            margin: 0.5rem;
+        }
+        
+        .support-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .support-info h3 {
+            color: #374151;
+            margin-top: 0;
+        }
+        
+        .support-info a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .support-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</body>
+</html>

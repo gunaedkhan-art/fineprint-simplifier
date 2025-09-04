@@ -47,6 +47,13 @@ except Exception as e:
     print(f"✗ admin router import failed: {e}")
     admin_router = None
 
+try:
+    from stripe_integration import stripe_manager, create_payment_session, handle_successful_payment
+    print("✓ stripe integration imported successfully")
+except Exception as e:
+    print(f"✗ stripe integration import failed: {e}")
+    stripe_manager = None
+
 app = FastAPI()
 
 from contextlib import asynccontextmanager
@@ -221,9 +228,230 @@ async def get_usage(user_id: str):
         return {"error": "User management not available"}
 
 
+@app.post("/api/create-checkout-session")
+async def create_checkout_session(request: Request):
+    """Create a Stripe checkout session for Pro subscription"""
+    if not stripe_manager:
+        return JSONResponse(
+            content={"error": "Payment processing not available"},
+            status_code=500
+        )
+    
+    try:
+        data = await request.json()
+        user_id = data.get("user_id")
+        email = data.get("email")
+        
+        if not user_id or not email:
+            return JSONResponse(
+                content={"error": "User ID and email are required"},
+                status_code=400
+            )
+        
+        # Create success and cancel URLs
+        base_url = str(request.base_url).rstrip('/')
+        success_url = f"{base_url}/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{base_url}/pricing"
+        
+        # Create payment session
+        result = create_payment_session(user_id, email, success_url, cancel_url)
+        
+        if result['success']:
+            return JSONResponse(content={
+                "success": True,
+                "checkout_url": result['checkout_url'],
+                "session_id": result['session_id']
+            })
+        else:
+            return JSONResponse(
+                content={"error": result['error']},
+                status_code=500
+            )
+            
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Failed to create checkout session: {str(e)}"},
+            status_code=500
+        )
+
+@app.get("/payment-success")
+async def payment_success(request: Request, session_id: str = None):
+    """Handle successful payment"""
+    if not session_id:
+        return templates.TemplateResponse("payment_error.html", {
+            "request": request,
+            "error": "No session ID provided"
+        })
+    
+    try:
+        import stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            # Get user ID from session metadata
+            user_id = session.metadata.get('user_id')
+            subscription_id = session.subscription
+            
+            if user_id and subscription_id and user_manager:
+                # Handle successful payment
+                payment_result = handle_successful_payment(subscription_id, user_id)
+                
+                if payment_result['success']:
+                    # Update user subscription
+                    user_manager.update_stripe_subscription(
+                        user_id,
+                        payment_result['customer_id'],
+                        subscription_id,
+                        payment_result['status'],
+                        payment_result.get('current_period_end')
+                    )
+                    
+                    return templates.TemplateResponse("payment_success.html", {
+                        "request": request,
+                        "user_id": user_id,
+                        "subscription_id": subscription_id
+                    })
+        
+        return templates.TemplateResponse("payment_error.html", {
+            "request": request,
+            "error": "Payment verification failed"
+        })
+        
+    except Exception as e:
+        return templates.TemplateResponse("payment_error.html", {
+            "request": request,
+            "error": f"Payment processing error: {str(e)}"
+        })
+
+@app.post("/api/create-portal-session")
+async def create_portal_session(request: Request):
+    """Create a Stripe customer portal session"""
+    if not stripe_manager:
+        return JSONResponse(
+            content={"error": "Payment processing not available"},
+            status_code=500
+        )
+    
+    try:
+        data = await request.json()
+        user_id = data.get("user_id")
+        
+        if not user_id or not user_manager:
+            return JSONResponse(
+                content={"error": "User ID required"},
+                status_code=400
+            )
+        
+        user = user_manager.get_user(user_id)
+        if not user or not user.get("stripe_customer_id"):
+            return JSONResponse(
+                content={"error": "No active subscription found"},
+                status_code=404
+            )
+        
+        # Create portal session
+        base_url = str(request.base_url).rstrip('/')
+        return_url = f"{base_url}/pricing"
+        
+        result = stripe_manager.create_customer_portal_session(
+            user["stripe_customer_id"],
+            return_url
+        )
+        
+        if result['success']:
+            return JSONResponse(content={
+                "success": True,
+                "portal_url": result['portal_url']
+            })
+        else:
+            return JSONResponse(
+                content={"error": result['error']},
+                status_code=500
+            )
+            
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Failed to create portal session: {str(e)}"},
+            status_code=500
+        )
+
+@app.post("/stripe-webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks for subscription events"""
+    if not stripe_manager:
+        return JSONResponse(
+            content={"error": "Payment processing not available"},
+            status_code=500
+        )
+    
+    try:
+        payload = await request.body()
+        signature = request.headers.get('stripe-signature')
+        
+        # Verify webhook signature
+        if not stripe_manager.verify_webhook_signature(payload.decode('utf-8'), signature):
+            return JSONResponse(
+                content={"error": "Invalid webhook signature"},
+                status_code=400
+            )
+        
+        # Parse the event
+        import stripe
+        event = stripe.Webhook.construct_event(
+            payload, signature, os.environ.get("STRIPE_WEBHOOK_SECRET")
+        )
+        
+        # Handle different event types
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            user_id = session['metadata'].get('user_id')
+            subscription_id = session['subscription']
+            
+            if user_id and subscription_id and user_manager:
+                # Handle successful payment
+                payment_result = handle_successful_payment(subscription_id, user_id)
+                
+                if payment_result['success']:
+                    user_manager.update_stripe_subscription(
+                        user_id,
+                        payment_result['customer_id'],
+                        subscription_id,
+                        payment_result['status'],
+                        payment_result.get('current_period_end')
+                    )
+        
+        elif event['type'] == 'customer.subscription.updated':
+            subscription = event['data']['object']
+            user_id = subscription['metadata'].get('user_id')
+            
+            if user_id and user_manager:
+                user_manager.update_stripe_subscription(
+                    user_id,
+                    subscription['customer'],
+                    subscription['id'],
+                    subscription['status'],
+                    subscription.get('current_period_end')
+                )
+        
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription = event['data']['object']
+            user_id = subscription['metadata'].get('user_id')
+            
+            if user_id and user_manager:
+                user_manager.cancel_stripe_subscription(user_id)
+        
+        return JSONResponse(content={"status": "success"})
+        
+    except Exception as e:
+        print(f"Webhook error: {str(e)}")
+        return JSONResponse(
+            content={"error": f"Webhook processing failed: {str(e)}"},
+            status_code=500
+        )
+
 @app.post("/api/upgrade/{user_id}")
 async def upgrade_user(user_id: str):
-    """Upgrade user to paid tier (placeholder for payment integration)"""
+    """Upgrade user to paid tier (legacy endpoint for testing)"""
     if user_manager:
         user_manager.upgrade_user(user_id, "paid")
         return {"success": True, "message": "User upgraded to paid tier"}

@@ -99,6 +99,15 @@
             <li>Standard support</li>
         </ul>
     </div>
+    
+    <!-- Subscription Management Section -->
+    <div class="subscription-management" id="subscriptionManagement" style="display: none;">
+        <h3>Manage Your Subscription</h3>
+        <div class="subscription-info">
+            <p>You have an active Pro subscription.</p>
+            <button class="btn-secondary" onclick="manageSubscription()">Manage Subscription</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -120,26 +129,108 @@ function startFree() {
 
 function upgradeToPro() {
     const userId = generateUserId();
+    const email = prompt('Please enter your email address for the Pro subscription:');
     
-    // In a real implementation, this would redirect to a payment processor
-    fetch(`/api/upgrade/${userId}`, {
+    if (!email) {
+        alert('Email is required to upgrade to Pro.');
+        return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+    
+    // Show loading state
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = 'Processing...';
+    button.disabled = true;
+    
+    // Create checkout session
+    fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+            user_id: userId,
+            email: email
+        })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Upgraded to Pro! You now have unlimited access.');
-            window.location.href = `/?user_id=${userId}`;
+            // Redirect to Stripe checkout
+            window.location.href = data.checkout_url;
+        } else {
+            throw new Error(data.error || 'Failed to create checkout session');
         }
     })
     .catch(error => {
-        console.error('Error upgrading:', error);
-        alert('Upgrade successful! You now have unlimited access.');
-        window.location.href = `/?user_id=${userId}`;
+        console.error('Error creating checkout session:', error);
+        alert('Error processing payment. Please try again or contact support.');
+        
+        // Reset button state
+        button.textContent = originalText;
+        button.disabled = false;
     });
+}
+
+function manageSubscription() {
+    const userId = generateUserId();
+    
+    // Create customer portal session
+    fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            user_id: userId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect to Stripe customer portal
+            window.location.href = data.portal_url;
+        } else {
+            throw new Error(data.error || 'Failed to create portal session');
+        }
+    })
+    .catch(error => {
+        console.error('Error creating portal session:', error);
+        alert('Error accessing subscription management. Please try again or contact support.');
+    });
+}
+
+// Check if user has active subscription
+async function checkSubscriptionStatus() {
+    const userId = generateUserId();
+    
+    try {
+        const response = await fetch(`/api/usage/${userId}`);
+        const data = await response.json();
+        
+        if (data.subscription === 'paid') {
+            // Show subscription management section
+            document.getElementById('subscriptionManagement').style.display = 'block';
+            
+            // Hide upgrade button
+            const upgradeButton = document.querySelector('.paid-tier button');
+            if (upgradeButton) {
+                upgradeButton.textContent = 'Current Plan';
+                upgradeButton.disabled = true;
+                upgradeButton.classList.remove('btn-primary');
+                upgradeButton.classList.add('btn-secondary');
+            }
+        }
+    } catch (error) {
+        console.error('Error checking subscription status:', error);
+    }
 }
 
 // Load user ID from localStorage on page load
@@ -148,6 +239,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (savedUserId) {
         currentUserId = savedUserId;
     }
+    
+    // Check subscription status
+    checkSubscriptionStatus();
 });
 </script>
 

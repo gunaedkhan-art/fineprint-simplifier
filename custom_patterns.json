@@ -10,6 +10,9 @@
       "may share your information with",
       "recurring payments",
       "charged automatically"
+    ],
+    "early_termination_fee": [
+      "early termination fee"
     ]
   },
   "good_points": {

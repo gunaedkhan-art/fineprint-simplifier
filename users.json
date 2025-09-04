@@ -1,1 +1,13 @@
-{}
+{
+  "test_user_123": {
+    "email": null,
+    "subscription": "free",
+    "created_at": "2025-09-04T15:31:05.756575",
+    "usage": {
+      "current_month": "2025-09",
+      "documents_this_month": 1,
+      "total_documents": 1,
+      "last_upload": "2025-09-04T15:31:05.757734"
+    }
+  }
+}
