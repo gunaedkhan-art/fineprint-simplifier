@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fineprint Simplifier</title>
     <link rel="stylesheet" href="static/style.css">
     <link rel="icon" type="image/x-icon" href="static/favicon.ico">
@@ -9,9 +10,25 @@
 <body>
 
 <div class="container">
-    <header class="main-header">
-    <h1>Fineprint Simplifier</h1>
-        <nav class="main-nav">
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <a href="/" class="logo-link">
+                    <h1 class="logo">📋 Fineprint Simplifier</h1>
+                    <p class="tagline">Understand your contracts in plain English</p>
+                </a>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link active">Home</a>
+                <a href="/pricing" class="nav-link">Pricing</a>
+            </nav>
+            <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        <nav class="mobile-nav">
             <a href="/" class="nav-link active">Home</a>
             <a href="/pricing" class="nav-link">Pricing</a>
         </nav>
@@ -136,6 +153,7 @@
 
 <!-- Pattern functionality moved to /admin -->
 
+<script src="/static/script.js"></script>
 <script>
 let existingCategories = { risks: [], good_points: [] };
 let currentUserId = null;
