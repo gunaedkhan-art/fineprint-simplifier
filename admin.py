@@ -1,4 +1,4 @@
-_simple arent conflicting# admin.py - Admin area functionality with secure authentication
+# admin.py - Admin area functionality with secure authentication
 
 from fastapi import APIRouter, Request, Form, HTTPException, Depends, status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
