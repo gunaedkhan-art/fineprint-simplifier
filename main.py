@@ -1,7 +1,7 @@
 # fineprint_simplifier/main.py
 
 from fastapi import FastAPI, UploadFile, File, Request, Form
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from collections import defaultdict
@@ -172,33 +172,36 @@ async def health_check():
 @app.get("/sitemap.xml")
 async def sitemap_xml():
     """Generate dynamic XML sitemap for search engines"""
-    if not get_sitemap_xml:
-        return Response(content="Sitemap not available", status_code=503)
-    
-    # Update base URL from request if needed
-    if update_base_url:
-        # This will be set from environment or request context
-        pass
-    
-    xml_content = get_sitemap_xml()
-    return Response(
-        content=xml_content,
-        media_type="application/xml",
-        headers={"Cache-Control": "public, max-age=3600"}  # Cache for 1 hour
-    )
+    try:
+        xml_content = get_sitemap_xml()
+        return Response(
+            content=xml_content,
+            media_type="application/xml",
+            headers={"Cache-Control": "public, max-age=3600"}  # Cache for 1 hour
+        )
+    except Exception as e:
+        return Response(
+            content=f"Sitemap generation failed: {str(e)}", 
+            status_code=500,
+            media_type="text/plain"
+        )
 
 @app.get("/robots.txt")
 async def robots_txt():
     """Generate robots.txt for search engines"""
-    if not get_robots_txt:
-        return Response(content="Robots.txt not available", status_code=503)
-    
-    robots_content = get_robots_txt()
-    return Response(
-        content=robots_content,
-        media_type="text/plain",
-        headers={"Cache-Control": "public, max-age=86400"}  # Cache for 24 hours
-    )
+    try:
+        robots_content = get_robots_txt()
+        return Response(
+            content=robots_content,
+            media_type="text/plain",
+            headers={"Cache-Control": "public, max-age=86400"}  # Cache for 24 hours
+        )
+    except Exception as e:
+        return Response(
+            content=f"Robots.txt generation failed: {str(e)}", 
+            status_code=500,
+            media_type="text/plain"
+        )
 
 @app.get("/ping")
 async def ping():
