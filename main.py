@@ -236,6 +236,17 @@ async def robots_txt():
             media_type="text/plain"
         )
 
+@app.get("/favicon.ico")
+async def favicon():
+    """Serve favicon"""
+    from fastapi.responses import FileResponse
+    return FileResponse("static/favicon.ico")
+
+@app.get("/admin/test")
+async def admin_test():
+    """Simple test route to verify admin path is working"""
+    return {"message": "Admin routes are working!", "timestamp": datetime.now().isoformat()}
+
 @app.get("/ping")
 async def ping():
     """Simple ping endpoint for testing"""
@@ -248,6 +259,15 @@ if admin_router:
     try:
         app.include_router(admin_router)
         print("✓ admin router included successfully")
+        
+        # Debug: Print admin routes
+        admin_routes = [route for route in app.routes if hasattr(route, 'path') and route.path.startswith('/admin')]
+        print(f"✓ {len(admin_routes)} admin routes registered:")
+        for route in admin_routes:
+            if hasattr(route, 'path') and hasattr(route, 'methods'):
+                methods = ', '.join(route.methods)
+                print(f"  {methods} {route.path}")
+                
     except Exception as e:
         print(f"✗ admin router inclusion failed: {e}")
 else:
