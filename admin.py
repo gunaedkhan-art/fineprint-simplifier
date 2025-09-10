@@ -1,5 +1,6 @@
 # admin.py - Admin area functionality with secure authentication
 
+
 from fastapi import APIRouter, Request, Form, HTTPException, Depends, status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates

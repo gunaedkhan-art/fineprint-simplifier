@@ -1,10 +1,17 @@
 # fineprint_simplifier/pdf_parser.py
 
 import PyPDF2
-import pytesseract
 from PIL import Image
 import io
 import re
+
+# Optional pytesseract import for OCR functionality
+try:
+    import pytesseract
+    TESSERACT_AVAILABLE = True
+except ImportError:
+    TESSERACT_AVAILABLE = False
+    print("Warning: pytesseract not available. OCR functionality disabled.")
 
 def extract_text_from_pdf(pdf_path: str) -> dict:
     """
