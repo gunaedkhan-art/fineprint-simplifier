@@ -14,7 +14,6 @@ from core_patterns import RISK_PATTERNS, GOOD_PATTERNS
 
 # Import security modules
 from auth import auth_manager, get_current_admin, create_admin_password_hash
-from security_middleware import limiter
 
 router = APIRouter(prefix="/admin")
 templates = Jinja2Templates(directory="templates")
@@ -62,7 +61,6 @@ async def admin_login_page(request: Request):
     return templates.TemplateResponse("admin_login.html", {"request": request})
 
 @router.post("/login")
-@limiter.limit("5/minute")  # Rate limit login attempts
 async def admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
     """Handle admin login with JWT authentication"""
     try:
