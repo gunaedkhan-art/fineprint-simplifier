@@ -13,5 +13,6 @@ bcrypt==4.1.2
 python-jose[cryptography]==3.3.0
 slowapi==0.1.9
 passlib[bcrypt]==1.7.4
-# Optional OCR (commented out for Railway compatibility)
-# pytesseract==0.3.10
+# OCR functionality
+easyocr==1.7.0
+# Optional: pytesseract==0.3.10 (requires system Tesseract)
