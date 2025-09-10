@@ -42,7 +42,7 @@ Visit `/pricing` to see detailed feature comparisons and upgrade options.
 
 4. **Install dependencies**:
    ```bash
-   pip install fastapi uvicorn python-multipart jinja2 Pillow aiofiles PyPDF2 pytesseract
+   pip install fastapi uvicorn python-multipart jinja2 Pillow aiofiles PyPDF2 easyocr
    ```
 
 ## Usage
@@ -124,19 +124,19 @@ The application comes with pre-configured patterns for common legal terms:
 - **Backend**: FastAPI (Python)
 - **Frontend**: HTML, CSS, JavaScript
 - **PDF Processing**: PyPDF2 for text extraction
-- **OCR**: pytesseract for image-based PDFs
+- **OCR**: EasyOCR for image-based PDFs
 - **Pattern Matching**: Regular expressions
 - **Data Storage**: JSON files for patterns
 
 ## Requirements
 
 - Python 3.8+
-- Tesseract OCR (for image-based PDFs)
+- EasyOCR (for image-based PDFs)
 - Modern web browser
 
 ## Notes
 
 - The application uses PyPDF2 for PDF text extraction, which works well for most text-based PDFs
-- For image-based or scanned PDFs, OCR functionality is available but requires Tesseract to be installed
+- For image-based or scanned PDFs, OCR functionality is available using EasyOCR (no system dependencies required)
 - Pattern matching is case-insensitive and uses regular expressions
 - All custom patterns are stored locally in JSON files

@@ -14,13 +14,6 @@ except ImportError:
     EASYOCR_AVAILABLE = False
     print("Warning: EasyOCR not available. OCR functionality disabled.")
 
-# Optional pytesseract import for OCR functionality
-try:
-    import pytesseract
-    TESSERACT_AVAILABLE = True
-except ImportError:
-    TESSERACT_AVAILABLE = False
-
 def extract_text_from_pdf(pdf_path: str) -> dict:
     """
     Returns a dict with keys: pages, quality_assessment, total_characters, readable_pages
@@ -187,42 +180,11 @@ def extract_text_with_ocr(image_path: str) -> str:
         print(f"OCR extraction failed: {e}")
         return ""
 
-def extract_text_with_tesseract(image_path: str) -> str:
-    """
-    Extract text from an image using Tesseract (if available)
-    Returns the extracted text as a string
-    """
-    if not TESSERACT_AVAILABLE:
-        return ""
-    
-    try:
-        # Open image
-        image = Image.open(image_path)
-        
-        # Extract text using Tesseract
-        text = pytesseract.image_to_string(image)
-        
-        return text.strip()
-    
-    except Exception as e:
-        print(f"Tesseract extraction failed: {e}")
-        return ""
-
 def get_ocr_text(image_path: str) -> str:
     """
-    Get OCR text using the best available method
-    Priority: EasyOCR > Tesseract
+    Get OCR text using EasyOCR
     """
-    # Try EasyOCR first (Railway compatible)
-    if EASYOCR_AVAILABLE:
-        text = extract_text_with_ocr(image_path)
-        if text:
-            return text
+    if not EASYOCR_AVAILABLE:
+        return ""
     
-    # Fallback to Tesseract if available
-    if TESSERACT_AVAILABLE:
-        text = extract_text_with_tesseract(image_path)
-        if text:
-            return text
-    
-    return ""
+    return extract_text_with_ocr(image_path)
