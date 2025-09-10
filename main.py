@@ -48,6 +48,22 @@ except Exception as e:
     admin_router = None
 
 try:
+    from security_middleware import setup_security_middleware
+    print("✓ security middleware imported successfully")
+except Exception as e:
+    print(f"✗ security middleware import failed: {e}")
+    setup_security_middleware = None
+
+try:
+    from sitemap_generator import get_sitemap_xml, get_robots_txt, update_base_url
+    print("✓ sitemap generator imported successfully")
+except Exception as e:
+    print(f"✗ sitemap generator import failed: {e}")
+    get_sitemap_xml = None
+    get_robots_txt = None
+    update_base_url = None
+
+try:
     from stripe_integration import stripe_manager, create_payment_session, handle_successful_payment
     print("✓ stripe integration imported successfully")
 except Exception as e:
@@ -70,6 +86,11 @@ async def lifespan(app):
     print("🛑 Application shutting down...")
 
 app = FastAPI(lifespan=lifespan)
+
+# Setup security middleware
+if setup_security_middleware:
+    setup_security_middleware(app)
+    print("✓ Security middleware configured")
 
 # Serve static files (CSS, JS)
 try:
@@ -146,6 +167,38 @@ async def health_check():
     """Health check endpoint for monitoring"""
     # Absolute minimal health check with no external dependencies
     return {"status": "healthy"}
+
+# SEO Routes
+@app.get("/sitemap.xml")
+async def sitemap_xml():
+    """Generate dynamic XML sitemap for search engines"""
+    if not get_sitemap_xml:
+        return Response(content="Sitemap not available", status_code=503)
+    
+    # Update base URL from request if needed
+    if update_base_url:
+        # This will be set from environment or request context
+        pass
+    
+    xml_content = get_sitemap_xml()
+    return Response(
+        content=xml_content,
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=3600"}  # Cache for 1 hour
+    )
+
+@app.get("/robots.txt")
+async def robots_txt():
+    """Generate robots.txt for search engines"""
+    if not get_robots_txt:
+        return Response(content="Robots.txt not available", status_code=503)
+    
+    robots_content = get_robots_txt()
+    return Response(
+        content=robots_content,
+        media_type="text/plain",
+        headers={"Cache-Control": "public, max-age=86400"}  # Cache for 24 hours
+    )
 
 @app.get("/ping")
 async def ping():
