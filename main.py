@@ -168,6 +168,39 @@ async def health_check():
     # Absolute minimal health check with no external dependencies
     return {"status": "healthy"}
 
+@app.get("/admin/health")
+async def admin_health_check():
+    """Admin health check to verify admin routes are working"""
+    return {
+        "status": "healthy", 
+        "admin_routes": "available",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.get("/debug/routes")
+async def debug_routes():
+    """Debug endpoint to check all registered routes"""
+    admin_routes = []
+    all_routes = []
+    
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            route_info = {
+                "path": route.path,
+                "methods": list(route.methods)
+            }
+            all_routes.append(route_info)
+            
+            if route.path.startswith('/admin'):
+                admin_routes.append(route_info)
+    
+    return {
+        "total_routes": len(all_routes),
+        "admin_routes": len(admin_routes),
+        "admin_routes_list": admin_routes,
+        "all_routes": all_routes
+    }
+
 # SEO Routes
 @app.get("/sitemap.xml")
 async def sitemap_xml():
