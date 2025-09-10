@@ -306,6 +306,7 @@
             background: #ddd;
             outline: none;
             -webkit-appearance: none;
+            appearance: none;
         }
         
         .score-slider::-webkit-slider-thumb {
@@ -529,10 +530,24 @@
                 <div class="pattern-text">${pattern}</div>
                 
                 <div class="pattern-actions">
-                    <button class="action-btn score-btn" onclick="openScoringModal('${pattern}', '${category}', '${patternType}')">Score & Approve</button>
-                    <button class="action-btn reject-btn" onclick="rejectPattern('${pattern}', '${category}', '${patternType}')">Reject</button>
+                    <button class="action-btn score-btn" data-pattern="${encodeURIComponent(pattern)}" data-category="${category}" data-type="${patternType}">Score & Approve</button>
+                    <button class="action-btn reject-btn" data-pattern="${encodeURIComponent(pattern)}" data-category="${category}" data-type="${patternType}">Reject</button>
                 </div>
             `;
+            
+            // Add event listeners
+            const scoreBtn = div.querySelector('.score-btn');
+            const rejectBtn = div.querySelector('.reject-btn');
+            
+            scoreBtn.addEventListener('click', () => {
+                const patternText = decodeURIComponent(scoreBtn.dataset.pattern);
+                openScoringModal(patternText, scoreBtn.dataset.category, scoreBtn.dataset.type);
+            });
+            
+            rejectBtn.addEventListener('click', () => {
+                const patternText = decodeURIComponent(rejectBtn.dataset.pattern);
+                rejectPattern(patternText, rejectBtn.dataset.category, rejectBtn.dataset.type);
+            });
             
             return div;
         }

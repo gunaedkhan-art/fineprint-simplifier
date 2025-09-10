@@ -1,33 +1,55 @@
-# admin.py - Admin area functionality
+# admin.py - Admin area functionality with secure authentication
 
-from fastapi import APIRouter, Request, Form, HTTPException, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Request, Form, HTTPException, Depends, status
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 import json
 import os
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # Import existing modules
 from matcher import load_custom_patterns, load_pending_patterns, save_pending_patterns
 from core_patterns import RISK_PATTERNS, GOOD_PATTERNS
 
+# Import security modules
+from auth import auth_manager, get_current_admin, create_admin_password_hash
+from security_middleware import limiter
+
 router = APIRouter(prefix="/admin")
 templates = Jinja2Templates(directory="templates")
 
-# Admin credentials (in production, use proper authentication)
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
-
-# Session management (simple in-memory for demo)
-admin_sessions = set()
-
-def check_admin_auth(request: Request):
-    """Check if user is authenticated as admin"""
-    session_id = request.cookies.get("admin_session")
-    if session_id not in admin_sessions:
-        raise HTTPException(status_code=401, detail="Admin authentication required")
-    return True
+def check_admin_auth(request: Request) -> Dict[str, Any]:
+    """Check if user is authenticated as admin using JWT from cookie"""
+    token = request.cookies.get("admin_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    try:
+        payload = auth_manager.verify_token(token)
+        username = payload.get("sub")
+        role = payload.get("role")
+        
+        if username is None or role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return {"username": username, "role": role, "payload": payload}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 @router.get("/", response_class=HTMLResponse)
 async def admin_root(request: Request):
@@ -40,29 +62,41 @@ async def admin_login_page(request: Request):
     return templates.TemplateResponse("admin_login.html", {"request": request})
 
 @router.post("/login")
+@limiter.limit("5/minute")  # Rate limit login attempts
 async def admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    """Handle admin login"""
-    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-        import secrets
-        session_id = secrets.token_urlsafe(32)
-        admin_sessions.add(session_id)
-        response = RedirectResponse(url="/admin/dashboard", status_code=302)
-        response.set_cookie(key="admin_session", value=session_id, httponly=True)
-        return response
-    else:
+    """Handle admin login with JWT authentication"""
+    try:
+        # Authenticate user
+        token = auth_manager.authenticate_admin(username, password)
+        
+        if token:
+            # Create response with JWT token in secure cookie
+            response = RedirectResponse(url="/admin/dashboard", status_code=302)
+            response.set_cookie(
+                key="admin_token",
+                value=token,
+                httponly=True,
+                secure=True,  # Only send over HTTPS
+                samesite="strict",
+                max_age=3600  # 1 hour
+            )
+            return response
+        else:
+            return templates.TemplateResponse("admin_login.html", {
+                "request": request, 
+                "error": "Invalid credentials"
+            })
+    except Exception as e:
         return templates.TemplateResponse("admin_login.html", {
             "request": request, 
-            "error": "Invalid credentials"
+            "error": "Login failed. Please try again."
         })
 
 @router.get("/logout")
 async def admin_logout(request: Request):
     """Handle admin logout"""
-    session_id = request.cookies.get("admin_session")
-    if session_id in admin_sessions:
-        admin_sessions.remove(session_id)
     response = RedirectResponse(url="/admin/login", status_code=302)
-    response.delete_cookie("admin_session")
+    response.delete_cookie("admin_token")
     return response
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -167,45 +201,50 @@ async def score_pattern(
     auth: bool = Depends(check_admin_auth)
 ):
     """Score a pending pattern and move it to custom patterns"""
-    pending_patterns = load_pending_patterns()
-    custom_patterns = load_custom_patterns()
+    try:
+        pending_patterns = load_pending_patterns()
+        custom_patterns = load_custom_patterns()
+        
+        # Find and remove from pending
+        found = False
+        for ptype in ["risks", "good_points"]:
+            if ptype in pending_patterns and category in pending_patterns[ptype]:
+                data = pending_patterns[ptype][category]
+                if isinstance(data, dict) and "patterns" in data:
+                    patterns = data["patterns"]
+                    if pattern_text in patterns:
+                        patterns.remove(pattern_text)
+                        found = True
+                        break
+                elif isinstance(data, list):
+                    if pattern_text in data:
+                        data.remove(pattern_text)
+                        found = True
+                        break
+        
+        if not found:
+            raise HTTPException(status_code=404, detail="Pattern not found in pending")
+        
+        # Add to custom patterns
+        if pattern_type not in custom_patterns:
+            custom_patterns[pattern_type] = {}
+        
+        if category not in custom_patterns[pattern_type]:
+            custom_patterns[pattern_type][category] = []
+        
+        custom_patterns[pattern_type][category].append(pattern_text)
+        
+        # Save both files
+        with open("custom_patterns.json", "w") as f:
+            json.dump(custom_patterns, f, indent=2)
+        
+        save_pending_patterns(pending_patterns)
+        
+        return {"success": True, "message": "Pattern scored and moved to custom patterns"}
     
-    # Find and remove from pending
-    found = False
-    for ptype in ["risks", "good_points"]:
-        if ptype in pending_patterns and category in pending_patterns[ptype]:
-            data = pending_patterns[ptype][category]
-            if isinstance(data, dict) and "patterns" in data:
-                patterns = data["patterns"]
-                if pattern_text in patterns:
-                    patterns.remove(pattern_text)
-                    found = True
-                    break
-            elif isinstance(data, list):
-                if pattern_text in data:
-                    data.remove(pattern_text)
-                    found = True
-                    break
-    
-    if not found:
-        raise HTTPException(status_code=404, detail="Pattern not found in pending")
-    
-    # Add to custom patterns
-    if pattern_type not in custom_patterns:
-        custom_patterns[pattern_type] = {}
-    
-    if category not in custom_patterns[pattern_type]:
-        custom_patterns[pattern_type][category] = []
-    
-    custom_patterns[pattern_type][category].append(pattern_text)
-    
-    # Save both files
-    with open("custom_patterns.json", "w") as f:
-        json.dump(custom_patterns, f, indent=2)
-    
-    save_pending_patterns(pending_patterns)
-    
-    return {"success": True, "message": "Pattern scored and moved to custom patterns"}
+    except Exception as e:
+        print(f"Error in score_pattern: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.delete("/api/reject-pattern")
 async def reject_pattern(
@@ -215,31 +254,36 @@ async def reject_pattern(
     auth: bool = Depends(check_admin_auth)
 ):
     """Reject a pending pattern"""
-    pending_patterns = load_pending_patterns()
+    try:
+        pending_patterns = load_pending_patterns()
+        
+        # Find and remove from pending
+        found = False
+        for ptype in ["risks", "good_points"]:
+            if ptype in pending_patterns and category in pending_patterns[ptype]:
+                data = pending_patterns[ptype][category]
+                if isinstance(data, dict) and "patterns" in data:
+                    patterns = data["patterns"]
+                    if pattern_text in patterns:
+                        patterns.remove(pattern_text)
+                        found = True
+                        break
+                elif isinstance(data, list):
+                    if pattern_text in data:
+                        data.remove(pattern_text)
+                        found = True
+                        break
+        
+        if not found:
+            raise HTTPException(status_code=404, detail="Pattern not found in pending")
+        
+        save_pending_patterns(pending_patterns)
+        
+        return {"success": True, "message": "Pattern rejected"}
     
-    # Find and remove from pending
-    found = False
-    for ptype in ["risks", "good_points"]:
-        if ptype in pending_patterns and category in pending_patterns[ptype]:
-            data = pending_patterns[ptype][category]
-            if isinstance(data, dict) and "patterns" in data:
-                patterns = data["patterns"]
-                if pattern_text in patterns:
-                    patterns.remove(pattern_text)
-                    found = True
-                    break
-            elif isinstance(data, list):
-                if pattern_text in data:
-                    data.remove(pattern_text)
-                    found = True
-                    break
-    
-    if not found:
-        raise HTTPException(status_code=404, detail="Pattern not found in pending")
-    
-    save_pending_patterns(pending_patterns)
-    
-    return {"success": True, "message": "Pattern rejected"}
+    except Exception as e:
+        print(f"Error in reject_pattern: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.post("/api/add-pattern")
 async def add_pattern(
