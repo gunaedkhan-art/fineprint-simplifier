@@ -98,7 +98,7 @@ async def admin_logout(request: Request):
     return response
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def admin_dashboard(request: Request, auth: bool = Depends(check_admin_auth)):
+async def admin_dashboard(request: Request, auth: Dict[str, Any] = Depends(check_admin_auth)):
     """Admin dashboard"""
     try:
         # Load all patterns for overview
@@ -157,33 +157,33 @@ async def admin_dashboard(request: Request, auth: bool = Depends(check_admin_aut
         })
 
 @router.get("/patterns", response_class=HTMLResponse)
-async def admin_patterns_page(request: Request, auth: bool = Depends(check_admin_auth)):
+async def admin_patterns_page(request: Request, auth: Dict[str, Any] = Depends(check_admin_auth)):
     """Pattern management page"""
     return templates.TemplateResponse("admin_patterns.html", {"request": request})
 
 @router.get("/pending", response_class=HTMLResponse)
-async def admin_pending_page(request: Request, auth: bool = Depends(check_admin_auth)):
+async def admin_pending_page(request: Request, auth: Dict[str, Any] = Depends(check_admin_auth)):
     """Pending patterns review page"""
     return templates.TemplateResponse("admin_pending.html", {"request": request})
 
 @router.get("/search", response_class=HTMLResponse)
-async def admin_search_page(request: Request, auth: bool = Depends(check_admin_auth)):
+async def admin_search_page(request: Request, auth: Dict[str, Any] = Depends(check_admin_auth)):
     """Pattern search page"""
     return templates.TemplateResponse("admin_search.html", {"request": request})
 
 # API endpoints for admin functionality
 @router.get("/api/custom-patterns")
-async def get_custom_patterns(auth: bool = Depends(check_admin_auth)):
+async def get_custom_patterns(auth: Dict[str, Any] = Depends(check_admin_auth)):
     """Get all custom patterns"""
     return load_custom_patterns()
 
 @router.get("/api/pending-patterns")
-async def get_pending_patterns(auth: bool = Depends(check_admin_auth)):
+async def get_pending_patterns(auth: Dict[str, Any] = Depends(check_admin_auth)):
     """Get all pending patterns"""
     return load_pending_patterns()
 
 @router.get("/api/core-patterns")
-async def get_core_patterns(auth: bool = Depends(check_admin_auth)):
+async def get_core_patterns(auth: Dict[str, Any] = Depends(check_admin_auth)):
     """Get all core patterns"""
     return {
         "risks": RISK_PATTERNS,
@@ -196,7 +196,7 @@ async def score_pattern(
     category: str = Form(...),
     pattern_type: str = Form(...),
     score: int = Form(...),
-    auth: bool = Depends(check_admin_auth)
+    auth: Dict[str, Any] = Depends(check_admin_auth)
 ):
     """Score a pending pattern and move it to custom patterns"""
     try:
@@ -249,7 +249,7 @@ async def reject_pattern(
     pattern_text: str = Form(...),
     category: str = Form(...),
     pattern_type: str = Form(...),
-    auth: bool = Depends(check_admin_auth)
+    auth: Dict[str, Any] = Depends(check_admin_auth)
 ):
     """Reject a pending pattern"""
     try:
@@ -289,7 +289,7 @@ async def add_pattern(
     category: str = Form(...),
     pattern_type: str = Form(...),
     score: int = Form(...),
-    auth: bool = Depends(check_admin_auth)
+    auth: Dict[str, Any] = Depends(check_admin_auth)
 ):
     """Add a new pattern directly to custom patterns"""
     custom_patterns = load_custom_patterns()
