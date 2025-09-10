@@ -1,48 +1,10 @@
 {
   "risks": {
-    "limitation_of_rights": {
-      "score": 4,
+    "test_category": {
       "patterns": [
-        "binding arbitration"
+        "This is a test pattern for approval testing"
       ]
-    },
-    "potential_risk": {
-      "score": 3,
-      "patterns": [
-        "This contract has a cancellation fee of",
-        "There is also an early termination fee of",
-        "Early termination fee of $300 will apply if the contract is cancelled before the end date",
-        "Late payment penalty of $50 after 5 days past due",
-        "Grace period of 14 days is allowed for late payments before penalties apply",
-        "Liability limited to $5,000 for any damages",
-        "The contract guarantees transparent pricing with no hidden fees",
-        "Early termination fee applies if the contract is cancelled before 12 months",
-        "Automatic renewal for an additional 12 months unless cancelled in writing 60 days before expiry"
-      ]
-    },
-    "general": [
-      "binding arbitration",
-      "automatically renew",
-      "non-refundable",
-      "service may be unavailable",
-      "reserve the right to change"
-    ]
+    }
   },
-  "good_points": {
-    "potential_benefit": {
-      "score": 3,
-      "patterns": [
-        "Money-back guarantee applies if you are not satisfied within 30 days",
-        "Data will be kept secure and GDPR compliant",
-        "Binding arbitration is required for all disputes, potentially limiting legal remedies"
-      ]
-    },
-    "general": [
-      "grace period of 14 days",
-      "money-back guarantee",
-      "data will be kept secure",
-      "gdpr compliant",
-      "liability limited to"
-    ]
-  }
+  "good_points": {}
 }

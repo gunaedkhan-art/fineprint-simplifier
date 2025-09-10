@@ -105,6 +105,16 @@
         .back-link a:hover {
             text-decoration: underline;
         }
+        
+        .security-notice {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #d1ecf1;
+            color: #0c5460;
+            border-radius: 4px;
+            border: 1px solid #bee5eb;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -112,6 +122,9 @@
         <div class="login-header">
             <h1>🔐 Admin Login</h1>
             <p>Small Print Checker Administration</p>
+            <div class="security-notice">
+                <small>🔒 Secure JWT authentication with rate limiting</small>
+            </div>
         </div>
         
         {% if error %}

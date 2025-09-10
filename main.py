@@ -45,12 +45,7 @@ try:
     print("✓ admin router imported successfully")
 except Exception as e:
     print(f"✗ admin router import failed: {e}")
-    try:
-        from admin_simple import router as admin_router
-        print("✓ admin_simple router imported successfully")
-    except Exception as e2:
-        print(f"✗ admin_simple router import failed: {e2}")
-        admin_router = None
+    admin_router = None
 
 try:
     from security_middleware import setup_security_middleware
