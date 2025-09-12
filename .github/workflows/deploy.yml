@@ -33,23 +33,5 @@ jobs:
         echo "Health check would run here"
         # curl -f http://localhost:8000/health
 
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Deploy to Heroku
-      uses: akhileshns/heroku-deploy@v3.12.12
-      with:
-        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-        heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-        heroku_email: ${{ secrets.HEROKU_EMAIL }}
-        appdir: "."
-    
-    - name: Verify deployment
-      run: |
-        echo "Deployment verification would run here"
-        # curl -f https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com/health
+  # Deploy job removed - using Railway for deployment instead
+  # Railway automatically deploys from GitHub pushes
