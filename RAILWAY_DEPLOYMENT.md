@@ -17,6 +17,7 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your-secure-password-here
 ENVIRONMENT=production
 DEBUG=false
+BASE_URL=https://smallprintchecker.com
 ```
 
 ### Step 3: Deploy
