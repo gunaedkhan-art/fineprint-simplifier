@@ -6,7 +6,7 @@
 set -e  # Exit on any error
 
 ENVIRONMENT=${1:-production}
-APP_NAME="fineprint-simplifier"
+APP_NAME="smallprintchecker"
 
 echo "🚀 Deploying Fineprint Simplifier to $ENVIRONMENT..."
 
@@ -49,17 +49,12 @@ case $ENVIRONMENT in
     "production")
         echo "🌐 Deploying to production..."
         
-        # Check if Heroku CLI is installed
-        if ! command -v heroku &> /dev/null; then
-            echo "❌ Heroku CLI not found. Please install it first."
-            exit 1
-        fi
+        # Push to GitHub (Railway will auto-deploy)
+        git push origin main
         
-        # Deploy to Heroku
-        git push heroku main
-        
-        echo "✅ Deployed to production!"
-        echo "🌍 Your app is live at: https://$APP_NAME.herokuapp.com"
+        echo "✅ Pushed to GitHub!"
+        echo "🚂 Railway will automatically deploy from GitHub"
+        echo "🌍 Your app is live at: https://smallprintchecker.com"
         ;;
         
     "staging")
