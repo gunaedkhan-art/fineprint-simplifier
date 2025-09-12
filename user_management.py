@@ -4,7 +4,29 @@ import json
 import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-from pricing_config import FREE_TIER_LIMITS, PAID_TIER_FEATURES
+
+try:
+    from pricing_config import FREE_TIER_LIMITS, PAID_TIER_FEATURES
+except ImportError:
+    # Fallback configuration if pricing_config is not available
+    FREE_TIER_LIMITS = {
+        "documents_per_month": 3,
+        "features": [
+            "plain_english_summary",
+            "basic_risk_detection", 
+            "basic_good_points_detection"
+        ]
+    }
+    PAID_TIER_FEATURES = [
+        "unlimited_documents",
+        "risk_score_badges",
+        "side_by_side_comparison",
+        "export_pdf",
+        "export_word", 
+        "export_excel",
+        "advanced_analytics",
+        "priority_support"
+    ]
 
 class UserManager:
     def __init__(self, users_file: str = "users.json"):

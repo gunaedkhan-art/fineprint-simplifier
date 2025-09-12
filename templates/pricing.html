@@ -141,6 +141,29 @@
             <button class="btn-secondary" onclick="manageSubscription()">Manage Subscription</button>
         </div>
     </div>
+    
+    <!-- Email Collection Modal -->
+    <div id="emailModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upgrade to Pro</h3>
+                <span class="close" onclick="closeEmailModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Enter your email address to continue with the Pro subscription:</p>
+                <form id="emailForm" onsubmit="handleEmailSubmit(event)">
+                    <div class="form-group">
+                        <label for="userEmail">Email Address</label>
+                        <input type="email" id="userEmail" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeEmailModal()">Cancel</button>
+                        <button type="submit" class="btn-primary" id="submitEmailBtn">Continue to Checkout</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="/static/script.js"></script>
@@ -162,8 +185,21 @@ function startFree() {
 }
 
 function upgradeToPro() {
+    // Show the email collection modal
+    document.getElementById('emailModal').style.display = 'block';
+    document.getElementById('userEmail').focus();
+}
+
+function closeEmailModal() {
+    document.getElementById('emailModal').style.display = 'none';
+    document.getElementById('emailForm').reset();
+}
+
+function handleEmailSubmit(event) {
+    event.preventDefault();
+    
     const userId = generateUserId();
-    const email = prompt('Please enter your email address for the Pro subscription:');
+    const email = document.getElementById('userEmail').value.trim();
     
     if (!email) {
         alert('Email is required to upgrade to Pro.');
@@ -178,10 +214,10 @@ function upgradeToPro() {
     }
     
     // Show loading state
-    const button = event.target;
-    const originalText = button.textContent;
-    button.textContent = 'Processing...';
-    button.disabled = true;
+    const submitBtn = document.getElementById('submitEmailBtn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Processing...';
+    submitBtn.disabled = true;
     
     // Create checkout session
     fetch('/api/create-checkout-session', {
@@ -208,8 +244,8 @@ function upgradeToPro() {
         alert('Error processing payment. Please try again or contact support.');
         
         // Reset button state
-        button.textContent = originalText;
-        button.disabled = false;
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
     });
 }
 
@@ -276,6 +312,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check subscription status
     checkSubscriptionStatus();
+    
+    // Add click-outside-to-close functionality for modal
+    document.getElementById('emailModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEmailModal();
+        }
+    });
+    
+    // Add escape key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeEmailModal();
+        }
+    });
 });
 </script>
         </main>

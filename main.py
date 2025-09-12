@@ -14,6 +14,16 @@ import json
 import re
 from datetime import datetime
 
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✓ Environment variables loaded from .env file")
+except ImportError:
+    print("⚠ python-dotenv not installed, using system environment variables only")
+except Exception as e:
+    print(f"⚠ Error loading .env file: {e}")
+
 # Test custom module imports with error handling
 try:
     from core_patterns import RISK_PATTERNS, GOOD_PATTERNS  # live update support
@@ -342,7 +352,15 @@ async def create_checkout_session(request: Request):
     """Create a Stripe checkout session for Pro subscription"""
     if not stripe_manager:
         return JSONResponse(
-            content={"error": "Payment processing not available"},
+            content={"error": "Payment processing not available. Please check Stripe configuration."},
+            status_code=500
+        )
+    
+    # Check if Stripe environment variables are set
+    stripe_secret = os.environ.get("STRIPE_SECRET_KEY")
+    if not stripe_secret:
+        return JSONResponse(
+            content={"error": "Stripe configuration missing. Please set STRIPE_SECRET_KEY environment variable."},
             status_code=500
         )
     
@@ -373,13 +391,13 @@ async def create_checkout_session(request: Request):
             })
         else:
             return JSONResponse(
-                content={"error": result['error']},
+                content={"error": f"Failed to create checkout session: {result['error']}"},
                 status_code=500
             )
             
     except Exception as e:
         return JSONResponse(
-            content={"error": f"Failed to create checkout session: {str(e)}"},
+            content={"error": f"Internal server error: {str(e)}"},
             status_code=500
         )
 
