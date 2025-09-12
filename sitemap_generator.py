@@ -10,7 +10,7 @@ class SitemapGenerator:
     """Generate dynamic XML sitemaps for SEO"""
     
     def __init__(self, base_url: str = None):
-        self.base_url = base_url or os.environ.get("BASE_URL", "https://your-domain.com")
+        self.base_url = base_url or os.environ.get("BASE_URL", "https://smallprintchecker.com")
         if self.base_url.endswith("/"):
             self.base_url = self.base_url[:-1]
     
