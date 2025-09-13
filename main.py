@@ -1,9 +1,10 @@
 # fineprint_simplifier/main.py
 
-from fastapi import FastAPI, UploadFile, File, Request, Form
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi import FastAPI, UploadFile, File, Request, Form, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse, JSONResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.security import HTTPBearer
 from collections import defaultdict
 from pdf_parser import extract_text_from_pdf
 from preprocess_text import preprocess_text
@@ -39,6 +40,14 @@ try:
 except Exception as e:
     print(f"✗ user_management import failed: {e}")
     user_manager = None
+
+try:
+    from auth import auth_manager, get_current_user_optional
+    print("✓ auth imported successfully")
+except Exception as e:
+    print(f"✗ auth import failed: {e}")
+    auth_manager = None
+    get_current_user_optional = None
 
 try:
     from pricing_config import FREE_TIER_LIMITS, PAID_TIER_FEATURES, FEATURE_DESCRIPTIONS, PRICING
@@ -170,6 +179,35 @@ async def compare_page(request: Request):
 @app.get("/how-it-works", response_class=HTMLResponse)
 async def how_it_works_page(request: Request):
     return templates.TemplateResponse("how-it-works.html", {"request": request})
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+@app.get("/profile", response_class=HTMLResponse)
+async def profile_page(request: Request):
+    # Get current user
+    current_user = None
+    if get_current_user_optional:
+        current_user = await get_current_user_optional(request)
+    
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    # Get user data
+    user_data = None
+    if user_manager:
+        user_data = user_manager.get_user(current_user["user_id"])
+    
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "user": current_user,
+        "user_data": user_data
+    })
 
 
 @app.get("/health")
@@ -346,6 +384,107 @@ async def get_usage(user_id: str):
     else:
         return {"error": "User management not available"}
 
+
+@app.post("/api/register")
+async def register_user(request: Request):
+    """Register a new user"""
+    if not auth_manager or not user_manager:
+        return JSONResponse(
+            content={"error": "Authentication not available"},
+            status_code=500
+        )
+    
+    try:
+        data = await request.json()
+        email = data.get("email")
+        password = data.get("password")
+        
+        if not email or not password:
+            return JSONResponse(
+                content={"error": "Email and password are required"},
+                status_code=400
+            )
+        
+        # Check if user already exists
+        existing_user = user_manager.get_user_by_email(email)
+        if existing_user:
+            return JSONResponse(
+                content={"error": "User with this email already exists"},
+                status_code=400
+            )
+        
+        # Hash password and create user
+        password_hash = auth_manager.hash_password(password)
+        user = user_manager.create_authenticated_user(email, password_hash)
+        
+        # Create access token
+        access_token = auth_manager.create_access_token(
+            data={"sub": user["user_id"], "email": email}
+        )
+        
+        return JSONResponse(content={
+            "success": True,
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": user["user_id"]
+        })
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Registration failed: {str(e)}"},
+            status_code=500
+        )
+
+@app.post("/api/login")
+async def login_user(request: Request):
+    """Login user"""
+    if not auth_manager or not user_manager:
+        return JSONResponse(
+            content={"error": "Authentication not available"},
+            status_code=500
+        )
+    
+    try:
+        data = await request.json()
+        email = data.get("email")
+        password = data.get("password")
+        
+        if not email or not password:
+            return JSONResponse(
+                content={"error": "Email and password are required"},
+                status_code=400
+            )
+        
+        # Authenticate user
+        user = user_manager.authenticate_user(email, password)
+        if not user:
+            return JSONResponse(
+                content={"error": "Invalid email or password"},
+                status_code=401
+            )
+        
+        # Create access token
+        access_token = auth_manager.create_access_token(
+            data={"sub": user["user_id"], "email": email}
+        )
+        
+        return JSONResponse(content={
+            "success": True,
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": user["user_id"]
+        })
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Login failed: {str(e)}"},
+            status_code=500
+        )
+
+@app.post("/api/logout")
+async def logout_user():
+    """Logout user (client-side token removal)"""
+    return JSONResponse(content={"success": True, "message": "Logged out successfully"})
 
 @app.post("/api/create-checkout-session")
 async def create_checkout_session(request: Request):

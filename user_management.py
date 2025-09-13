@@ -48,11 +48,12 @@ class UserManager:
         with open(self.users_file, 'w') as f:
             json.dump(self.users, f, indent=2, default=str)
     
-    def create_user(self, user_id: str, email: str = None) -> Dict:
+    def create_user(self, user_id: str, email: str = None, password_hash: str = None) -> Dict:
         """Create a new user with free tier"""
         if user_id not in self.users:
             self.users[user_id] = {
                 "email": email,
+                "password_hash": password_hash,
                 "subscription": "free",
                 "created_at": datetime.now().isoformat(),
                 "stripe_customer_id": None,
@@ -68,6 +69,45 @@ class UserManager:
             }
             self._save_users()
         return self.users[user_id]
+    
+    def create_authenticated_user(self, email: str, password_hash: str) -> Dict:
+        """Create a new authenticated user"""
+        user_id = f"user_{email.replace('@', '_').replace('.', '_')}_{int(datetime.now().timestamp())}"
+        return self.create_user(user_id, email, password_hash)
+    
+    def authenticate_user(self, email: str, password: str) -> Optional[Dict]:
+        """Authenticate a user with email and password"""
+        # Find user by email
+        user = None
+        for user_id, user_data in self.users.items():
+            if user_data.get("email") == email:
+                user = user_data
+                user["user_id"] = user_id
+                break
+        
+        if not user:
+            return None
+        
+        # Check password
+        if not user.get("password_hash"):
+            return None
+        
+        try:
+            from auth import auth_manager
+            if auth_manager.verify_password(password, user["password_hash"]):
+                return user
+        except:
+            pass
+        
+        return None
+    
+    def get_user_by_email(self, email: str) -> Optional[Dict]:
+        """Get user by email address"""
+        for user_id, user_data in self.users.items():
+            if user_data.get("email") == email:
+                user_data["user_id"] = user_id
+                return user_data
+        return None
     
     def get_user(self, user_id: str) -> Optional[Dict]:
         """Get user information"""

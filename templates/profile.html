@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Small Print Checker</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="/" class="logo-link">
+                        <h1 class="logo">📋 Small Print Checker</h1>
+                        <p class="tagline">Understand your contracts in plain English</p>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/upload" class="nav-link">Analyze</a>
+                    <a href="/compare" class="nav-link">Compare</a>
+                    <a href="/how-it-works" class="nav-link">How It Works</a>
+                    <a href="/pricing" class="nav-link">Pricing</a>
+                    <a href="/profile" class="nav-link active">Profile</a>
+                    <button class="btn-secondary btn-small" onclick="logout()">Logout</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <h1>My Profile</h1>
+                    <p>Manage your account and subscription</p>
+                </div>
+                
+                <div class="profile-grid">
+                    <!-- Account Information -->
+                    <div class="profile-card">
+                        <h2>Account Information</h2>
+                        <div class="info-item">
+                            <label>Email:</label>
+                            <span>{{ user.email }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Member Since:</label>
+                            <span>{{ user_data.created_at[:10] if user_data else 'N/A' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>User ID:</label>
+                            <span class="user-id">{{ user.user_id }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Subscription Status -->
+                    <div class="profile-card">
+                        <h2>Subscription Status</h2>
+                        {% if user_data and user_data.subscription == 'paid' %}
+                            <div class="subscription-status paid">
+                                <div class="status-badge">Pro</div>
+                                <p>You have an active Pro subscription</p>
+                                <div class="subscription-details">
+                                    <div class="info-item">
+                                        <label>Status:</label>
+                                        <span class="status-active">{{ user_data.subscription_status }}</span>
+                                    </div>
+                                    {% if user_data.subscription_expires %}
+                                    <div class="info-item">
+                                        <label>Expires:</label>
+                                        <span>{{ user_data.subscription_expires[:10] }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <button class="btn-primary" onclick="manageSubscription()">Manage Subscription</button>
+                            </div>
+                        {% else %}
+                            <div class="subscription-status free">
+                                <div class="status-badge">Free</div>
+                                <p>You're using the free tier</p>
+                                <div class="subscription-details">
+                                    <div class="info-item">
+                                        <label>Plan:</label>
+                                        <span>Free (3 documents/month)</span>
+                                    </div>
+                                </div>
+                                <a href="/pricing" class="btn-primary">Upgrade to Pro</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Usage Statistics -->
+                    <div class="profile-card">
+                        <h2>Usage Statistics</h2>
+                        {% if user_data %}
+                            <div class="usage-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ user_data.usage.documents_this_month }}</div>
+                                    <div class="stat-label">Documents This Month</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ user_data.usage.total_documents }}</div>
+                                    <div class="stat-label">Total Documents</div>
+                                </div>
+                                {% if user_data.subscription == 'free' %}
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ 3 - user_data.usage.documents_this_month }}</div>
+                                    <div class="stat-label">Remaining This Month</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p>No usage data available</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="profile-card">
+                        <h2>Quick Actions</h2>
+                        <div class="action-buttons">
+                            <a href="/upload" class="btn-primary">Analyze Document</a>
+                            <a href="/compare" class="btn-secondary">Compare Documents</a>
+                            <a href="/pricing" class="btn-secondary">View Pricing</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function logout() {
+            // Remove token from localStorage and cookie
+            localStorage.removeItem('access_token');
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            
+            // Redirect to home page
+            window.location.href = '/';
+        }
+        
+        async function manageSubscription() {
+            try {
+                const response = await fetch('/api/create-portal-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({
+                        user_id: '{{ user.user_id }}'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.portal_url;
+                } else {
+                    throw new Error(data.error || 'Failed to create portal session');
+                }
+            } catch (error) {
+                console.error('Error creating portal session:', error);
+                alert('Error accessing subscription management. Please try again or contact support.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,133 +1,110 @@
-# auth.py - Secure authentication module
+# auth.py - Authentication and session management
 
 import os
-import bcrypt
 import jwt
+import bcrypt
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
-from fastapi import HTTPException, status, Depends
+from typing import Optional, Dict
+from fastapi import HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from passlib.context import CryptContext
-import secrets
+from fastapi import Depends
 
-# Security configuration
-SECRET_KEY = os.environ.get("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+# JWT Configuration
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("JWT_EXPIRE_MINUTES", "60"))
+ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # 30 days
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# HTTP Bearer token scheme
+# Security scheme
 security = HTTPBearer()
 
 class AuthManager:
-    """Secure authentication manager with JWT tokens and bcrypt hashing"""
-    
     def __init__(self):
         self.secret_key = SECRET_KEY
         self.algorithm = ALGORITHM
-        self.token_expire_minutes = ACCESS_TOKEN_EXPIRE_MINUTES
     
     def hash_password(self, password: str) -> str:
         """Hash a password using bcrypt"""
-        return pwd_context.hash(password)
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
     
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+    def verify_password(self, password: str, hashed_password: str) -> bool:
         """Verify a password against its hash"""
-        return pwd_context.verify(plain_password, hashed_password)
+        return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
     
-    def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+    def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
         """Create a JWT access token"""
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=self.token_expire_minutes)
+            expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         
-        to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+        to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
         return encoded_jwt
     
-    def verify_token(self, token: str) -> Dict[str, Any]:
+    def verify_token(self, token: str) -> Optional[Dict]:
         """Verify and decode a JWT token"""
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             return payload
         except jwt.ExpiredSignatureError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has expired",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        except jwt.JWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-    
-    def authenticate_admin(self, username: str, password: str) -> Optional[str]:
-        """Authenticate admin user and return JWT token if valid"""
-        # Get admin credentials from environment
-        admin_username = os.environ.get("ADMIN_USERNAME", "admin")
-        admin_password_hash = os.environ.get("ADMIN_PASSWORD_HASH")
-        
-        # If no hash is set, use the plain password (for initial setup)
-        if not admin_password_hash:
-            admin_plain_password = os.environ.get("ADMIN_PASSWORD", "admin123")
-            if username == admin_username and password == admin_plain_password:
-                # Create token for valid credentials
-                token_data = {
-                    "sub": username,
-                    "role": "admin",
-                    "type": "access_token"
-                }
-                return self.create_access_token(token_data)
             return None
+        except jwt.JWTError:
+            return None
+    
+    def get_current_user(self, credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict:
+        """Get current user from JWT token"""
+        token = credentials.credentials
+        payload = self.verify_token(token)
         
-        # Verify against hashed password
-        if username == admin_username and self.verify_password(password, admin_password_hash):
-            token_data = {
-                "sub": username,
-                "role": "admin",
-                "type": "access_token"
-            }
-            return self.create_access_token(token_data)
+        if payload is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         
-        return None
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return {"user_id": user_id, "email": payload.get("email")}
 
 # Global auth manager instance
 auth_manager = AuthManager()
 
-def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
-    """Dependency to get current authenticated admin user"""
-    token = credentials.credentials
-    payload = auth_manager.verify_token(token)
+# Dependency for getting current user
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    return auth_manager.get_current_user(credentials)
+
+# Optional dependency for getting current user (returns None if not authenticated)
+async def get_current_user_optional(request: Request) -> Optional[Dict]:
+    """Get current user if authenticated, otherwise return None"""
+    try:
+        # Try to get token from Authorization header
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            payload = auth_manager.verify_token(token)
+            if payload:
+                return {"user_id": payload.get("sub"), "email": payload.get("email")}
+    except:
+        pass
     
-    username = payload.get("sub")
-    role = payload.get("role")
+    # Try to get token from cookies
+    try:
+        token = request.cookies.get("access_token")
+        if token:
+            payload = auth_manager.verify_token(token)
+            if payload:
+                return {"user_id": payload.get("sub"), "email": payload.get("email")}
+    except:
+        pass
     
-    if username is None or role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    return {"username": username, "role": role, "payload": payload}
-
-def create_admin_password_hash(password: str) -> str:
-    """Utility function to create a password hash for admin setup"""
-    return auth_manager.hash_password(password)
-
-# Rate limiting setup (will be implemented in next step)
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-
-limiter = Limiter(key_func=get_remote_address)
-
-def get_rate_limiter():
-    """Get the rate limiter instance"""
-    return limiter
+    return None
