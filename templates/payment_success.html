@@ -27,8 +27,26 @@
             
             <div class="action-buttons">
                 <a href="/upload" class="btn-primary btn-large">Start Analyzing Documents</a>
-                <a href="/profile" class="btn-secondary">Go to Profile</a>
+                <a href="/profile" class="btn-secondary" id="profileBtn">Go to Profile</a>
             </div>
+            
+            {% if is_new_user %}
+            <div class="account-setup">
+                <h3>Complete Your Account Setup</h3>
+                <p>Create a password to secure your account and access your profile anytime.</p>
+                <form id="passwordForm" class="password-form">
+                    <div class="form-group">
+                        <label for="password">Create Password</label>
+                        <input type="password" id="password" name="password" required placeholder="Enter a secure password" minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password">
+                    </div>
+                    <button type="submit" class="btn-primary" id="setupBtn">Complete Setup</button>
+                </form>
+            </div>
+            {% endif %}
             
             <div class="support-info">
                 <p>Need help? Contact us at <a href="mailto:support@fineprintsimplifier.com">support@fineprintsimplifier.com</a></p>
@@ -105,6 +123,119 @@
         .support-info a:hover {
             text-decoration: underline;
         }
+        
+        .account-setup {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .account-setup h3 {
+            margin-top: 0;
+            color: #374151;
+        }
+        
+        .password-form {
+            margin-top: 1rem;
+        }
+        
+        .password-form .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .password-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .password-form input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .password-form input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
     </style>
+    
+    <script>
+        // Auto-login if access token is provided
+        {% if access_token %}
+        localStorage.setItem('access_token', '{{ access_token }}');
+        document.cookie = 'access_token={{ access_token }}; path=/; max-age=' + (30 * 24 * 60 * 60);
+        {% endif %}
+        
+        // Handle password setup for new users
+        {% if is_new_user %}
+        document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const setupBtn = document.getElementById('setupBtn');
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            // Validate password length
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = setupBtn.textContent;
+            setupBtn.textContent = 'Setting up...';
+            setupBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/setup-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({
+                        user_id: '{{ user_id }}',
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Hide the password form and show success message
+                    document.getElementById('passwordForm').style.display = 'none';
+                    document.querySelector('.account-setup h3').textContent = 'Account Setup Complete!';
+                    document.querySelector('.account-setup p').textContent = 'Your account is now fully set up. You can access your profile anytime.';
+                    
+                    // Enable profile button
+                    document.getElementById('profileBtn').style.display = 'inline-block';
+                } else {
+                    throw new Error(data.error || 'Password setup failed');
+                }
+            } catch (error) {
+                console.error('Password setup error:', error);
+                alert('Password setup failed: ' + error.message);
+                
+                // Reset button state
+                setupBtn.textContent = originalText;
+                setupBtn.disabled = false;
+            }
+        });
+        {% endif %}
+    </script>
 </body>
 </html>

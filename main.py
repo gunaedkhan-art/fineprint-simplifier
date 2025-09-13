@@ -486,6 +486,135 @@ async def logout_user():
     """Logout user (client-side token removal)"""
     return JSONResponse(content={"success": True, "message": "Logged out successfully"})
 
+@app.post("/api/link-payment-to-account")
+async def link_payment_to_account(request: Request):
+    """Link an existing payment to a new user account"""
+    if not user_manager:
+        return JSONResponse(
+            content={"error": "User management not available"},
+            status_code=500
+        )
+    
+    try:
+        data = await request.json()
+        email = data.get("email")
+        password = data.get("password")
+        
+        if not email or not password:
+            return JSONResponse(
+                content={"error": "Email and password are required"},
+                status_code=400
+            )
+        
+        # Check if user already exists
+        existing_user = user_manager.get_user_by_email(email)
+        if existing_user:
+            return JSONResponse(
+                content={"error": "User with this email already exists"},
+                status_code=400
+            )
+        
+        # Check if there's a payment/subscription for this email
+        # Look for users with this email in Stripe customer data
+        payment_linked = False
+        user_id = None
+        
+        # Search through existing users to find one with this email and a subscription
+        for uid, user_data in user_manager.users.items():
+            if (user_data.get("email") == email and 
+                user_data.get("subscription") == "paid" and 
+                user_data.get("stripe_customer_id")):
+                # Found a paid user with this email, link the account
+                user_data["password_hash"] = auth_manager.hash_password(password) if auth_manager else None
+                user_manager._save_users()
+                payment_linked = True
+                user_id = uid
+                break
+        
+        if payment_linked:
+            # Create access token
+            access_token = None
+            if auth_manager:
+                access_token = auth_manager.create_access_token(
+                    data={"sub": user_id, "email": email}
+                )
+            
+            return JSONResponse(content={
+                "success": True,
+                "message": "Account linked to existing subscription",
+                "access_token": access_token,
+                "user_id": user_id
+            })
+        else:
+            return JSONResponse(
+                content={"error": "No existing subscription found for this email"},
+                status_code=404
+            )
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Account linking failed: {str(e)}"},
+            status_code=500
+        )
+
+@app.post("/api/setup-password")
+async def setup_password(request: Request):
+    """Setup password for a user account"""
+    if not auth_manager or not user_manager:
+        return JSONResponse(
+            content={"error": "Authentication not available"},
+            status_code=500
+        )
+    
+    try:
+        # Get current user from token
+        current_user = await get_current_user_optional(request)
+        if not current_user:
+            return JSONResponse(
+                content={"error": "Authentication required"},
+                status_code=401
+            )
+        
+        data = await request.json()
+        password = data.get("password")
+        user_id = data.get("user_id")
+        
+        if not password:
+            return JSONResponse(
+                content={"error": "Password is required"},
+                status_code=400
+            )
+        
+        # Verify the user_id matches the authenticated user
+        if user_id != current_user["user_id"]:
+            return JSONResponse(
+                content={"error": "Unauthorized"},
+                status_code=403
+            )
+        
+        # Hash password and update user
+        password_hash = auth_manager.hash_password(password)
+        user = user_manager.get_user(user_id)
+        if user:
+            user["password_hash"] = password_hash
+            user_manager._save_users()
+            
+            return JSONResponse(content={
+                "success": True,
+                "message": "Password set successfully"
+            })
+        else:
+            return JSONResponse(
+                content={"error": "User not found"},
+                status_code=404
+            )
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Password setup failed: {str(e)}"},
+            status_code=500
+        )
+
 @app.post("/api/create-checkout-session")
 async def create_checkout_session(request: Request):
     """Create a Stripe checkout session for Pro subscription"""
@@ -507,16 +636,30 @@ async def create_checkout_session(request: Request):
         data = await request.json()
         user_id = data.get("user_id")
         email = data.get("email")
+        password = data.get("password")  # Optional password for account creation
         
-        if not user_id or not email:
+        if not email:
             return JSONResponse(
-                content={"error": "User ID and email are required"},
+                content={"error": "Email is required"},
                 status_code=400
             )
         
+        # If no user_id provided, create a temporary one or find existing user
+        if not user_id:
+            if user_manager:
+                # Check if user already exists by email
+                existing_user = user_manager.get_user_by_email(email)
+                if existing_user:
+                    user_id = existing_user["user_id"]
+                else:
+                    # Create a temporary user ID for the payment flow
+                    user_id = f"temp_{email.replace('@', '_').replace('.', '_')}_{int(datetime.now().timestamp())}"
+            else:
+                user_id = f"temp_{email.replace('@', '_').replace('.', '_')}_{int(datetime.now().timestamp())}"
+        
         # Create success and cancel URLs
         base_url = str(request.base_url).rstrip('/')
-        success_url = f"{base_url}/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
+        success_url = f"{base_url}/payment-success?session_id={{CHECKOUT_SESSION_ID}}&email={email}"
         cancel_url = f"{base_url}/pricing"
         
         # Create payment session
@@ -526,7 +669,8 @@ async def create_checkout_session(request: Request):
             return JSONResponse(content={
                 "success": True,
                 "checkout_url": result['checkout_url'],
-                "session_id": result['session_id']
+                "session_id": result['session_id'],
+                "user_id": user_id
             })
         else:
             return JSONResponse(
@@ -541,7 +685,7 @@ async def create_checkout_session(request: Request):
         )
 
 @app.get("/payment-success")
-async def payment_success(request: Request, session_id: str = None):
+async def payment_success(request: Request, session_id: str = None, email: str = None):
     """Handle successful payment"""
     if not session_id:
         return templates.TemplateResponse("payment_error.html", {
@@ -557,12 +701,27 @@ async def payment_success(request: Request, session_id: str = None):
             # Get user ID from session metadata
             user_id = session.metadata.get('user_id')
             subscription_id = session.subscription
+            customer_email = session.customer_details.email if hasattr(session, 'customer_details') else email
             
             if user_id and subscription_id and user_manager:
                 # Handle successful payment
                 payment_result = handle_successful_payment(subscription_id, user_id)
                 
                 if payment_result['success']:
+                    # Check if this is a temporary user (created during payment flow)
+                    is_temp_user = user_id.startswith('temp_')
+                    
+                    if is_temp_user and customer_email:
+                        # Convert temporary user to permanent user
+                        # Check if user already exists by email
+                        existing_user = user_manager.get_user_by_email(customer_email)
+                        if existing_user:
+                            # Update existing user with subscription
+                            user_id = existing_user["user_id"]
+                        else:
+                            # Create new user with the email
+                            user = user_manager.create_user(user_id, customer_email)
+                    
                     # Update user subscription
                     try:
                         user_manager.update_stripe_subscription(
@@ -573,10 +732,20 @@ async def payment_success(request: Request, session_id: str = None):
                             payment_result.get('current_period_end')
                         )
                         
+                        # Create access token for immediate login
+                        access_token = None
+                        if auth_manager and customer_email:
+                            access_token = auth_manager.create_access_token(
+                                data={"sub": user_id, "email": customer_email}
+                            )
+                        
                         return templates.TemplateResponse("payment_success.html", {
                             "request": request,
                             "user_id": user_id,
-                            "subscription_id": subscription_id
+                            "subscription_id": subscription_id,
+                            "email": customer_email,
+                            "access_token": access_token,
+                            "is_new_user": is_temp_user
                         })
                     except Exception as e:
                         print(f"Error updating user subscription: {e}")

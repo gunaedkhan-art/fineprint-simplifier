@@ -5,7 +5,7 @@ import jwt
 import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional, Dict
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends
 

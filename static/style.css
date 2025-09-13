@@ -1070,6 +1070,24 @@ p:last-child, ul:last-child, ol:last-child {
     text-decoration: underline;
 }
 
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: var(--space-2);
+    width: auto;
+}
+
+.checkbox-label .checkmark {
+    margin-left: var(--space-2);
+}
+
 /* Profile Styles */
 .profile-container {
     max-width: 1200px;
