@@ -160,24 +160,35 @@ def create_payment_session(user_id: str, email: str, success_url: str, cancel_ur
 
 def handle_successful_payment(subscription_id: str, user_id: str) -> Dict:
     """Handle successful payment - upgrade user to Pro"""
-    # Get subscription details
-    subscription_result = stripe_manager.get_subscription(subscription_id)
-    if not subscription_result['success']:
-        return subscription_result
-    
-    subscription = subscription_result['subscription']
-    
-    # Check if subscription is active
-    if subscription.status in ['active', 'trialing']:
-        return {
-            'success': True,
-            'subscription_id': subscription_id,
-            'customer_id': subscription.customer,
-            'status': subscription.status,
-            'current_period_end': subscription.current_period_end
-        }
-    else:
+    try:
+        # Get subscription details
+        subscription_result = stripe_manager.get_subscription(subscription_id)
+        if not subscription_result['success']:
+            return subscription_result
+        
+        subscription = subscription_result['subscription']
+        
+        # Check if subscription is active
+        if subscription.status in ['active', 'trialing']:
+            # Handle current_period_end safely
+            current_period_end = None
+            if hasattr(subscription, 'current_period_end') and subscription.current_period_end:
+                current_period_end = subscription.current_period_end
+            
+            return {
+                'success': True,
+                'subscription_id': subscription_id,
+                'customer_id': subscription.customer,
+                'status': subscription.status,
+                'current_period_end': current_period_end
+            }
+        else:
+            return {
+                'success': False,
+                'error': f'Subscription status is {subscription.status}, not active'
+            }
+    except Exception as e:
         return {
             'success': False,
-            'error': f'Subscription status is {subscription.status}, not active'
+            'error': f'Error processing subscription: {str(e)}'
         }

@@ -425,26 +425,44 @@ async def payment_success(request: Request, session_id: str = None):
                 
                 if payment_result['success']:
                     # Update user subscription
-                    user_manager.update_stripe_subscription(
-                        user_id,
-                        payment_result['customer_id'],
-                        subscription_id,
-                        payment_result['status'],
-                        payment_result.get('current_period_end')
-                    )
-                    
-                    return templates.TemplateResponse("payment_success.html", {
+                    try:
+                        user_manager.update_stripe_subscription(
+                            user_id,
+                            payment_result['customer_id'],
+                            subscription_id,
+                            payment_result['status'],
+                            payment_result.get('current_period_end')
+                        )
+                        
+                        return templates.TemplateResponse("payment_success.html", {
+                            "request": request,
+                            "user_id": user_id,
+                            "subscription_id": subscription_id
+                        })
+                    except Exception as e:
+                        print(f"Error updating user subscription: {e}")
+                        return templates.TemplateResponse("payment_error.html", {
+                            "request": request,
+                            "error": f"Error updating subscription: {str(e)}"
+                        })
+                else:
+                    return templates.TemplateResponse("payment_error.html", {
                         "request": request,
-                        "user_id": user_id,
-                        "subscription_id": subscription_id
+                        "error": f"Payment processing failed: {payment_result.get('error', 'Unknown error')}"
                     })
+            else:
+                return templates.TemplateResponse("payment_error.html", {
+                    "request": request,
+                    "error": "Missing user ID or subscription ID"
+                })
         
         return templates.TemplateResponse("payment_error.html", {
             "request": request,
-            "error": "Payment verification failed"
+            "error": "Payment verification failed - payment not completed"
         })
         
     except Exception as e:
+        print(f"Payment success error: {e}")
         return templates.TemplateResponse("payment_error.html", {
             "request": request,
             "error": f"Payment processing error: {str(e)}"
