@@ -209,6 +209,31 @@ async def profile_page(request: Request):
         "user_data": user_data
     })
 
+@app.get("/subscription-management", response_class=HTMLResponse)
+async def subscription_management_page(request: Request):
+    # Get current user
+    current_user = None
+    if get_current_user_optional:
+        current_user = await get_current_user_optional(request)
+    
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    # Get user data
+    user_data = None
+    if user_manager:
+        user_data = user_manager.get_user(current_user["user_id"])
+    
+    # Check if user has a paid subscription
+    if not user_data or user_data.get("subscription") != "paid":
+        return RedirectResponse(url="/pricing", status_code=302)
+    
+    return templates.TemplateResponse("subscription_management.html", {
+        "request": request,
+        "user": current_user,
+        "user_data": user_data
+    })
+
 
 @app.get("/health")
 async def health_check():
@@ -556,6 +581,33 @@ async def link_payment_to_account(request: Request):
             content={"error": f"Account linking failed: {str(e)}"},
             status_code=500
         )
+
+@app.get("/api/user-subscription-data")
+async def get_user_subscription_data(request: Request):
+    """Get detailed subscription data for the current user"""
+    # Get current user
+    current_user = await get_current_user_optional(request)
+    if not current_user:
+        return JSONResponse(
+            content={"error": "Authentication required"},
+            status_code=401
+        )
+    
+    # Get user data
+    user_data = None
+    if user_manager:
+        user_data = user_manager.get_user(current_user["user_id"])
+    
+    if not user_data:
+        return JSONResponse(
+            content={"error": "User not found"},
+            status_code=404
+        )
+    
+    return JSONResponse(content={
+        "success": True,
+        "user_data": user_data
+    })
 
 @app.post("/api/setup-password")
 async def setup_password(request: Request):

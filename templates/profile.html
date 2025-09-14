@@ -75,7 +75,7 @@
                                     </div>
                                     {% endif %}
                                 </div>
-                                <button class="btn-primary" onclick="manageSubscription()">Manage Subscription</button>
+                                <a href="/subscription-management" class="btn-primary">Manage Subscription</a>
                             </div>
                         {% else %}
                             <div class="subscription-status free">
@@ -141,31 +141,6 @@
             window.location.href = '/';
         }
         
-        async function manageSubscription() {
-            try {
-                const response = await fetch('/api/create-portal-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    },
-                    body: JSON.stringify({
-                        user_id: '{{ user.user_id }}'
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    window.location.href = data.portal_url;
-                } else {
-                    throw new Error(data.error || 'Failed to create portal session');
-                }
-            } catch (error) {
-                console.error('Error creating portal session:', error);
-                alert('Error accessing subscription management. Please try again or contact support.');
-            }
-        }
     </script>
 </body>
 </html>

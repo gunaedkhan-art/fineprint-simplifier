@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Subscription - Small Print Checker</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="/" class="logo-link">
+                        <h1 class="logo">📋 Small Print Checker</h1>
+                        <p class="tagline">Understand your contracts in plain English</p>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/upload" class="nav-link">Analyze</a>
+                    <a href="/compare" class="nav-link">Compare</a>
+                    <a href="/how-it-works" class="nav-link">How It Works</a>
+                    <a href="/pricing" class="nav-link">Pricing</a>
+                    <a href="/profile" class="nav-link">Profile</a>
+                    <button class="btn-secondary btn-small" onclick="logout()">Logout</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="subscription-management-container">
+                <div class="page-header">
+                    <h1>Manage Your Subscription</h1>
+                    <p>View and manage your Pro subscription details</p>
+                </div>
+                
+                <div class="subscription-details-card">
+                    <div class="subscription-header">
+                        <div class="plan-info">
+                            <h2>Pro Plan</h2>
+                            <div class="plan-badge">Active</div>
+                        </div>
+                        <div class="plan-price">
+                            <span class="price">$9.99</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="subscription-info-grid">
+                        <div class="info-item">
+                            <label>Status:</label>
+                            <span class="status-active" id="subscriptionStatus">Active</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Next Billing Date:</label>
+                            <span id="nextBillingDate">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Days Remaining:</label>
+                            <span id="daysRemaining">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Customer ID:</label>
+                            <span class="customer-id" id="customerId">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Subscription ID:</label>
+                            <span class="subscription-id" id="subscriptionId">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="billing-history">
+                        <h3>Recent Billing</h3>
+                        <div class="billing-item">
+                            <div class="billing-date">Current Period</div>
+                            <div class="billing-amount">$9.99</div>
+                            <div class="billing-status">Paid</div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-features">
+                        <h3>Your Pro Features</h3>
+                        <div class="features-grid">
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>Unlimited document analysis</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>Advanced risk scoring</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>Document comparison</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>Export to PDF/Word/Excel</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>Priority support</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>Advanced analytics</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="management-actions">
+                    <div class="action-card">
+                        <h3>Billing & Payment</h3>
+                        <p>Update your payment method, view invoices, and manage billing information.</p>
+                        <button class="btn-primary" onclick="openStripePortal()" id="portalBtn">
+                            Manage Billing in Stripe
+                        </button>
+                    </div>
+                    
+                    <div class="action-card">
+                        <h3>Subscription Changes</h3>
+                        <p>Cancel your subscription or change your plan. Changes take effect at the end of your current billing period.</p>
+                        <button class="btn-secondary" onclick="openStripePortal()">
+                            Modify Subscription
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="support-section">
+                    <h3>Need Help?</h3>
+                    <p>If you have questions about your subscription or need assistance, our support team is here to help.</p>
+                    <div class="support-actions">
+                        <a href="mailto:support@fineprintsimplifier.com" class="btn-secondary">Contact Support</a>
+                        <a href="/profile" class="btn-secondary">Back to Profile</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .subscription-management-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-4);
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+        
+        .page-header h1 {
+            color: var(--text-primary);
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+        }
+        
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-lg);
+        }
+        
+        .subscription-details-card {
+            background: var(--background-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: var(--space-8);
+            margin-bottom: var(--space-8);
+            border: 1px solid var(--border-color);
+        }
+        
+        .subscription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .plan-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .plan-info h2 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+        }
+        
+        .plan-badge {
+            background: var(--success-color);
+            color: white;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+        }
+        
+        .plan-price {
+            text-align: right;
+        }
+        
+        .plan-price .price {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .plan-price .period {
+            color: var(--text-secondary);
+            font-size: var(--font-size-base);
+        }
+        
+        .subscription-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3);
+            background: var(--surface-color);
+            border-radius: var(--radius-md);
+        }
+        
+        .info-item label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+        }
+        
+        .info-item span {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .status-active {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+        
+        .customer-id, .subscription-id {
+            font-family: monospace;
+            font-size: var(--font-size-xs);
+            background: var(--background-color);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+        }
+        
+        .billing-history {
+            margin-bottom: var(--space-6);
+        }
+        
+        .billing-history h3 {
+            color: var(--text-primary);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+        }
+        
+        .billing-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3);
+            background: var(--surface-color);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-2);
+        }
+        
+        .billing-date {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .billing-amount {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .billing-status {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+        
+        .plan-features h3 {
+            color: var(--text-primary);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-3);
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2);
+        }
+        
+        .feature-icon {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        .management-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .action-card {
+            background: var(--background-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: var(--space-6);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .action-card h3 {
+            color: var(--text-primary);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+        }
+        
+        .action-card p {
+            color: var(--text-secondary);
+            margin-bottom: var(--space-4);
+            line-height: 1.6;
+        }
+        
+        .support-section {
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            text-align: center;
+        }
+        
+        .support-section h3 {
+            color: var(--text-primary);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+        }
+        
+        .support-section p {
+            color: var(--text-secondary);
+            margin-bottom: var(--space-4);
+        }
+        
+        .support-actions {
+            display: flex;
+            gap: var(--space-3);
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .subscription-header {
+                flex-direction: column;
+                gap: var(--space-3);
+                text-align: center;
+            }
+            
+            .subscription-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .management-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .support-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        let userData = null;
+        
+        // Load user data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSubscriptionData();
+        });
+        
+        async function loadSubscriptionData() {
+            try {
+                const response = await fetch('/api/user-subscription-data', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    userData = data.user_data;
+                    updateSubscriptionDisplay(data.user_data);
+                } else {
+                    console.error('Failed to load subscription data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading subscription data:', error);
+            }
+        }
+        
+        function updateSubscriptionDisplay(userData) {
+            // Update subscription status
+            document.getElementById('subscriptionStatus').textContent = userData.subscription_status || 'Active';
+            
+            // Update next billing date and days remaining
+            if (userData.subscription_expires) {
+                const expiresDate = new Date(userData.subscription_expires);
+                const now = new Date();
+                const daysRemaining = Math.ceil((expiresDate - now) / (1000 * 60 * 60 * 24));
+                
+                document.getElementById('nextBillingDate').textContent = expiresDate.toLocaleDateString();
+                document.getElementById('daysRemaining').textContent = `${daysRemaining} days`;
+                
+                // Color code days remaining
+                const daysElement = document.getElementById('daysRemaining');
+                if (daysRemaining <= 3) {
+                    daysElement.style.color = 'var(--error-color)';
+                } else if (daysRemaining <= 7) {
+                    daysElement.style.color = 'var(--warning-color)';
+                } else {
+                    daysElement.style.color = 'var(--success-color)';
+                }
+            } else {
+                document.getElementById('nextBillingDate').textContent = 'N/A';
+                document.getElementById('daysRemaining').textContent = 'N/A';
+            }
+            
+            // Update customer and subscription IDs
+            document.getElementById('customerId').textContent = userData.stripe_customer_id || 'N/A';
+            document.getElementById('subscriptionId').textContent = userData.stripe_subscription_id || 'N/A';
+        }
+        
+        async function openStripePortal() {
+            const portalBtn = document.getElementById('portalBtn');
+            const originalText = portalBtn.textContent;
+            portalBtn.textContent = 'Opening...';
+            portalBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/create-portal-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({
+                        user_id: userData?.user_id || 'unknown'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.portal_url;
+                } else {
+                    // Check if it's a portal configuration error
+                    if (data.error && data.error.includes('No configuration provided')) {
+                        showPortalNotConfiguredMessage();
+                    } else {
+                        throw new Error(data.error || 'Failed to create portal session');
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating portal session:', error);
+                
+                // Check if it's a portal configuration error
+                if (error.message && error.message.includes('No configuration provided')) {
+                    showPortalNotConfiguredMessage();
+                } else {
+                    alert('Unable to open Stripe portal. Please contact support for assistance.');
+                }
+                
+                // Reset button state
+                portalBtn.textContent = originalText;
+                portalBtn.disabled = false;
+            }
+        }
+        
+        function showPortalNotConfiguredMessage() {
+            const message = `
+                The subscription management portal is currently being set up.
+                
+                For now, you can manage your subscription by:
+                • Contacting support at support@fineprintsimplifier.com
+                • Visiting Stripe directly with your customer ID: ${userData?.stripe_customer_id || 'N/A'}
+                
+                We apologize for the inconvenience and are working to make this available soon.
+            `;
+            
+            alert(message);
+        }
+        
+        function logout() {
+            // Remove token from localStorage and cookie
+            localStorage.removeItem('access_token');
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            
+            // Redirect to home page
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
