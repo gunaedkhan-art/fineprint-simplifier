@@ -24,8 +24,41 @@
                     <a href="/compare" class="nav-link active">Compare</a>
                     <a href="/how-it-works" class="nav-link">How It Works</a>
                     <a href="/pricing" class="nav-link">Pricing</a>
+                    <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+                        <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
+                        <div class="profile-dropdown-content">
+                            <a href="/profile" class="profile-link">My Profile</a>
+                            <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
+                            <a href="#" onclick="logout()" class="logout-link">Logout</a>
+                        </div>
+                    </div>
+                    <div class="auth-cta" id="authCTA" style="display: none;">
+                        <a href="/login" class="btn-secondary">Sign In</a>
+                        <a href="/pricing" class="btn-primary">Upgrade</a>
+                    </div>
                 </nav>
+                <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
+            <nav class="mobile-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/upload" class="nav-link">Analyze</a>
+                <a href="/compare" class="nav-link active">Compare</a>
+                <a href="/how-it-works" class="nav-link">How It Works</a>
+                <a href="/pricing" class="nav-link">Pricing</a>
+                <div id="mobileProfileSection" style="display: none;">
+                    <a href="/profile" class="nav-link">My Profile</a>
+                    <a href="/subscription-management" class="nav-link" id="mobileSubscriptionLink" style="display: none;">Manage Subscription</a>
+                    <a href="#" onclick="logout()" class="nav-link">Logout</a>
+                </div>
+                <div class="auth-cta" id="mobileAuthCTA" style="display: none;">
+                    <a href="/login" class="btn-secondary">Sign In</a>
+                    <a href="/pricing" class="btn-primary">Upgrade</a>
+                </div>
+            </nav>
         </header>
 
         <!-- User Status Banner -->
