@@ -27,6 +27,16 @@
                     <div class="profile-dropdown" id="profileDropdown" style="display: none;">
                         <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
                         <div class="profile-dropdown-content">
+                            <div class="user-status-info" id="userStatusInfo">
+                                <div class="status-line">
+                                    <span class="status-label">Plan:</span>
+                                    <span class="status-value" id="userPlan">Free</span>
+                                </div>
+                                <div class="status-line">
+                                    <span class="status-label">Usage:</span>
+                                    <span class="status-value" id="userUsage">0/3</span>
+                                </div>
+                            </div>
                             <a href="/profile" class="profile-link">My Profile</a>
                             <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
                             <a href="#" onclick="logout()" class="logout-link">Logout</a>
@@ -61,8 +71,8 @@
             </nav>
         </header>
 
-        <!-- User Status Banner -->
-        <div id="user-status-banner" class="user-status-banner" style="display: none;">
+        <!-- User Status Banner (Hidden - now shown in profile dropdown) -->
+        <div id="user-status-banner" class="user-status-banner" style="display: none !important;">
             <div class="user-info">
                 <span id="user-status-text"></span>
                 <span id="usage-info" style="margin-left: 20px;"></span>
@@ -152,7 +162,7 @@
 
             <!-- Features Section -->
             <section class="features-section">
-                <h3>Why Choose FinePrint Simplifier?</h3>
+                <h3>Why Choose Small Print Checker?</h3>
                 <div class="features-grid">
                     <div class="feature-card">
                         <div class="feature-icon">🔍</div>
@@ -211,7 +221,7 @@
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p>&copy; 2025 FinePrint Simplifier. Making contracts understandable for everyone.</p>
+                <p>&copy; 2025 Small Print Checker. Making contracts understandable for everyone.</p>
                 <div class="footer-links">
                     <a href="/privacy">Privacy Policy</a>
                     <a href="/terms">Terms of Service</a>

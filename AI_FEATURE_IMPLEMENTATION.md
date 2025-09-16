@@ -2,7 +2,7 @@
 
 ## 📋 **Overview**
 
-This document outlines the implementation strategy for adding AI-powered document analysis as a premium feature to the FinePrint Simplifier. The AI feature will provide advanced contract analysis, risk assessment, and legal insights beyond basic pattern matching.
+This document outlines the implementation strategy for adding AI-powered document analysis as a premium feature to the Small Print Checker. The AI feature will provide advanced contract analysis, risk assessment, and legal insights beyond basic pattern matching.
 
 ## 🎯 **Feature Goals**
 

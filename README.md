@@ -1,4 +1,4 @@
-# Fineprint Simplifier
+# Small Print Checker
 
 A web application that analyzes legal documents (contracts, employment agreements, tenancy agreements) to identify risks and benefits for users. The application provides a scoring system and allows administrators to add new pattern recognition rules.
 
@@ -69,7 +69,7 @@ Visit `/pricing` to see detailed feature comparisons and upgrade options.
 ## File Structure
 
 ```
-fineprint_simplifier/
+smallprintchecker/
 ├── main.py                 # FastAPI application and routes
 ├── analyzer.py             # Main analysis logic
 ├── matcher.py              # Pattern matching functions

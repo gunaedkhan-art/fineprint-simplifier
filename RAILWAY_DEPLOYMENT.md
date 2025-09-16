@@ -7,7 +7,7 @@
 2. Sign up with GitHub
 3. Click "New Project"
 4. Select "Deploy from GitHub repo"
-5. Choose your repository: `gunaedkhan-art/fineprint-simplifier`
+5. Choose your repository: `gunaedkhan-art/smallprintchecker`
 
 ### Step 2: Configure Environment Variables
 In your Railway project dashboard, go to "Variables" and add:

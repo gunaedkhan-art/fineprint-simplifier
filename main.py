@@ -1,4 +1,4 @@
-# fineprint_simplifier/main.py
+# smallprintchecker/main.py
 
 from fastapi import FastAPI, UploadFile, File, Request, Form, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, JSONResponse, Response, RedirectResponse

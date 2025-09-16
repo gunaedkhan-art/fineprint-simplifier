@@ -1,4 +1,4 @@
-# fineprint_simplifier/main.py
+# smallprintchecker/main.py
 
 from fastapi import FastAPI, UploadFile, File, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -86,7 +86,7 @@ async def health_check():
         "status": "healthy",
         "timestamp": "2025-08-27T00:00:00",
         "version": "1.0.0",
-        "app": "Fineprint Simplifier"
+        "app": "Small Print Checker"
     }
 
 # Include admin router (after health check to avoid interference)

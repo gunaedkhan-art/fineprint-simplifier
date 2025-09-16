@@ -1,6 +1,6 @@
 # 🔐 Security Setup Guide
 
-This guide explains how to set up secure authentication for the FinePrint Simplifier admin area.
+This guide explains how to set up secure authentication for the Small Print Checker admin area.
 
 ## 🚀 Quick Setup
 

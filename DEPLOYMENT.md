@@ -1,4 +1,4 @@
-# Deployment Guide for Fineprint Simplifier
+# Deployment Guide for Small Print Checker
 
 ## Overview
 

@@ -26,7 +26,7 @@ class StripeManager:
                 email=email,
                 metadata={
                     'user_id': user_id,
-                    'app': 'fineprint_simplifier'
+                    'app': 'smallprintchecker'
                 }
             )
             return {

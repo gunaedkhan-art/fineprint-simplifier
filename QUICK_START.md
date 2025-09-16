@@ -1,4 +1,4 @@
-# Quick Start Guide - Deploy Fineprint Simplifier
+# Quick Start Guide - Deploy Small Print Checker
 
 ## 🚀 Deploy to Production in 5 Minutes
 
@@ -51,7 +51,7 @@
    git init
    git add .
    git commit -m "Initial commit"
-   git remote add origin https://github.com/yourusername/fineprint-simplifier.git
+   git remote add origin https://github.com/yourusername/smallprintchecker.git
    git push -u origin main
    ```
 
@@ -79,7 +79,7 @@
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/yourusername/fineprint-simplifier.git
+git remote add origin https://github.com/yourusername/smallprintchecker.git
 git push -u origin main
 ```
 

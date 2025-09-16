@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fineprint Simplifier</title>
+    <title>Small Print Checker</title>
     <link rel="stylesheet" href="static/style.css">
     <link rel="icon" type="image/x-icon" href="static/favicon.ico">
 </head>
@@ -14,7 +14,7 @@
         <div class="header-content">
             <div class="logo-section">
                 <a href="/" class="logo-link">
-                    <h1 class="logo">📋 Fineprint Simplifier</h1>
+                    <h1 class="logo">📋 Small Print Checker</h1>
                     <p class="tagline">Understand your contracts in plain English</p>
                 </a>
             </div>
@@ -27,6 +27,16 @@
                 <div class="profile-dropdown" id="profileDropdown" style="display: none;">
                     <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
                     <div class="profile-dropdown-content">
+                        <div class="user-status-info" id="userStatusInfo">
+                            <div class="status-line">
+                                <span class="status-label">Plan:</span>
+                                <span class="status-value" id="userPlan">Free</span>
+                            </div>
+                            <div class="status-line">
+                                <span class="status-label">Usage:</span>
+                                <span class="status-value" id="userUsage">0/3</span>
+                            </div>
+                        </div>
                         <a href="/profile" class="profile-link">My Profile</a>
                         <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
                         <a href="#" onclick="logout()" class="logout-link">Logout</a>
@@ -61,8 +71,8 @@
         </nav>
     </header>
 
-    <!-- Usage Display -->
-    <div id="usage-display" class="usage-display" style="display: none;">
+    <!-- Usage Display (Hidden - now shown in profile dropdown) -->
+    <div id="usage-display" class="usage-display" style="display: none !important;">
         <h3>Your Usage</h3>
         <div class="usage-stats">
             <div class="usage-stat">
@@ -233,10 +243,34 @@ function showAuthenticatedUI(userData) {
         avatar.textContent = userData.email.charAt(0).toUpperCase();
     }
     
+    // Update user status info in dropdown
+    updateUserStatusInfo(userData);
+    
     // Show subscription management if user has paid subscription
     if (userData.subscription === 'paid') {
         document.getElementById('subscriptionLink').style.display = 'block';
         document.getElementById('mobileSubscriptionLink').style.display = 'block';
+    }
+}
+
+function updateUserStatusInfo(userData) {
+    const planElement = document.getElementById('userPlan');
+    const usageElement = document.getElementById('userUsage');
+    
+    if (planElement && usageElement) {
+        // Update plan status
+        if (userData.subscription === 'paid') {
+            planElement.textContent = 'Pro';
+            planElement.className = 'status-value pro';
+        } else {
+            planElement.textContent = 'Free';
+            planElement.className = 'status-value free';
+        }
+        
+        // Update usage info
+        const documentsThisMonth = userData.documents_this_month || 0;
+        const monthlyLimit = userData.subscription === 'paid' ? '∞' : '3';
+        usageElement.textContent = `${documentsThisMonth}/${monthlyLimit}`;
     }
 }
 

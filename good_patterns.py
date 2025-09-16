@@ -1,4 +1,4 @@
-# fineprint_simplifier/good_patterns.py
+# smallprintchecker/good_patterns.py
 
 good_patterns = {
     "grace_period": [

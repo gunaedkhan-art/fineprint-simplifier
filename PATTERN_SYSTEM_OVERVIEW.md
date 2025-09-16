@@ -86,7 +86,7 @@ new_patterns = detect_new_patterns(text, existing_matches)
 ## 🔧 **File Structure**
 
 ```
-fineprint_simplifier/
+smallprintchecker/
 ├── core_patterns.py          # ✅ Main pattern definitions
 ├── patterns.py              # ⚠️ Legacy (consolidated into core_patterns.py)
 ├── good_patterns.py         # ⚠️ Legacy (consolidated into core_patterns.py)

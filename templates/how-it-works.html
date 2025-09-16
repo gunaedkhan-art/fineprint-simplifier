@@ -26,6 +26,16 @@
                     <div class="profile-dropdown" id="profileDropdown" style="display: none;">
                         <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
                         <div class="profile-dropdown-content">
+                            <div class="user-status-info" id="userStatusInfo">
+                                <div class="status-line">
+                                    <span class="status-label">Plan:</span>
+                                    <span class="status-value" id="userPlan">Free</span>
+                                </div>
+                                <div class="status-line">
+                                    <span class="status-label">Usage:</span>
+                                    <span class="status-value" id="userUsage">0/3</span>
+                                </div>
+                            </div>
                             <a href="/profile" class="profile-link">My Profile</a>
                             <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
                             <a href="#" onclick="logout()" class="logout-link">Logout</a>
@@ -60,8 +70,8 @@
             </nav>
         </header>
 
-        <!-- User Status Banner -->
-        <div class="user-status-banner" id="user-status-banner" style="display: none;">
+        <!-- User Status Banner (Hidden - now shown in profile dropdown) -->
+        <div class="user-status-banner" id="user-status-banner" style="display: none !important;">
             <div class="user-info">
                 <span id="user-status-text"></span> • <span id="usage-info"></span>
             </div>
@@ -72,7 +82,7 @@
             <!-- Hero Section -->
             <div class="hero-section">
                 <div class="hero-content">
-                    <h2>How FinePrint Simplifier Works</h2>
+                    <h2>How Small Print Checker Works</h2>
                     <p>Our AI-powered tool analyzes contracts by recognizing patterns in legal language to identify potential risks and favorable terms.</p>
                 </div>
             </div>
@@ -137,11 +147,11 @@
                             <li><strong>Government Forms</strong> - Application forms, not contracts</li>
                             <li><strong>Scanned Images</strong> - Photos, artwork, non-text documents</li>
                         </ul>
-                        <div class="fineprint-alternative" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <div class="smallprint-alternative" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
                             <p style="margin-bottom: 15px; color: #6c757d; font-size: 0.9rem;">
                                 <strong>💡 Tip:</strong> Even if your document isn't suitable for upload, you can still analyze specific fine print or terms by pasting the text directly.
                             </p>
-                            <a href="/upload" class="btn-primary" style="display: inline-block; padding: 8px 16px; font-size: 0.9rem; text-decoration: none;">Paste Fineprint Instead</a>
+                            <a href="/upload" class="btn-primary" style="display: inline-block; padding: 8px 16px; font-size: 0.9rem; text-decoration: none;">Paste Small Print Instead</a>
                         </div>
                     </div>
                 </div>
@@ -228,7 +238,7 @@
             <!-- CTA Section -->
             <div class="cta-section">
                 <h3>Ready to Analyze Your Documents?</h3>
-                <p>Start with a free analysis to see how FinePrint Simplifier can help you understand your contracts better.</p>
+                <p>Start with a free analysis to see how Small Print Checker can help you understand your contracts better.</p>
                 <div class="cta-buttons">
                     <a href="/upload" class="btn-primary">Start Free Analysis</a>
                     <a href="/pricing" class="btn-secondary">View Pricing</a>
@@ -237,14 +247,14 @@
 
             <!-- Legal Disclaimer -->
             <div class="legal-disclaimer-subtle">
-                <p><strong>Legal Disclaimer:</strong> FinePrint Simplifier provides educational and informational analysis only. This tool is not a substitute for professional legal advice. Always consult with a qualified attorney for legal matters.</p>
+                <p><strong>Legal Disclaimer:</strong> Small Print Checker provides educational and informational analysis only. This tool is not a substitute for professional legal advice. Always consult with a qualified attorney for legal matters.</p>
             </div>
         </main>
 
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p>&copy; 2025 FinePrint Simplifier. Making contracts understandable for everyone.</p>
+                <p>&copy; 2025 Small Print Checker. Making contracts understandable for everyone.</p>
             </div>
         </footer>
     </div>

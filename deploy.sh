@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Deployment script for Fineprint Simplifier
+# Deployment script for Small Print Checker
 # Usage: ./deploy.sh [environment]
 
 set -e  # Exit on any error
@@ -8,7 +8,7 @@ set -e  # Exit on any error
 ENVIRONMENT=${1:-production}
 APP_NAME="smallprintchecker"
 
-echo "🚀 Deploying Fineprint Simplifier to $ENVIRONMENT..."
+echo "🚀 Deploying Small Print Checker to $ENVIRONMENT..."
 
 # Check if we're in a git repository
 if [ ! -d ".git" ]; then
