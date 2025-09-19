@@ -212,7 +212,18 @@ function generateUserId() {
 
 function startFree() {
     const userId = generateUserId();
-    window.location.href = `/?user_id=${userId}`;
+    
+    // Check if there's a redirect parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get('redirect');
+    
+    if (redirect === 'upload') {
+        // Redirect to upload page to show stored results
+        window.location.href = `/upload?user_id=${userId}`;
+    } else {
+        // Default redirect to home page
+        window.location.href = `/?user_id=${userId}`;
+    }
 }
 
 // Check authentication status on page load

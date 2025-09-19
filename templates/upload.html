@@ -377,6 +377,8 @@
                 if (res.ok) {
                     // Handle visitor vs logged in user response
                     if (data.is_visitor) {
+                        // Store the full analysis results for later retrieval
+                        window.tempAnalysisResults = data;
                         // Show visitor summary and signup prompt
                         displayVisitorSummary(data.visitor_summary);
                     } else {
@@ -448,6 +450,8 @@
                 if (response.ok) {
                     // Handle visitor vs logged in user response
                     if (data.is_visitor) {
+                        // Store the full analysis results for later retrieval
+                        window.tempAnalysisResults = data;
                         // Show visitor summary and signup prompt
                         displayVisitorSummary(data.visitor_summary);
                     } else {
@@ -804,11 +808,20 @@
         // Visitor signup functions
         function startFree() {
             const userId = currentUserId || generateUserId();
-            window.location.href = `/pricing?user_id=${userId}`;
+            // Store the current analysis results with the user ID
+            if (window.tempAnalysisResults) {
+                localStorage.setItem(`temp_analysis_${userId}`, JSON.stringify(window.tempAnalysisResults));
+            }
+            window.location.href = `/pricing?user_id=${userId}&redirect=upload`;
         }
 
         function upgradeToPro() {
             const userId = currentUserId || generateUserId();
+            
+            // Store the current analysis results with the user ID
+            if (window.tempAnalysisResults) {
+                localStorage.setItem(`temp_analysis_${userId}`, JSON.stringify(window.tempAnalysisResults));
+            }
             
             // In a real implementation, this would redirect to a payment processor
             fetch(`/api/upgrade/${userId}`, {
@@ -821,13 +834,13 @@
             .then(data => {
                 if (data.success) {
                     alert('Upgraded to Pro! You now have unlimited access.');
-                    window.location.href = `/?user_id=${userId}`;
+                    window.location.href = `/upload?user_id=${userId}`;
                 }
             })
             .catch(error => {
                 console.error('Error upgrading:', error);
                 alert('Upgrade successful! You now have unlimited access.');
-                window.location.href = `/?user_id=${userId}`;
+                window.location.href = `/upload?user_id=${userId}`;
             });
         }
 
@@ -838,7 +851,41 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeUser();
+            checkForStoredResults();
         });
+
+        function checkForStoredResults() {
+            // Check if there are stored analysis results for this user
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            
+            if (userId) {
+                const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
+                if (storedResults) {
+                    try {
+                        const results = JSON.parse(storedResults);
+                        // Display the stored results
+                        displayAnalysisResults(results.analysis);
+                        processAnalysisData(results);
+                        
+                        // Clear the stored results
+                        localStorage.removeItem(`temp_analysis_${userId}`);
+                        
+                        // Show success message
+                        const resultsDiv = document.getElementById("results");
+                        if (resultsDiv) {
+                            const successMessage = document.createElement('div');
+                            successMessage.className = 'success-message';
+                            successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
+                            successMessage.innerHTML = '✅ Welcome! Here are your analysis results from your uploaded document.';
+                            resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing stored results:', error);
+                    }
+                }
+            }
+        }
     </script>
 </body>
 </html>
