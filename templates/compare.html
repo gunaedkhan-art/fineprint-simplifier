@@ -24,28 +24,28 @@
                     <a href="/compare" class="nav-link active">Compare</a>
                     <a href="/how-it-works" class="nav-link">How It Works</a>
                     <a href="/pricing" class="nav-link">Pricing</a>
-                    <div class="profile-dropdown" id="profileDropdown" style="display: none;">
-                        <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
-                        <div class="profile-dropdown-content">
-                            <div class="user-status-info" id="userStatusInfo">
-                                <div class="status-line">
-                                    <span class="status-label">Plan:</span>
-                                    <span class="status-value" id="userPlan">Free</span>
-                                </div>
-                                <div class="status-line">
-                                    <span class="status-label">Usage:</span>
-                                    <span class="status-value" id="userUsage">0/3</span>
-                                </div>
+                <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+                    <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
+                    <div class="profile-dropdown-content">
+                        <div class="user-status-info" id="userStatusInfo">
+                            <div class="status-line">
+                                <span class="status-label">Plan:</span>
+                                <span class="status-value" id="userPlan">Free</span>
                             </div>
-                            <a href="/profile" class="profile-link">My Profile</a>
-                            <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
-                            <a href="#" onclick="logout()" class="logout-link">Logout</a>
+                            <div class="status-line">
+                                <span class="status-label">Usage:</span>
+                                <span class="status-value" id="userUsage">0/3</span>
+                            </div>
                         </div>
+                        <a href="/profile" class="profile-link">My Profile</a>
+                        <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
+                        <a href="#" onclick="logout()" class="logout-link">Logout</a>
                     </div>
-                    <div class="auth-cta" id="authCTA" style="display: none;">
-                        <a href="/login" class="btn-secondary">Sign In</a>
-                        <a href="/pricing" class="btn-primary">Upgrade</a>
-                    </div>
+                </div>
+                <div class="auth-cta" id="authCTA">
+                    <a href="/login" class="btn-secondary">Sign In</a>
+                    <a href="/pricing" class="btn-primary">Upgrade</a>
+                </div>
                 </nav>
                 <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
                     <span></span>
@@ -64,10 +64,10 @@
                     <a href="/subscription-management" class="nav-link" id="mobileSubscriptionLink" style="display: none;">Manage Subscription</a>
                     <a href="#" onclick="logout()" class="nav-link">Logout</a>
                 </div>
-                <div class="auth-cta" id="mobileAuthCTA" style="display: none;">
-                    <a href="/login" class="btn-secondary">Sign In</a>
-                    <a href="/pricing" class="btn-primary">Upgrade</a>
-                </div>
+            <div class="auth-cta" id="mobileAuthCTA">
+                <a href="/login" class="btn-secondary">Sign In</a>
+                <a href="/pricing" class="btn-primary">Upgrade</a>
+            </div>
             </nav>
         </header>
 

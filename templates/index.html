@@ -25,7 +25,10 @@
                 <a href="/how-it-works" class="nav-link">How It Works</a>
                 <a href="/pricing" class="nav-link">Pricing</a>
                 <div class="profile-dropdown" id="profileDropdown" style="display: none;">
-                    <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
+                    <div class="profile-section">
+                        <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
+                        <a href="/profile" class="profile-text">Profile</a>
+                    </div>
                     <div class="profile-dropdown-content">
                         <div class="user-status-info" id="userStatusInfo">
                             <div class="status-line">
@@ -42,7 +45,7 @@
                         <a href="#" onclick="logout()" class="logout-link">Logout</a>
                     </div>
                 </div>
-                <div class="auth-cta" id="authCTA" style="display: none;">
+                <div class="auth-cta" id="authCTA">
                     <a href="/login" class="btn-secondary">Sign In</a>
                     <a href="/pricing" class="btn-primary">Upgrade</a>
                 </div>
@@ -64,7 +67,7 @@
                 <a href="/subscription-management" class="nav-link" id="mobileSubscriptionLink" style="display: none;">Manage Subscription</a>
                 <a href="#" onclick="logout()" class="nav-link">Logout</a>
             </div>
-            <div class="auth-cta" id="mobileAuthCTA" style="display: none;">
+            <div class="auth-cta" id="mobileAuthCTA">
                 <a href="/login" class="btn-secondary">Sign In</a>
                 <a href="/pricing" class="btn-primary">Upgrade</a>
             </div>
@@ -180,8 +183,6 @@ let userUsage = null;
 
 // Check authentication status on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Show auth CTA by default
-    showUnauthenticatedUI();
     checkAuthStatus();
 });
 

@@ -24,28 +24,28 @@
                     <a href="/compare" class="nav-link">Compare</a>
                     <a href="/how-it-works" class="nav-link">How It Works</a>
                     <a href="/pricing" class="nav-link">Pricing</a>
-                    <div class="profile-dropdown" id="profileDropdown" style="display: none;">
-                        <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
-                        <div class="profile-dropdown-content">
-                            <div class="user-status-info" id="userStatusInfo">
-                                <div class="status-line">
-                                    <span class="status-label">Plan:</span>
-                                    <span class="status-value" id="userPlan">Free</span>
-                                </div>
-                                <div class="status-line">
-                                    <span class="status-label">Usage:</span>
-                                    <span class="status-value" id="userUsage">0/3</span>
-                                </div>
+                <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+                    <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
+                    <div class="profile-dropdown-content">
+                        <div class="user-status-info" id="userStatusInfo">
+                            <div class="status-line">
+                                <span class="status-label">Plan:</span>
+                                <span class="status-value" id="userPlan">Free</span>
                             </div>
-                            <a href="/profile" class="profile-link">My Profile</a>
-                            <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
-                            <a href="#" onclick="logout()" class="logout-link">Logout</a>
+                            <div class="status-line">
+                                <span class="status-label">Usage:</span>
+                                <span class="status-value" id="userUsage">0/3</span>
+                            </div>
                         </div>
+                        <a href="/profile" class="profile-link">My Profile</a>
+                        <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
+                        <a href="#" onclick="logout()" class="logout-link">Logout</a>
                     </div>
-                    <div class="auth-cta" id="authCTA" style="display: none;">
-                        <a href="/login" class="btn-secondary">Sign In</a>
-                        <a href="/pricing" class="btn-primary">Upgrade</a>
-                    </div>
+                </div>
+                <div class="auth-cta" id="authCTA">
+                    <a href="/login" class="btn-secondary">Sign In</a>
+                    <a href="/pricing" class="btn-primary">Upgrade</a>
+                </div>
                 </nav>
                 <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
                     <span></span>
@@ -64,10 +64,10 @@
                     <a href="/subscription-management" class="nav-link" id="mobileSubscriptionLink" style="display: none;">Manage Subscription</a>
                     <a href="#" onclick="logout()" class="nav-link">Logout</a>
                 </div>
-                <div class="auth-cta" id="mobileAuthCTA" style="display: none;">
-                    <a href="/login" class="btn-secondary">Sign In</a>
-                    <a href="/pricing" class="btn-primary">Upgrade</a>
-                </div>
+            <div class="auth-cta" id="mobileAuthCTA">
+                <a href="/login" class="btn-secondary">Sign In</a>
+                <a href="/pricing" class="btn-primary">Upgrade</a>
+            </div>
             </nav>
         </header>
 
@@ -299,10 +299,104 @@
             document.getElementById("export-badge").style.display = "none";
         }
 
-        // Initialize when page loads
+        // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
             initializeUser();
         });
+
+        async function checkAuthStatus() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                try {
+                    const response = await fetch('/api/user-subscription-data', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            showAuthenticatedUI(data.user_data);
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                }
+            }
+            
+            showUnauthenticatedUI();
+        }
+
+        function showAuthenticatedUI(userData) {
+            // Show profile dropdown
+            document.getElementById('profileDropdown').style.display = 'block';
+            document.getElementById('mobileProfileSection').style.display = 'block';
+            
+            // Hide auth CTA buttons
+            document.getElementById('authCTA').style.display = 'none';
+            document.getElementById('mobileAuthCTA').style.display = 'none';
+            
+            // Update avatar with user initial
+            const avatar = document.getElementById('profileAvatar');
+            if (userData.email) {
+                avatar.textContent = userData.email.charAt(0).toUpperCase();
+            }
+            
+            // Update user status info in dropdown
+            updateUserStatusInfo(userData);
+            
+            // Show subscription management if user has paid subscription
+            if (userData.subscription === 'paid') {
+                document.getElementById('subscriptionLink').style.display = 'block';
+                document.getElementById('mobileSubscriptionLink').style.display = 'block';
+            }
+        }
+
+        function updateUserStatusInfo(userData) {
+            const planElement = document.getElementById('userPlan');
+            const usageElement = document.getElementById('userUsage');
+            
+            if (planElement && usageElement) {
+                // Update plan status
+                if (userData.subscription === 'paid') {
+                    planElement.textContent = 'Pro';
+                    planElement.className = 'status-value pro';
+                } else {
+                    planElement.textContent = 'Free';
+                    planElement.className = 'status-value free';
+                }
+                
+                // Update usage info
+                const documentsThisMonth = userData.documents_this_month || 0;
+                const monthlyLimit = userData.subscription === 'paid' ? '∞' : '3';
+                usageElement.textContent = `${documentsThisMonth}/${monthlyLimit}`;
+            }
+        }
+
+        function showUnauthenticatedUI() {
+            // Hide profile dropdown
+            document.getElementById('profileDropdown').style.display = 'none';
+            document.getElementById('mobileProfileSection').style.display = 'none';
+            
+            // Show auth CTA buttons
+            document.getElementById('authCTA').style.display = 'flex';
+            document.getElementById('mobileAuthCTA').style.display = 'flex';
+        }
+
+        function logout() {
+            // Remove token from localStorage and cookie
+            localStorage.removeItem('access_token');
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            
+            // Show unauthenticated UI
+            showUnauthenticatedUI();
+            
+            // Redirect to home page
+            window.location.href = '/';
+        }
     </script>
 </body>
 </html>
