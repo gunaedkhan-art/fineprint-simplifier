@@ -581,8 +581,8 @@ p:last-child, ul:last-child, ol:last-child {
 
 /* Profile Avatar */
 .profile-avatar {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--primary-color);
     display: flex;
@@ -590,17 +590,19 @@ p:last-child, ul:last-child, ol:last-child {
     justify-content: center;
     color: white;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 16px;
     text-decoration: none;
     transition: all 0.2s ease;
     border: 2px solid transparent;
     position: relative;
+    cursor: pointer;
 }
 
 .profile-avatar:hover {
-    background: var(--primary-dark);
-    border-color: var(--primary-light);
+    background: var(--primary-hover);
+    border-color: var(--primary-color);
     transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .profile-avatar img {
@@ -622,21 +624,25 @@ p:last-child, ul:last-child, ol:last-child {
     right: 0;
     top: 100%;
     background: var(--background-color);
-    min-width: 220px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
+    min-width: 240px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
     z-index: 1000;
-    margin-top: 8px;
+    margin-top: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.95);
 }
 
 .profile-dropdown-content a {
     color: var(--text-primary);
-    padding: 12px 16px;
+    padding: 14px 18px;
     text-decoration: none;
     display: block;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     border-bottom: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
 }
 
 .profile-dropdown-content a:last-child {
@@ -645,6 +651,8 @@ p:last-child, ul:last-child, ol:last-child {
 
 .profile-dropdown-content a:hover {
     background: var(--surface-color);
+    color: var(--primary-color);
+    transform: translateX(4px);
 }
 
 .profile-dropdown-content a.profile-link {
@@ -656,10 +664,15 @@ p:last-child, ul:last-child, ol:last-child {
     color: var(--error-color);
 }
 
+.profile-dropdown-content a.logout-link:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
 /* User status info in dropdown */
 .user-status-info {
-    padding: 8px 16px;
-    background: var(--surface-color);
+    padding: 12px 18px;
+    background: linear-gradient(135deg, var(--surface-color) 0%, rgba(37, 99, 235, 0.05) 100%);
     border-bottom: 1px solid var(--border-color);
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
@@ -669,7 +682,7 @@ p:last-child, ul:last-child, ol:last-child {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .user-status-info .status-line:last-child {
@@ -678,19 +691,25 @@ p:last-child, ul:last-child, ol:last-child {
 
 .user-status-info .status-label {
     font-weight: 500;
+    color: var(--text-secondary);
 }
 
 .user-status-info .status-value {
     font-weight: 600;
     color: var(--text-primary);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: rgba(37, 99, 235, 0.1);
 }
 
 .user-status-info .status-value.pro {
     color: var(--success-color);
+    background: rgba(16, 185, 129, 0.1);
 }
 
 .user-status-info .status-value.free {
     color: var(--text-secondary);
+    background: rgba(100, 116, 139, 0.1);
 }
 
 .profile-dropdown:hover .profile-dropdown-content {
@@ -802,6 +821,24 @@ h1.logo {
 
 .mobile-nav .nav-link:last-child {
     border-bottom: none;
+}
+
+/* Mobile user profile section */
+.mobile-nav #mobileProfileSection {
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-2);
+    padding-top: var(--space-2);
+}
+
+.mobile-nav #mobileProfileSection .nav-link {
+    padding-left: var(--space-8);
+    font-weight: 500;
+}
+
+.mobile-nav #mobileProfileSection .nav-link:first-child {
+    background: var(--surface-color);
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 /* Button Styles */

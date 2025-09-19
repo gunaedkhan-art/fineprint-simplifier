@@ -24,10 +24,43 @@
                     <a href="/compare" class="nav-link">Compare</a>
                     <a href="/how-it-works" class="nav-link">How It Works</a>
                     <a href="/pricing" class="nav-link">Pricing</a>
-                    <a href="/profile" class="nav-link active">Profile</a>
-                    <button class="btn-secondary btn-small" onclick="logout()">Logout</button>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
+                        <div class="profile-dropdown-content">
+                            <div class="user-status-info" id="userStatusInfo">
+                                <div class="status-line">
+                                    <span class="status-label">Plan:</span>
+                                    <span class="status-value" id="userPlan">Free</span>
+                                </div>
+                                <div class="status-line">
+                                    <span class="status-label">Usage:</span>
+                                    <span class="status-value" id="userUsage">0/3</span>
+                                </div>
+                            </div>
+                            <a href="/profile" class="profile-link">My Profile</a>
+                            <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
+                            <a href="#" onclick="logout()" class="logout-link">Logout</a>
+                        </div>
+                    </div>
                 </nav>
+                <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
+            <nav class="mobile-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/upload" class="nav-link">Analyze</a>
+                <a href="/compare" class="nav-link">Compare</a>
+                <a href="/how-it-works" class="nav-link">How It Works</a>
+                <a href="/pricing" class="nav-link">Pricing</a>
+                <div id="mobileProfileSection">
+                    <a href="/profile" class="nav-link">My Profile</a>
+                    <a href="/subscription-management" class="nav-link" id="mobileSubscriptionLink" style="display: none;">Manage Subscription</a>
+                    <a href="#" onclick="logout()" class="nav-link">Logout</a>
+                </div>
+            </nav>
         </header>
 
         <!-- Main Content -->
@@ -131,7 +164,73 @@
         </main>
     </div>
 
+    <script src="/static/script.js"></script>
     <script>
+        // Check authentication status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            initializeMobileMenu();
+        });
+
+        async function checkAuthStatus() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                try {
+                    const response = await fetch('/api/user-subscription-data', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            updateUserStatusInfo(data.user_data);
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                }
+            }
+            
+            // If not authenticated, redirect to home
+            window.location.href = '/';
+        }
+
+        function updateUserStatusInfo(userData) {
+            const planElement = document.getElementById('userPlan');
+            const usageElement = document.getElementById('userUsage');
+            const avatar = document.getElementById('profileAvatar');
+            
+            if (planElement && usageElement) {
+                // Update plan status
+                if (userData.subscription === 'paid') {
+                    planElement.textContent = 'Pro';
+                    planElement.className = 'status-value pro';
+                } else {
+                    planElement.textContent = 'Free';
+                    planElement.className = 'status-value free';
+                }
+                
+                // Update usage info
+                const documentsThisMonth = userData.documents_this_month || 0;
+                const monthlyLimit = userData.subscription === 'paid' ? '∞' : '3';
+                usageElement.textContent = `${documentsThisMonth}/${monthlyLimit}`;
+            }
+            
+            // Update avatar with user initial
+            if (avatar && userData.email) {
+                avatar.textContent = userData.email.charAt(0).toUpperCase();
+            }
+            
+            // Show subscription management if user has paid subscription
+            if (userData.subscription === 'paid') {
+                document.getElementById('subscriptionLink').style.display = 'block';
+                document.getElementById('mobileSubscriptionLink').style.display = 'block';
+            }
+        }
+
         function logout() {
             // Remove token from localStorage and cookie
             localStorage.removeItem('access_token');
@@ -140,7 +239,18 @@
             // Redirect to home page
             window.location.href = '/';
         }
-        
+
+        function initializeMobileMenu() {
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const mobileNav = document.querySelector('.mobile-nav');
+            
+            if (mobileMenuToggle && mobileNav) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    mobileMenuToggle.classList.toggle('active');
+                    mobileNav.classList.toggle('active');
+                });
+            }
+        }
     </script>
 </body>
 </html>

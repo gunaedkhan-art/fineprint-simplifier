@@ -71,13 +71,6 @@
             </nav>
         </header>
 
-        <!-- User Status Banner (Hidden - now shown in profile dropdown) -->
-        <div id="user-status-banner" class="user-status-banner" style="display: none !important;">
-            <div class="user-info">
-                <span id="user-status-text"></span>
-                <span id="usage-info" style="margin-left: 20px;"></span>
-            </div>
-        </div>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -274,29 +267,8 @@
         }
 
         function displayUserStatus() {
-            if (!userUsage) return;
-
-            const statusBanner = document.getElementById("user-status-banner");
-            const statusText = document.getElementById("user-status-text");
-            const usageInfo = document.getElementById("usage-info");
-
-            statusBanner.style.display = "block";
-
-            if (userUsage.subscription === 'paid') {
-                statusText.textContent = "Pro User";
-                statusText.className = "status-pro";
-                usageInfo.textContent = "Unlimited analyses";
-            } else if (userUsage.email) {
-                // Logged in free user
-                statusText.textContent = "Free User";
-                statusText.className = "status-free";
-                usageInfo.textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3} analyses used this month`;
-            } else {
-                // Visitor
-                statusText.textContent = "Visitor";
-                statusText.className = "status-visitor";
-                usageInfo.textContent = "Upload to see analysis summary";
-            }
+            // User status is now shown in the profile dropdown
+            // This function is kept for compatibility but doesn't need to do anything
         }
 
         // Input method toggle functions
