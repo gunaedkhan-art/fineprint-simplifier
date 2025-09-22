@@ -5,100 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Error - Small Print Checker</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 </head>
 <body>
     <div class="container">
-        <div class="error-page">
-            <div class="error-icon">❌</div>
-            <h1>Payment Error</h1>
-            <p class="error-message">
-                We encountered an issue processing your payment.
-            </p>
-            
-            {% if error %}
-            <div class="error-details">
-                <p><strong>Error:</strong> {{ error }}</p>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="/" class="logo-link">
+                        <h1 class="logo">📋 Small Print Checker</h1>
+                        <p class="tagline">Understand your contracts in plain English</p>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/upload" class="nav-link">Analyze</a>
+                    <a href="/compare" class="nav-link">Compare</a>
+                    <a href="/how-it-works" class="nav-link">How It Works</a>
+                    <a href="/pricing" class="nav-link">Pricing</a>
+                </nav>
             </div>
-            {% endif %}
-            
-            <div class="action-buttons">
-                <a href="/pricing" class="btn-primary">Try Again</a>
-                <a href="/" class="btn-secondary">Back to Home</a>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="payment-error-container">
+                <div class="error-card">
+                    <div class="error-icon">❌</div>
+                    <h1>Payment Failed</h1>
+                    <p class="error-message">We encountered an issue processing your payment. Your account remains on the free plan.</p>
+                    
+                    <div class="error-details">
+                        <h3>What happened?</h3>
+                        <ul>
+                            <li>Your payment could not be processed</li>
+                            <li>Your card may have been declined</li>
+                            <li>There may have been a temporary issue with our payment processor</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="error-actions">
+                        <a href="/pricing" class="btn-primary">Try Again</a>
+                        <a href="/upload" class="btn-secondary">Continue with Free Plan</a>
+                    </div>
+                    
+                    <div class="support-info">
+                        <p>Need help? Contact our support team for assistance with your payment.</p>
+                    </div>
+                </div>
             </div>
-            
-            <div class="support-info">
-                <h3>Need Help?</h3>
-                <p>If you continue to experience issues, please contact our support team:</p>
-                <p>Email: <a href="mailto:support@smallprintchecker.com">support@smallprintchecker.com</a></p>
-                <p>We'll help you get your Pro subscription activated.</p>
-            </div>
-        </div>
+        </main>
     </div>
-    
-    <style>
-        .error-page {
-            text-align: center;
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .error-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        
-        .error-message {
-            font-size: 1.2rem;
-            color: #dc2626;
-            margin-bottom: 2rem;
-        }
-        
-        .error-details {
-            background: #fef2f2;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            border-left: 4px solid #dc2626;
-        }
-        
-        .error-details p {
-            margin: 0;
-            color: #7f1d1d;
-        }
-        
-        .action-buttons {
-            margin: 2rem 0;
-        }
-        
-        .action-buttons a {
-            display: inline-block;
-            margin: 0.5rem;
-        }
-        
-        .support-info {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
-        }
-        
-        .support-info h3 {
-            color: #374151;
-            margin-top: 0;
-        }
-        
-        .support-info a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .support-info a:hover {
-            text-decoration: underline;
-        }
-    </style>
 </body>
 </html>

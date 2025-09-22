@@ -172,6 +172,11 @@ async def admin_search_page(request: Request, auth: Dict[str, Any] = Depends(che
     """Pattern search page"""
     return templates.TemplateResponse("admin_search.html", {"request": request})
 
+@router.get("/users", response_class=HTMLResponse)
+async def admin_users_page(request: Request, auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """User management page"""
+    return templates.TemplateResponse("admin_users.html", {"request": request})
+
 # API endpoints for admin functionality
 @router.get("/api/custom-patterns")
 async def get_custom_patterns(auth: Dict[str, Any] = Depends(check_admin_auth)):
@@ -308,3 +313,210 @@ async def add_pattern(
         json.dump(custom_patterns, f, indent=2)
     
     return {"success": True, "message": "Pattern added successfully"}
+
+# User management API endpoints
+@router.get("/api/users")
+async def get_all_users(auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """Get all users with detailed information"""
+    try:
+        from user_management import user_manager
+        
+        users_data = []
+        for user_id, user_data in user_manager.users.items():
+            # Calculate user type
+            user_type = "visitor"
+            if user_data.get("email"):
+                if user_data.get("subscription") == "paid":
+                    user_type = "paid"
+                else:
+                    user_type = "free"
+            
+            # Get upgrade tracking info
+            upgrade_tracking = user_data.get("upgrade_tracking", {})
+            
+            users_data.append({
+                "user_id": user_id,
+                "email": user_data.get("email", "No email"),
+                "subscription": user_data.get("subscription", "free"),
+                "user_type": user_type,
+                "created_at": user_data.get("created_at"),
+                "last_upload": user_data.get("usage", {}).get("last_upload"),
+                "documents_this_month": user_data.get("usage", {}).get("documents_this_month", 0),
+                "total_documents": user_data.get("usage", {}).get("total_documents", 0),
+                "stripe_customer_id": user_data.get("stripe_customer_id"),
+                "stripe_subscription_id": user_data.get("stripe_subscription_id"),
+                "subscription_status": user_data.get("subscription_status"),
+                "subscription_expires": user_data.get("subscription_expires"),
+                "upgrade_attempts": upgrade_tracking.get("upgrade_attempts", 0),
+                "abandoned_upgrades": upgrade_tracking.get("abandoned_upgrades", 0),
+                "last_upgrade_attempt": upgrade_tracking.get("last_upgrade_attempt"),
+                "upgrade_abandoned_at": upgrade_tracking.get("upgrade_abandoned_at")
+            })
+        
+        # Sort by creation date (newest first)
+        users_data.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        
+        return {
+            "success": True,
+            "users": users_data,
+            "total_users": len(users_data),
+            "visitor_count": len([u for u in users_data if u["user_type"] == "visitor"]),
+            "free_count": len([u for u in users_data if u["user_type"] == "free"]),
+            "paid_count": len([u for u in users_data if u["user_type"] == "paid"])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading users: {str(e)}")
+
+@router.get("/api/upgrade-abandoners")
+async def get_upgrade_abandoners_admin(auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """Get users who have abandoned upgrades (for marketing)"""
+    try:
+        from user_management import user_manager
+        
+        abandoners = user_manager.get_upgrade_abandoners()
+        return {
+            "success": True,
+            "abandoners": abandoners,
+            "count": len(abandoners)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading abandoners: {str(e)}")
+
+@router.post("/api/users/{user_id}/upgrade")
+async def admin_upgrade_user(user_id: str, auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """Manually upgrade a user to paid tier"""
+    try:
+        from user_management import user_manager
+        
+        if user_id not in user_manager.users:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_manager.upgrade_user(user_id, "paid")
+        return {"success": True, "message": f"User {user_id} upgraded to paid tier"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error upgrading user: {str(e)}")
+
+@router.post("/api/users/{user_id}/downgrade")
+async def admin_downgrade_user(user_id: str, auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """Manually downgrade a user to free tier"""
+    try:
+        from user_management import user_manager
+        
+        if user_id not in user_manager.users:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_manager.upgrade_user(user_id, "free")
+        return {"success": True, "message": f"User {user_id} downgraded to free tier"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error downgrading user: {str(e)}")
+
+@router.delete("/api/users/{user_id}")
+async def admin_delete_user(user_id: str, auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """Delete a user (admin only)"""
+    try:
+        from user_management import user_manager
+        
+        if user_id not in user_manager.users:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_manager.delete_user(user_id)
+        return {"success": True, "message": f"User {user_id} deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting user: {str(e)}")
+
+@router.get("/api/users/stats")
+async def get_user_stats(auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """Get comprehensive user statistics"""
+    try:
+        from user_management import user_manager
+        
+        stats = {
+            "total_users": len(user_manager.users),
+            "visitors": 0,
+            "free_users": 0,
+            "paid_users": 0,
+            "users_with_email": 0,
+            "users_without_email": 0,
+            "total_documents_analyzed": 0,
+            "upgrade_abandoners": 0,
+            "recent_signups": 0
+        }
+        
+        from datetime import datetime, timedelta
+        week_ago = datetime.now() - timedelta(days=7)
+        
+        for user_id, user_data in user_manager.users.items():
+            # Count by type
+            if user_data.get("email"):
+                stats["users_with_email"] += 1
+                if user_data.get("subscription") == "paid":
+                    stats["paid_users"] += 1
+                else:
+                    stats["free_users"] += 1
+            else:
+                stats["users_without_email"] += 1
+                stats["visitors"] += 1
+            
+            # Count documents
+            stats["total_documents_analyzed"] += user_data.get("usage", {}).get("total_documents", 0)
+            
+            # Count upgrade abandoners
+            if user_data.get("upgrade_tracking", {}).get("abandoned_upgrades", 0) > 0:
+                stats["upgrade_abandoners"] += 1
+            
+            # Count recent signups
+            created_at = user_data.get("created_at")
+            if created_at:
+                try:
+                    created_date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                    if created_date > week_ago:
+                        stats["recent_signups"] += 1
+                except:
+                    pass
+        
+        return {"success": True, "stats": stats}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading stats: {str(e)}")
+
+@router.delete("/api/users/{user_id}/data")
+async def delete_user_data(user_id: str, auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """GDPR-compliant user data deletion"""
+    try:
+        from user_management import user_manager
+        
+        if user_id not in user_manager.users:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Delete user data completely
+        user_manager.delete_user(user_id)
+        
+        return {"success": True, "message": f"All data for user {user_id} has been deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting user data: {str(e)}")
+
+@router.get("/api/users/{user_id}/data")
+async def export_user_data(user_id: str, auth: Dict[str, Any] = Depends(check_admin_auth)):
+    """Export user data for GDPR compliance"""
+    try:
+        from user_management import user_manager
+        
+        if user_id not in user_manager.users:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_data = user_manager.users[user_id]
+        
+        # Return user data (excluding sensitive fields like password_hash)
+        export_data = {
+            "user_id": user_id,
+            "email": user_data.get("email"),
+            "subscription": user_data.get("subscription"),
+            "created_at": user_data.get("created_at"),
+            "usage": user_data.get("usage"),
+            "upgrade_tracking": user_data.get("upgrade_tracking"),
+            "stripe_customer_id": user_data.get("stripe_customer_id"),
+            "subscription_status": user_data.get("subscription_status")
+        }
+        
+        return {"success": True, "user_data": export_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exporting user data: {str(e)}")

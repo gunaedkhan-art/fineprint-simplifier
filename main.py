@@ -14,6 +14,8 @@ import os
 import json
 import re
 from datetime import datetime
+import time
+from collections import defaultdict
 
 # Load environment variables from .env file if it exists
 try:
@@ -105,6 +107,47 @@ async def lifespan(app):
     print("🛑 Application shutting down...")
 
 app = FastAPI(lifespan=lifespan)
+
+# Rate limiting storage
+login_attempts = defaultdict(list)
+MAX_LOGIN_ATTEMPTS = 5
+LOGIN_WINDOW = 300  # 5 minutes
+
+def check_rate_limit(ip_address: str) -> bool:
+    """Check if IP has exceeded login attempt rate limit"""
+    current_time = time.time()
+    
+    # Clean old attempts
+    login_attempts[ip_address] = [
+        attempt_time for attempt_time in login_attempts[ip_address]
+        if current_time - attempt_time < LOGIN_WINDOW
+    ]
+    
+    # Check if limit exceeded
+    if len(login_attempts[ip_address]) >= MAX_LOGIN_ATTEMPTS:
+        return False
+    
+    return True
+
+def record_login_attempt(ip_address: str):
+    """Record a login attempt for rate limiting"""
+    current_time = time.time()
+    login_attempts[ip_address].append(current_time)
+
+def get_client_ip(request: Request) -> str:
+    """Get client IP address for rate limiting"""
+    # Check for forwarded IP (behind proxy)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    
+    # Check for real IP
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip
+    
+    # Fallback to direct connection
+    return request.client.host if request.client else "unknown"
 
 # Setup security middleware
 if setup_security_middleware:
@@ -233,6 +276,50 @@ async def subscription_management_page(request: Request):
         "user": current_user,
         "user_data": user_data
     })
+
+@app.get("/payment-success", response_class=HTMLResponse)
+async def payment_success_page(request: Request):
+    """Payment success page after Stripe checkout"""
+    return templates.TemplateResponse("payment_success.html", {"request": request})
+
+@app.get("/payment-error", response_class=HTMLResponse)
+async def payment_error_page(request: Request):
+    """Payment error page for failed payments"""
+    return templates.TemplateResponse("payment_error.html", {"request": request})
+
+@app.get("/api/upgrade-abandoners")
+async def get_upgrade_abandoners():
+    """Get list of users who have abandoned upgrades (for marketing)"""
+    if not user_manager:
+        return JSONResponse(
+            content={"error": "User management not available"},
+            status_code=500
+        )
+    
+    abandoners = user_manager.get_upgrade_abandoners()
+    return JSONResponse(content={
+        "success": True,
+        "abandoners": abandoners,
+        "count": len(abandoners)
+    })
+
+@app.post("/api/track-abandonment/{user_id}")
+async def track_upgrade_abandonment(user_id: str):
+    """Track when a user abandons the upgrade process"""
+    if not user_manager:
+        return JSONResponse(
+            content={"error": "User management not available"},
+            status_code=500
+        )
+    
+    try:
+        user_manager.track_upgrade_abandonment(user_id)
+        return JSONResponse(content={"success": True, "message": "Abandonment tracked"})
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Failed to track abandonment: {str(e)}"},
+            status_code=500
+        )
 
 
 @app.get("/health")
@@ -423,6 +510,7 @@ async def register_user(request: Request):
         data = await request.json()
         email = data.get("email")
         password = data.get("password")
+        anonymous_user_id = data.get("anonymous_user_id")  # For merging anonymous user data
         
         if not email or not password:
             return JSONResponse(
@@ -441,6 +529,25 @@ async def register_user(request: Request):
         # Hash password and create user
         password_hash = auth_manager.hash_password(password)
         user = user_manager.create_authenticated_user(email, password_hash)
+        
+        # If there's an anonymous user ID, merge the data
+        if anonymous_user_id and anonymous_user_id in user_manager.users:
+            anonymous_user = user_manager.users[anonymous_user_id]
+            
+            # Merge usage data from anonymous user
+            if "usage" in anonymous_user:
+                user["usage"] = anonymous_user["usage"]
+            
+            # Merge any other relevant data
+            if "documents_analyzed" in anonymous_user:
+                user["documents_analyzed"] = anonymous_user["documents_analyzed"]
+            
+            # Save the updated user data
+            user_manager._save_users()
+            
+            # Remove the anonymous user
+            del user_manager.users[anonymous_user_id]
+            user_manager._save_users()
         
         # Create access token
         access_token = auth_manager.create_access_token(
@@ -462,11 +569,21 @@ async def register_user(request: Request):
 
 @app.post("/api/login")
 async def login_user(request: Request):
-    """Login user"""
+    """Login user with rate limiting"""
     if not auth_manager or not user_manager:
         return JSONResponse(
             content={"error": "Authentication not available"},
             status_code=500
+        )
+    
+    # Get client IP for rate limiting
+    client_ip = get_client_ip(request)
+    
+    # Check rate limit
+    if not check_rate_limit(client_ip):
+        return JSONResponse(
+            content={"error": "Too many login attempts. Please try again in 5 minutes."},
+            status_code=429
         )
     
     try:
@@ -483,6 +600,8 @@ async def login_user(request: Request):
         # Authenticate user
         user = user_manager.authenticate_user(email, password)
         if not user:
+            # Record failed attempt
+            record_login_attempt(client_ip)
             return JSONResponse(
                 content={"error": "Invalid email or password"},
                 status_code=401
@@ -511,76 +630,6 @@ async def logout_user():
     """Logout user (client-side token removal)"""
     return JSONResponse(content={"success": True, "message": "Logged out successfully"})
 
-@app.post("/api/link-payment-to-account")
-async def link_payment_to_account(request: Request):
-    """Link an existing payment to a new user account"""
-    if not user_manager:
-        return JSONResponse(
-            content={"error": "User management not available"},
-            status_code=500
-        )
-    
-    try:
-        data = await request.json()
-        email = data.get("email")
-        password = data.get("password")
-        
-        if not email or not password:
-            return JSONResponse(
-                content={"error": "Email and password are required"},
-                status_code=400
-            )
-        
-        # Check if user already exists
-        existing_user = user_manager.get_user_by_email(email)
-        if existing_user:
-            return JSONResponse(
-                content={"error": "User with this email already exists"},
-                status_code=400
-            )
-        
-        # Check if there's a payment/subscription for this email
-        # Look for users with this email in Stripe customer data
-        payment_linked = False
-        user_id = None
-        
-        # Search through existing users to find one with this email and a subscription
-        for uid, user_data in user_manager.users.items():
-            if (user_data.get("email") == email and 
-                user_data.get("subscription") == "paid" and 
-                user_data.get("stripe_customer_id")):
-                # Found a paid user with this email, link the account
-                user_data["password_hash"] = auth_manager.hash_password(password) if auth_manager else None
-                user_manager._save_users()
-                payment_linked = True
-                user_id = uid
-                break
-        
-        if payment_linked:
-            # Create access token
-            access_token = None
-            if auth_manager:
-                access_token = auth_manager.create_access_token(
-                    data={"sub": user_id, "email": email}
-                )
-            
-            return JSONResponse(content={
-                "success": True,
-                "message": "Account linked to existing subscription",
-                "access_token": access_token,
-                "user_id": user_id
-            })
-        else:
-            return JSONResponse(
-                content={"error": "No existing subscription found for this email"},
-                status_code=404
-            )
-        
-    except Exception as e:
-        return JSONResponse(
-            content={"error": f"Account linking failed: {str(e)}"},
-            status_code=500
-        )
 
 @app.get("/api/user-subscription-data")
 async def get_user_subscription_data(request: Request):
@@ -955,13 +1004,68 @@ async def stripe_webhook(request: Request):
         )
 
 @app.post("/api/upgrade/{user_id}")
-async def upgrade_user(user_id: str):
-    """Upgrade user to paid tier (legacy endpoint for testing)"""
-    if user_manager:
-        user_manager.upgrade_user(user_id, "paid")
-        return {"success": True, "message": "User upgraded to paid tier"}
-    else:
-        return {"error": "User management not available"}
+async def upgrade_user(user_id: str, request: Request):
+    """Create Stripe checkout session for user upgrade"""
+    if not user_manager:
+        return JSONResponse(
+            content={"error": "User management not available"},
+            status_code=500
+        )
+    
+    try:
+        # Get user data
+        user_data = user_manager.get_user(user_id)
+        if not user_data:
+            return JSONResponse(
+                content={"error": "User not found"},
+                status_code=404
+            )
+        
+        # Check if user already has a paid subscription
+        if user_data.get("subscription") == "paid":
+            return JSONResponse(
+                content={"error": "User already has a paid subscription"},
+                status_code=400
+            )
+        
+        # Get user email (required for Stripe)
+        email = user_data.get("email")
+        if not email:
+            return JSONResponse(
+                content={"error": "Email required for upgrade. Please complete your account setup first."},
+                status_code=400
+            )
+        
+        # Track upgrade attempt
+        user_manager.track_upgrade_attempt(user_id)
+        
+        # Create Stripe checkout session
+        from stripe_integration import create_payment_session
+        
+        # Get current domain for success/cancel URLs
+        base_url = str(request.base_url).rstrip('/')
+        success_url = f"{base_url}/payment-success?user_id={user_id}"
+        cancel_url = f"{base_url}/upload?user_id={user_id}&upgrade_cancelled=true"
+        
+        session_result = create_payment_session(user_id, email, success_url, cancel_url)
+        
+        if session_result.get('success'):
+            return JSONResponse(content={
+                "success": True,
+                "checkout_url": session_result['checkout_url'],
+                "session_id": session_result['session_id']
+            })
+        else:
+            return JSONResponse(
+                content={"error": f"Failed to create checkout session: {session_result.get('error', 'Unknown error')}"},
+                status_code=500
+            )
+            
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Upgrade failed: {str(e)}"},
+            status_code=500
+        )
 
 @app.post("/api/reset-usage/{user_id}")
 async def reset_user_usage(user_id: str):

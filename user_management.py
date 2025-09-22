@@ -65,6 +65,12 @@ class UserManager:
                     "documents_this_month": 0,
                     "total_documents": 0,
                     "last_upload": None
+                },
+                "upgrade_tracking": {
+                    "upgrade_attempts": 0,
+                    "last_upgrade_attempt": None,
+                    "abandoned_upgrades": 0,
+                    "upgrade_abandoned_at": None
                 }
             }
             self._save_users()
@@ -309,6 +315,56 @@ class UserManager:
             print(f"DEBUG: Deleted user {user_id}")
         else:
             print(f"DEBUG: User {user_id} not found for deletion")
+    
+    def track_upgrade_attempt(self, user_id: str):
+        """Track when a user attempts to upgrade"""
+        if user_id not in self.users:
+            self.create_user(user_id)
+        
+        user = self.users[user_id]
+        if "upgrade_tracking" not in user:
+            user["upgrade_tracking"] = {
+                "upgrade_attempts": 0,
+                "last_upgrade_attempt": None,
+                "abandoned_upgrades": 0,
+                "upgrade_abandoned_at": None
+            }
+        
+        user["upgrade_tracking"]["upgrade_attempts"] += 1
+        user["upgrade_tracking"]["last_upgrade_attempt"] = datetime.now().isoformat()
+        self._save_users()
+    
+    def track_upgrade_abandonment(self, user_id: str):
+        """Track when a user abandons the upgrade process"""
+        if user_id in self.users:
+            user = self.users[user_id]
+            if "upgrade_tracking" not in user:
+                user["upgrade_tracking"] = {
+                    "upgrade_attempts": 0,
+                    "last_upgrade_attempt": None,
+                    "abandoned_upgrades": 0,
+                    "upgrade_abandoned_at": None
+                }
+            
+            user["upgrade_tracking"]["abandoned_upgrades"] += 1
+            user["upgrade_tracking"]["upgrade_abandoned_at"] = datetime.now().isoformat()
+            self._save_users()
+    
+    def get_upgrade_abandoners(self) -> List[Dict]:
+        """Get list of users who have abandoned upgrades (for marketing)"""
+        abandoners = []
+        for user_id, user_data in self.users.items():
+            if (user_data.get("upgrade_tracking", {}).get("abandoned_upgrades", 0) > 0 and 
+                user_data.get("subscription") == "free" and 
+                user_data.get("email")):
+                abandoners.append({
+                    "user_id": user_id,
+                    "email": user_data.get("email"),
+                    "abandoned_upgrades": user_data.get("upgrade_tracking", {}).get("abandoned_upgrades", 0),
+                    "last_upgrade_attempt": user_data.get("upgrade_tracking", {}).get("last_upgrade_attempt"),
+                    "upgrade_abandoned_at": user_data.get("upgrade_tracking", {}).get("upgrade_abandoned_at")
+                })
+        return abandoners
 
 # Global user manager instance
 user_manager = UserManager()

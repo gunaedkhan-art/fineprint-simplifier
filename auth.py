@@ -12,7 +12,7 @@ from fastapi import Depends
 # JWT Configuration
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # 30 days
+ACCESS_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60  # 7 days (more secure)
 
 # Security scheme
 security = HTTPBearer()

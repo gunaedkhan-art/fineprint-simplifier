@@ -53,13 +53,6 @@
                             <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password">
                         </div>
                         
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="linkPayment" name="linkPayment">
-                                <span class="checkmark"></span>
-                                I have already paid for a subscription and want to link it to this account
-                            </label>
-                        </div>
                         
                         <button type="submit" class="btn-primary btn-full" id="registerBtn">
                             Create Account
@@ -82,7 +75,6 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const linkPayment = document.getElementById('linkPayment').checked;
             const registerBtn = document.getElementById('registerBtn');
             
             // Validate passwords match
@@ -91,38 +83,45 @@
                 return;
             }
             
-            // Validate password length
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters long');
+            // Validate password strength
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters long');
+                return;
+            }
+            
+            // Check password complexity
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+                alert('Password must contain at least one uppercase letter, one lowercase letter, and one number');
                 return;
             }
             
             // Show loading state
             const originalText = registerBtn.textContent;
-            registerBtn.textContent = linkPayment ? 'Linking Account...' : 'Creating Account...';
+            registerBtn.textContent = 'Creating Account...';
             registerBtn.disabled = true;
             
             try {
-                let response;
-                if (linkPayment) {
-                    // Try to link existing payment
-                    response = await fetch('/api/link-payment-to-account', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ email, password })
-                    });
-                } else {
-                    // Create new account
-                    response = await fetch('/api/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ email, password })
-                    });
-                }
+                // Get anonymous user ID from URL parameters or localStorage
+                const urlParams = new URLSearchParams(window.location.search);
+                const anonymousUserId = urlParams.get('user_id') || localStorage.getItem('fineprint_user_id');
+                
+                // Create new account
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        email, 
+                        password, 
+                        anonymous_user_id: anonymousUserId 
+                    })
+                });
                 
                 const data = await response.json();
                 
@@ -131,8 +130,15 @@
                     localStorage.setItem('access_token', data.access_token);
                     document.cookie = `access_token=${data.access_token}; path=/; max-age=${30 * 24 * 60 * 60}`;
                     
-                    // Redirect to profile
-                    window.location.href = '/profile';
+                    // Check if there are stored analysis results
+                    const storedResults = localStorage.getItem(`temp_analysis_${anonymousUserId}`);
+                    if (storedResults) {
+                        // Redirect to upload page to show stored results
+                        window.location.href = '/upload';
+                    } else {
+                        // Redirect to profile
+                        window.location.href = '/profile';
+                    }
                 } else {
                     throw new Error(data.error || 'Registration failed');
                 }

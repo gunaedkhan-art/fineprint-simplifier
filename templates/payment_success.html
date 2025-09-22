@@ -5,237 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Successful - Small Print Checker</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 </head>
 <body>
     <div class="container">
-        <div class="success-page">
-            <div class="success-icon">✅</div>
-            <h1>Payment Successful!</h1>
-            <p class="success-message">
-                Welcome to Small Print Checker Pro! Your subscription is now active.
-            </p>
-            
-            <div class="success-details">
-                <h3>What's Next?</h3>
-                <ul>
-                    <li>✅ Unlimited document analysis</li>
-                    <li>✅ Advanced risk scoring</li>
-                    <li>✅ Document comparison features</li>
-                    <li>✅ Priority support</li>
-                </ul>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="/" class="logo-link">
+                        <h1 class="logo">📋 Small Print Checker</h1>
+                        <p class="tagline">Understand your contracts in plain English</p>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/upload" class="nav-link">Analyze</a>
+                    <a href="/compare" class="nav-link">Compare</a>
+                    <a href="/how-it-works" class="nav-link">How It Works</a>
+                    <a href="/pricing" class="nav-link">Pricing</a>
+                </nav>
             </div>
-            
-            <div class="action-buttons">
-                <a href="/upload" class="btn-primary btn-large">Start Analyzing Documents</a>
-                <a href="/profile" class="btn-secondary" id="profileBtn">Go to Profile</a>
-            </div>
-            
-            {% if is_new_user %}
-            <div class="account-setup">
-                <h3>Complete Your Account Setup</h3>
-                <p>Create a password to secure your account and access your profile anytime.</p>
-                <form id="passwordForm" class="password-form">
-                    <div class="form-group">
-                        <label for="password">Create Password</label>
-                        <input type="password" id="password" name="password" required placeholder="Enter a secure password" minlength="6">
-                    </div>
-                    <div class="form-group">
-                        <label for="confirmPassword">Confirm Password</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password">
-                    </div>
-                    <button type="submit" class="btn-primary" id="setupBtn">Complete Setup</button>
-                </form>
-            </div>
-            {% endif %}
-            
-            <div class="support-info">
-                <p>Need help? Contact us at <a href="mailto:support@smallprintchecker.com">support@smallprintchecker.com</a></p>
-            </div>
-        </div>
-    </div>
-    
-    <style>
-        .success-page {
-            text-align: center;
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .success-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        
-        .success-message {
-            font-size: 1.2rem;
-            color: #059669;
-            margin-bottom: 2rem;
-        }
-        
-        .success-details {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: left;
-        }
-        
-        .success-details h3 {
-            margin-top: 0;
-            color: #374151;
-        }
-        
-        .success-details ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .success-details li {
-            padding: 0.5rem 0;
-            color: #6b7280;
-        }
-        
-        .action-buttons {
-            margin: 2rem 0;
-        }
-        
-        .action-buttons a {
-            display: inline-block;
-            margin: 0.5rem;
-        }
-        
-        .support-info {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
-        }
-        
-        .support-info a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .support-info a:hover {
-            text-decoration: underline;
-        }
-        
-        .account-setup {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            border-left: 4px solid #2563eb;
-        }
-        
-        .account-setup h3 {
-            margin-top: 0;
-            color: #374151;
-        }
-        
-        .password-form {
-            margin-top: 1rem;
-        }
-        
-        .password-form .form-group {
-            margin-bottom: 1rem;
-        }
-        
-        .password-form label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #374151;
-            font-weight: 500;
-        }
-        
-        .password-form input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-        
-        .password-form input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-    </style>
-    
-    <script>
-        // Auto-login if access token is provided
-        {% if access_token %}
-        localStorage.setItem('access_token', '{{ access_token }}');
-        document.cookie = 'access_token={{ access_token }}; path=/; max-age=' + (30 * 24 * 60 * 60);
-        {% endif %}
-        
-        // Handle password setup for new users
-        {% if is_new_user %}
-        document.getElementById('passwordForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const setupBtn = document.getElementById('setupBtn');
-            
-            // Validate passwords match
-            if (password !== confirmPassword) {
-                alert('Passwords do not match');
-                return;
-            }
-            
-            // Validate password length
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters long');
-                return;
-            }
-            
-            // Show loading state
-            const originalText = setupBtn.textContent;
-            setupBtn.textContent = 'Setting up...';
-            setupBtn.disabled = true;
-            
-            try {
-                const response = await fetch('/api/setup-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    },
-                    body: JSON.stringify({
-                        user_id: '{{ user_id }}',
-                        password: password
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Hide the password form and show success message
-                    document.getElementById('passwordForm').style.display = 'none';
-                    document.querySelector('.account-setup h3').textContent = 'Account Setup Complete!';
-                    document.querySelector('.account-setup p').textContent = 'Your account is now fully set up. You can access your profile anytime.';
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="payment-success-container">
+                <div class="success-card">
+                    <div class="success-icon">✅</div>
+                    <h1>Payment Successful!</h1>
+                    <p class="success-message">Welcome to Small Print Checker Pro! You now have unlimited access to all features.</p>
                     
-                    // Enable profile button
-                    document.getElementById('profileBtn').style.display = 'inline-block';
-                } else {
-                    throw new Error(data.error || 'Password setup failed');
+                    <div class="pro-features">
+                        <h3>Your Pro Features:</h3>
+                        <ul>
+                            <li>✅ Unlimited document analysis</li>
+                            <li>✅ Side-by-side document comparison</li>
+                            <li>✅ Export to PDF, Word, and Excel</li>
+                            <li>✅ Advanced analytics and insights</li>
+                            <li>✅ Priority customer support</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="success-actions">
+                        <a href="/upload" class="btn-primary">Start Analyzing</a>
+                        <a href="/profile" class="btn-secondary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check if there are stored analysis results to show
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            
+            if (userId) {
+                // Check for stored analysis results
+                const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
+                if (storedResults) {
+                    // Show a message about preserved results
+                    const successCard = document.querySelector('.success-card');
+                    const preservedMessage = document.createElement('div');
+                    preservedMessage.className = 'preserved-results-message';
+                    preservedMessage.style.cssText = 'background: #e7f3ff; border: 1px solid #b3d9ff; padding: 15px; border-radius: 8px; margin: 20px 0;';
+                    preservedMessage.innerHTML = `
+                        <h4>📄 Your Analysis Results</h4>
+                        <p>Your document analysis results have been preserved and are ready to view. Click "Start Analyzing" to see your detailed results.</p>
+                    `;
+                    successCard.appendChild(preservedMessage);
                 }
-            } catch (error) {
-                console.error('Password setup error:', error);
-                alert('Password setup failed: ' + error.message);
-                
-                // Reset button state
-                setupBtn.textContent = originalText;
-                setupBtn.disabled = false;
             }
         });
-        {% endif %}
     </script>
 </body>
 </html>
