@@ -14,9 +14,9 @@ bcrypt==4.1.2
 python-jose[cryptography]==3.3.0
 slowapi==0.1.9
 passlib[bcrypt]==1.7.4
-# OCR functionality - using lighter alternatives for deployment
-# easyocr==1.7.0  # Too heavy for deployment, causes hash issues
+# OCR functionality - lightweight alternatives
 pdf2image==1.16.3
 # File type support
 python-docx==1.1.0
-# pytesseract==0.3.10  # Requires system tesseract, causing deployment issues
+# Lightweight OCR - no system dependencies
+paddleocr==2.7.3

@@ -5,15 +5,15 @@ from PIL import Image
 import io
 import re
 
-# OCR functionality - EasyOCR (Railway compatible)
+# OCR functionality - PaddleOCR (lightweight alternative)
 try:
-    import easyocr
+    from paddleocr import PaddleOCR
     from pdf2image import convert_from_path
-    EASYOCR_AVAILABLE = True
-    print("EasyOCR and pdf2image loaded successfully")
+    PADDLEOCR_AVAILABLE = True
+    print("PaddleOCR and pdf2image loaded successfully")
 except ImportError:
-    EASYOCR_AVAILABLE = False
-    print("Warning: EasyOCR or pdf2image not available. OCR functionality disabled.")
+    PADDLEOCR_AVAILABLE = False
+    print("Warning: PaddleOCR or pdf2image not available. OCR functionality disabled.")
 
 def extract_text_from_pdf(pdf_path: str) -> dict:
     """
@@ -62,20 +62,20 @@ def extract_text_from_pdf(pdf_path: str) -> dict:
                 })
             
             # Second pass: Use OCR for pages that need it
-            if EASYOCR_AVAILABLE and any(page.get("needs_ocr", False) for page in pages):
+            if PADDLEOCR_AVAILABLE and any(page.get("needs_ocr", False) for page in pages):
                 print("Attempting OCR for scanned pages...")
                 try:
                     # Convert PDF to images
                     images = convert_from_path(pdf_path, dpi=300)
                     
-                    # Initialize OCR reader
-                    reader = easyocr.Reader(['en'])
+                    # Initialize PaddleOCR reader
+                    ocr = PaddleOCR(use_angle_cls=True, lang='en')
                     
                     for page_number, page in enumerate(pages, start=1):
                         if page.get("needs_ocr", False):
                             try:
-                                # Extract text using OCR
-                                ocr_text = extract_text_with_ocr_from_image(images[page_number - 1], reader)
+                                # Extract text using PaddleOCR
+                                ocr_text = extract_text_with_paddleocr_from_image(images[page_number - 1], ocr)
                                 
                                 if ocr_text and len(ocr_text.strip()) > 50:
                                     # OCR was successful
@@ -196,23 +196,31 @@ def assess_overall_quality(readable_pages: int, total_pages: int, total_characte
     else:
         return "unreadable"
 
-def extract_text_with_ocr_from_image(image, reader) -> str:
+def extract_text_with_paddleocr_from_image(image, ocr) -> str:
     """
-    Extract text from a PIL Image using EasyOCR
+    Extract text from a PIL Image using PaddleOCR
     Returns the extracted text as a string
     """
-    if not EASYOCR_AVAILABLE:
+    if not PADDLEOCR_AVAILABLE:
         return ""
     
     try:
+        # Convert PIL image to numpy array for PaddleOCR
+        import numpy as np
+        img_array = np.array(image)
+        
         # Read text from image
-        results = reader.readtext(image)
+        results = ocr.ocr(img_array, cls=True)
         
         # Combine all detected text
         extracted_text = ""
-        for (bbox, text, confidence) in results:
-            if confidence > 0.5:  # Only include high-confidence text
-                extracted_text += text + " "
+        if results and results[0]:
+            for line in results[0]:
+                if line and len(line) >= 2:
+                    text = line[1][0]  # Extract text from [bbox, (text, confidence)]
+                    confidence = line[1][1]
+                    if confidence > 0.5:  # Only include high-confidence text
+                        extracted_text += text + " "
         
         return extracted_text.strip()
     
@@ -222,24 +230,28 @@ def extract_text_with_ocr_from_image(image, reader) -> str:
 
 def extract_text_with_ocr(image_path: str) -> str:
     """
-    Extract text from an image using EasyOCR
+    Extract text from an image using PaddleOCR
     Returns the extracted text as a string
     """
-    if not EASYOCR_AVAILABLE:
+    if not PADDLEOCR_AVAILABLE:
         return ""
     
     try:
-        # Initialize EasyOCR reader (English)
-        reader = easyocr.Reader(['en'])
+        # Initialize PaddleOCR reader
+        ocr = PaddleOCR(use_angle_cls=True, lang='en')
         
         # Read text from image
-        results = reader.readtext(image_path)
+        results = ocr.ocr(image_path, cls=True)
         
         # Combine all detected text
         extracted_text = ""
-        for (bbox, text, confidence) in results:
-            if confidence > 0.5:  # Only include high-confidence text
-                extracted_text += text + " "
+        if results and results[0]:
+            for line in results[0]:
+                if line and len(line) >= 2:
+                    text = line[1][0]  # Extract text from [bbox, (text, confidence)]
+                    confidence = line[1][1]
+                    if confidence > 0.5:  # Only include high-confidence text
+                        extracted_text += text + " "
         
         return extracted_text.strip()
     

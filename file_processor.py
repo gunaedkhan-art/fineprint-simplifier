@@ -25,12 +25,12 @@ except ImportError:
 
 # OCR functionality
 try:
-    import easyocr
-    EASYOCR_AVAILABLE = True
-    print("EasyOCR loaded successfully")
+    from paddleocr import PaddleOCR
+    PADDLEOCR_AVAILABLE = True
+    print("PaddleOCR loaded successfully")
 except ImportError:
-    EASYOCR_AVAILABLE = False
-    print("Warning: EasyOCR not available. Image OCR functionality disabled.")
+    PADDLEOCR_AVAILABLE = False
+    print("Warning: PaddleOCR not available. Image OCR functionality disabled.")
 
 def extract_text_from_docx(file_path: str) -> Dict:
     """
@@ -106,16 +106,20 @@ def extract_text_from_image(file_path: str) -> Dict:
             image = image.convert('RGB')
         
         # Extract text using OCR
-        if EASYOCR_AVAILABLE:
-            # Use EasyOCR for better accuracy
-            reader = easyocr.Reader(['en'])
-            results = reader.readtext(image)
+        if PADDLEOCR_AVAILABLE:
+            # Use PaddleOCR for better accuracy
+            ocr = PaddleOCR(use_angle_cls=True, lang='en')
+            results = ocr.ocr(image, cls=True)
             
             # Combine all detected text
             extracted_text = ""
-            for (bbox, text, confidence) in results:
-                if confidence > 0.5:  # Only include high-confidence text
-                    extracted_text += text + " "
+            if results and results[0]:
+                for line in results[0]:
+                    if line and len(line) >= 2:
+                        text = line[1][0]  # Extract text from [bbox, (text, confidence)]
+                        confidence = line[1][1]
+                        if confidence > 0.5:  # Only include high-confidence text
+                            extracted_text += text + " "
             
             extracted_text = extracted_text.strip()
         elif TESSERACT_AVAILABLE:
