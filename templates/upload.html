@@ -407,10 +407,15 @@
                         hideProcessingStatus();
                     }, 500);
                     // Handle visitor vs logged in user response
+                    console.log("DEBUG: Response received:", data);
+                    console.log("DEBUG: is_visitor:", data.is_visitor);
+                    console.log("DEBUG: visitor_summary:", data.visitor_summary);
+                    
                     if (data.is_visitor) {
                         // Store the full analysis results for later retrieval
                         window.tempAnalysisResults = data;
                         // Show visitor summary and signup prompt
+                        console.log("DEBUG: Calling displayVisitorSummary with:", data.visitor_summary);
                         displayVisitorSummary(data.visitor_summary);
                     } else {
                         // Store results temporarily for logged in users
@@ -478,6 +483,8 @@
                 });
                 
                 const data = await response.json();
+                console.log("DEBUG: Full response received:", data);
+                console.log("DEBUG: Response status:", response.status);
 
                 if (response.ok) {
                     // Handle visitor vs logged in user response
@@ -591,7 +598,11 @@
 
         // Visitor summary display function
         function displayVisitorSummary(summary) {
+            console.log("DEBUG: displayVisitorSummary called with:", summary);
             const resultsDiv = document.getElementById("results");
+            console.log("DEBUG: resultsDiv found:", resultsDiv);
+            console.log("DEBUG: resultsDiv current display style:", resultsDiv ? resultsDiv.style.display : "NOT FOUND");
+            console.log("DEBUG: resultsDiv current innerHTML length:", resultsDiv ? resultsDiv.innerHTML.length : "NOT FOUND");
             
             let qualityInfo = "";
             if (summary && summary.quality_assessment) {
@@ -612,7 +623,7 @@
             }
 
             const html = `
-                <div class="visitor-summary-container">
+                <div class="visitor-summary-container" style="border: 3px solid red; background-color: yellow; padding: 20px; margin: 20px;">
                     <div class="visitor-summary-header">
                         <h2>🔍 Analysis Complete!</h2>
                         <p class="visitor-message">We found some interesting things in your document. Sign up to see the full analysis!</p>
@@ -639,8 +650,29 @@
                 </div>
             `;
             
-            resultsDiv.innerHTML = html;
-            resultsDiv.style.display = "block";
+            console.log("DEBUG: Setting innerHTML and displaying results");
+            console.log("DEBUG: HTML content:", html.substring(0, 200) + "...");
+            
+            try {
+                resultsDiv.innerHTML = html;
+                resultsDiv.style.display = "block";
+                console.log("DEBUG: Results div display style:", resultsDiv.style.display);
+                console.log("DEBUG: Results div innerHTML length:", resultsDiv.innerHTML.length);
+                console.log("DEBUG: Results div is now visible:", resultsDiv.offsetHeight > 0);
+                
+                // Additional debugging
+                console.log("DEBUG: Results div computed style:", window.getComputedStyle(resultsDiv).display);
+                console.log("DEBUG: Results div position:", resultsDiv.offsetTop, resultsDiv.offsetLeft);
+                console.log("DEBUG: Results div dimensions:", resultsDiv.offsetWidth, resultsDiv.offsetHeight);
+                
+                // Check if results are actually in the DOM
+                setTimeout(() => {
+                    console.log("DEBUG: After 1 second - Results div still visible:", resultsDiv.offsetHeight > 0);
+                    console.log("DEBUG: After 1 second - Results div display:", window.getComputedStyle(resultsDiv).display);
+                }, 1000);
+            } catch (error) {
+                console.error("DEBUG: Error setting results:", error);
+            }
         }
 
         // Analysis results display functions
