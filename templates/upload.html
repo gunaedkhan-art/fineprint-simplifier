@@ -599,6 +599,7 @@
         // Visitor summary display function
         function displayVisitorSummary(summary) {
             console.log("DEBUG: displayVisitorSummary called with:", summary);
+            alert("DEBUG: displayVisitorSummary called - you should see a huge yellow box!");
             const resultsDiv = document.getElementById("results");
             console.log("DEBUG: resultsDiv found:", resultsDiv);
             console.log("DEBUG: resultsDiv current display style:", resultsDiv ? resultsDiv.style.display : "NOT FOUND");
@@ -623,10 +624,10 @@
             }
 
             const html = `
-                <div class="visitor-summary-container" style="border: 3px solid red; background-color: yellow; padding: 20px; margin: 20px;">
+                <div class="visitor-summary-container" style="border: 10px solid red; background-color: yellow; padding: 50px; margin: 50px; position: fixed; top: 50px; left: 50px; z-index: 9999; width: 80%; height: 80%; overflow: auto;">
                     <div class="visitor-summary-header">
-                        <h2>🔍 Analysis Complete!</h2>
-                        <p class="visitor-message">We found some interesting things in your document. Sign up to see the full analysis!</p>
+                        <h1 style="font-size: 48px; color: red;">🔍 ANALYSIS COMPLETE!</h1>
+                        <p style="font-size: 24px; color: black;">We found some interesting things in your document. Sign up to see the full analysis!</p>
                     </div>
                     ${qualityInfo}
                     <div class="visitor-summary-stats">
