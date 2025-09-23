@@ -1175,12 +1175,25 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     status_code=429
                 )
     
-    # Save file temporarily
+    # Validate file upload
+    from error_handler import validate_file_upload, handle_upload_error, create_user_friendly_response
+    
+    validation_result = validate_file_upload(file)
+    if not validation_result.get("valid", False):
+        return JSONResponse(
+            content=create_user_friendly_response(validation_result),
+            status_code=400
+        )
+    
+    file_info = validation_result["file_info"]
+    file_type = file_info["type"]
+    
+    # Save file temporarily with correct extension
     import tempfile
     import os
     
     # Create a temporary file with proper extension
-    temp_fd, temp_path = tempfile.mkstemp(suffix='.pdf')
+    temp_fd, temp_path = tempfile.mkstemp(suffix=f'.{file_type}')
     os.close(temp_fd)
     
     with open(temp_path, "wb") as f:
@@ -1191,14 +1204,16 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
         patterns = load_custom_patterns()
         pending = load_pending_patterns()
 
-        # Extract text (page-by-page) with quality assessment
-        pdf_extraction = extract_text_from_pdf(temp_path)
-        raw_pages = pdf_extraction["pages"]
-        quality_assessment = pdf_extraction["quality_assessment"]
-        total_characters = pdf_extraction["total_characters"]
-        readable_pages = pdf_extraction["readable_pages"]
-        total_pages = pdf_extraction["total_pages"]
-        quality_issues = pdf_extraction["quality_issues"]
+        # Extract text using the appropriate processor for the file type
+        from file_processor import extract_text_from_file
+        
+        file_extraction = extract_text_from_file(temp_path, file_type)
+        raw_pages = file_extraction["pages"]
+        quality_assessment = file_extraction["quality_assessment"]
+        total_characters = file_extraction["total_characters"]
+        readable_pages = file_extraction["readable_pages"]
+        total_pages = file_extraction["total_pages"]
+        quality_issues = file_extraction["quality_issues"]
         
         # Handle different quality scenarios
         if quality_assessment == "unreadable":
@@ -1335,6 +1350,23 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
         print(f"DEBUG: Risk count: {risk_count}, Good point count: {good_point_count}")
         
         return JSONResponse(content=response_data)
+    
+    except Exception as e:
+        # Handle processing errors with user-friendly messages
+        from error_handler import handle_processing_error, create_user_friendly_response, log_error
+        
+        # Log the error for debugging
+        log_error(e, {"user_id": user_id, "file_type": file_type, "file_info": file_info})
+        
+        # Create user-friendly error response
+        error_response = handle_processing_error(e, file_info)
+        user_response = create_user_friendly_response(error_response)
+        
+        return JSONResponse(
+            content=user_response,
+            status_code=500
+        )
+    
     finally:
         # Clean up temporary file
         try:

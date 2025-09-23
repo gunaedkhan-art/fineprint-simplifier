@@ -96,13 +96,29 @@
                         <div class="file-upload-area" id="file-upload-area">
                             <div class="file-upload-box" id="file-upload-box">
                                 <div class="upload-icon">📄</div>
-                                <h3>Choose a PDF file</h3>
+                                <h3>Choose a document</h3>
                                 <p>Drag and drop your document here, or click to browse</p>
-                                <input type="file" id="file" name="file" accept=".pdf">
+                                <p class="supported-formats">Supported: PDF, Word (.docx), Images (.jpg, .png, .tiff)</p>
+                                <input type="file" id="file" name="file" accept=".pdf,.docx,.jpg,.jpeg,.png,.tiff,.bmp,.gif">
                             </div>
                             <div id="file-info" class="file-info" style="display: none;">
                                 <span id="file-name"></span>
                                 <button type="button" id="remove-file" class="btn-remove">✕</button>
+                            </div>
+                            
+                            <!-- Progress Indicator -->
+                            <div id="processing-status" class="processing-status" style="display: none;">
+                                <div class="processing-indicator">
+                                    <div class="spinner"></div>
+                                    <h3>Processing your document...</h3>
+                                    <p class="status-text">This may take a few moments</p>
+                                    <div class="progress-steps">
+                                        <div class="step" id="step-upload">✓ Uploading</div>
+                                        <div class="step" id="step-extract">⏳ Extracting text</div>
+                                        <div class="step" id="step-analyze">⏳ Analyzing content</div>
+                                        <div class="step" id="step-complete">⏳ Generating results</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -349,7 +365,7 @@
             
             const fileInput = document.getElementById("file");
             if (!fileInput.files.length) {
-                alert("Please select a PDF");
+                alert("Please select a document");
                 return;
             }
             
@@ -358,6 +374,9 @@
                 alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
                 return;
             }
+            
+            // Show progress indicator
+            showProcessingStatus();
             
             // Show analyzing state
             document.getElementById("analyze-text").style.display = "none";
@@ -369,10 +388,24 @@
             formData.append("user_id", currentUserId);
 
             try {
+                // Update progress
+                updateProgressStep("step-extract", "completed");
+                updateProgressStep("step-analyze", "active");
+                updateProgressText("Analyzing document content...");
+                
                 const res = await fetch("/analyze", { method: "POST", body: formData });
                 const data = await res.json();
 
                 if (res.ok) {
+                    // Update progress
+                    updateProgressStep("step-analyze", "completed");
+                    updateProgressStep("step-complete", "active");
+                    updateProgressText("Generating results...");
+                    
+                    // Small delay to show the final step
+                    setTimeout(() => {
+                        hideProcessingStatus();
+                    }, 500);
                     // Handle visitor vs logged in user response
                     if (data.is_visitor) {
                         // Store the full analysis results for later retrieval
@@ -401,6 +434,7 @@
                 }
             } catch (error) {
                 console.error("Error:", error);
+                hideProcessingStatus();
                 alert("Error analyzing document. Please try again.");
             } finally {
                 // Reset button state
@@ -811,6 +845,35 @@
                 localStorage.setItem(`temp_analysis_${userId}`, JSON.stringify(window.tempAnalysisResults));
             }
             window.location.href = `/pricing?user_id=${userId}&redirect=upload`;
+        }
+
+        // Progress indicator functions
+        function showProcessingStatus() {
+            document.getElementById("processing-status").style.display = "block";
+            updateProgressStep("step-upload", "completed");
+            updateProgressStep("step-extract", "active");
+        }
+        
+        function hideProcessingStatus() {
+            document.getElementById("processing-status").style.display = "none";
+            // Reset all steps
+            document.querySelectorAll(".step").forEach(step => {
+                step.className = "step pending";
+            });
+        }
+        
+        function updateProgressStep(stepId, status) {
+            const step = document.getElementById(stepId);
+            if (step) {
+                step.className = `step ${status}`;
+            }
+        }
+        
+        function updateProgressText(text) {
+            const statusText = document.querySelector(".status-text");
+            if (statusText) {
+                statusText.textContent = text;
+            }
         }
 
         function upgradeToPro() {

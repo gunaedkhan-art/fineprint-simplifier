@@ -79,6 +79,27 @@ class AuthManager:
 # Global auth manager instance
 auth_manager = AuthManager()
 
+# Admin authentication functions
+def get_current_admin(request: Request) -> Optional[Dict]:
+    """Get current admin user from request"""
+    try:
+        # Check for admin session in cookies
+        admin_session = request.cookies.get("admin_session")
+        if not admin_session:
+            return None
+        
+        # Verify admin session
+        payload = auth_manager.verify_token(admin_session)
+        if payload and payload.get("admin") == True:
+            return payload
+        return None
+    except Exception:
+        return None
+
+def create_admin_password_hash(password: str) -> str:
+    """Create a password hash for admin"""
+    return auth_manager.hash_password(password)
+
 # Dependency for getting current user
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return auth_manager.get_current_user(credentials)

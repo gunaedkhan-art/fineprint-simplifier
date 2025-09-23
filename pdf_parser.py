@@ -8,16 +8,17 @@ import re
 # OCR functionality - EasyOCR (Railway compatible)
 try:
     import easyocr
+    from pdf2image import convert_from_path
     EASYOCR_AVAILABLE = True
-    print("EasyOCR loaded successfully")
+    print("EasyOCR and pdf2image loaded successfully")
 except ImportError:
     EASYOCR_AVAILABLE = False
-    print("Warning: EasyOCR not available. OCR functionality disabled.")
+    print("Warning: EasyOCR or pdf2image not available. OCR functionality disabled.")
 
 def extract_text_from_pdf(pdf_path: str) -> dict:
     """
     Returns a dict with keys: pages, quality_assessment, total_characters, readable_pages
-    Uses PyPDF2 for text extraction with quality assessment for scanned PDFs.
+    Uses PyPDF2 for text extraction with OCR fallback for scanned PDFs.
     """
     pages = []
     total_characters = 0
@@ -30,6 +31,7 @@ def extract_text_from_pdf(pdf_path: str) -> dict:
             total_pages = len(pdf_reader.pages)
             print(f"PDF has {total_pages} pages")
             
+            # First pass: Try normal text extraction
             for page_number, page in enumerate(pdf_reader.pages, start=1):
                 # Try normal text extraction
                 text = page.extract_text()
@@ -55,8 +57,49 @@ def extract_text_from_pdf(pdf_path: str) -> dict:
                     "page_number": page_number,
                     "text": text.strip(),
                     "quality": page_quality,
-                    "char_count": char_count
+                    "char_count": char_count,
+                    "needs_ocr": page_quality == "poor" and (not text or not text.strip())
                 })
+            
+            # Second pass: Use OCR for pages that need it
+            if EASYOCR_AVAILABLE and any(page.get("needs_ocr", False) for page in pages):
+                print("Attempting OCR for scanned pages...")
+                try:
+                    # Convert PDF to images
+                    images = convert_from_path(pdf_path, dpi=300)
+                    
+                    # Initialize OCR reader
+                    reader = easyocr.Reader(['en'])
+                    
+                    for page_number, page in enumerate(pages, start=1):
+                        if page.get("needs_ocr", False):
+                            try:
+                                # Extract text using OCR
+                                ocr_text = extract_text_with_ocr_from_image(images[page_number - 1], reader)
+                                
+                                if ocr_text and len(ocr_text.strip()) > 50:
+                                    # OCR was successful
+                                    page["text"] = ocr_text.strip()
+                                    page["quality"] = "fair"  # OCR text is usually fair quality
+                                    page["char_count"] = len(ocr_text)
+                                    page["extraction_method"] = "ocr"
+                                    
+                                    # Update totals
+                                    if page_quality not in ["good", "fair"]:
+                                        readable_pages += 1
+                                        total_characters += len(ocr_text)
+                                    
+                                    print(f"Page {page_number}: OCR extracted {len(ocr_text)} characters")
+                                else:
+                                    print(f"Page {page_number}: OCR failed or insufficient text")
+                                    
+                            except Exception as e:
+                                print(f"OCR failed for page {page_number}: {e}")
+                                quality_issues.append(f"Page {page_number}: OCR failed - {str(e)}")
+                    
+                except Exception as e:
+                    print(f"OCR processing failed: {e}")
+                    quality_issues.append(f"OCR processing failed: {str(e)}")
                 
     except Exception as e:
         print(f"Error reading PDF: {e}")
@@ -152,6 +195,30 @@ def assess_overall_quality(readable_pages: int, total_pages: int, total_characte
     # Unreadable: No readable pages
     else:
         return "unreadable"
+
+def extract_text_with_ocr_from_image(image, reader) -> str:
+    """
+    Extract text from a PIL Image using EasyOCR
+    Returns the extracted text as a string
+    """
+    if not EASYOCR_AVAILABLE:
+        return ""
+    
+    try:
+        # Read text from image
+        results = reader.readtext(image)
+        
+        # Combine all detected text
+        extracted_text = ""
+        for (bbox, text, confidence) in results:
+            if confidence > 0.5:  # Only include high-confidence text
+                extracted_text += text + " "
+        
+        return extracted_text.strip()
+    
+    except Exception as e:
+        print(f"OCR extraction failed: {e}")
+        return ""
 
 def extract_text_with_ocr(image_path: str) -> str:
     """

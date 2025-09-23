@@ -82,7 +82,7 @@
 
     <!-- Upload Form -->
     <form id="upload-form">
-        <input type="file" name="file" id="file" accept="application/pdf">
+        <input type="file" name="file" id="file" accept=".pdf,.docx,.jpg,.jpeg,.png,.tiff,.bmp,.gif">
         <button type="submit">Analyze Document</button>
         <input type="hidden" id="user-id-input" name="user_id">
     </form>
@@ -95,11 +95,11 @@
         <div class="comparison-upload">
             <div class="comparison-file">
                 <label for="file1">Document 1:</label>
-                <input type="file" name="file1" id="file1" accept="application/pdf">
+                <input type="file" name="file1" id="file1" accept=".pdf,.docx,.jpg,.jpeg,.png,.tiff,.bmp,.gif">
             </div>
             <div class="comparison-file">
                 <label for="file2">Document 2:</label>
-                <input type="file" name="file2" id="file2" accept="application/pdf">
+                <input type="file" name="file2" id="file2" accept=".pdf,.docx,.jpg,.jpeg,.png,.tiff,.bmp,.gif">
             </div>
             <button type="button" onclick="compareDocuments()" class="btn-primary">Compare Documents</button>
         </div>
