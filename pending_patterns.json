@@ -4,7 +4,23 @@
       "patterns": [
         "This is a test pattern for approval testing"
       ]
-    }
+    },
+    "general": [
+      "automatically renew",
+      "automatic renewal",
+      "binding arbitration",
+      "late payment fee",
+      "non-refundable",
+      "limited liability"
+    ]
   },
-  "good_points": {}
+  "good_points": {
+    "general": [
+      "grace period of 14 days",
+      "money-back guarantee",
+      "data will be kept secure",
+      "no win no fee",
+      "no win no fee basis"
+    ]
+  }
 }
