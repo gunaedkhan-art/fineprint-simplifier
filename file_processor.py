@@ -4,7 +4,15 @@ import os
 import tempfile
 from typing import Dict, List
 from PIL import Image
-import pytesseract
+
+# OCR functionality
+try:
+    import pytesseract
+    TESSERACT_AVAILABLE = True
+    print("pytesseract loaded successfully")
+except ImportError:
+    TESSERACT_AVAILABLE = False
+    print("Warning: pytesseract not available. Image OCR functionality disabled.")
 
 # File type support
 try:
@@ -110,9 +118,19 @@ def extract_text_from_image(file_path: str) -> Dict:
                     extracted_text += text + " "
             
             extracted_text = extracted_text.strip()
-        else:
+        elif TESSERACT_AVAILABLE:
             # Fallback to pytesseract
             extracted_text = pytesseract.image_to_string(image)
+        else:
+            # No OCR available
+            return {
+                "pages": [],
+                "quality_assessment": "error",
+                "total_characters": 0,
+                "readable_pages": 0,
+                "total_pages": 0,
+                "quality_issues": ["OCR functionality not available. Please install pytesseract or easyocr."]
+            }
         
         if not extracted_text or len(extracted_text.strip()) < 10:
             return {
