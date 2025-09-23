@@ -478,35 +478,7 @@
                     })
                 });
                 
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Handle visitor vs logged in user response
-                    if (data.is_visitor) {
-                        // Store the full analysis results for later retrieval
-                        window.tempAnalysisResults = data;
-                        // Show visitor summary and signup prompt
-                        displayVisitorSummary(data.visitor_summary);
-                    } else {
-                        // Store results temporarily for logged in users
-                        window.tempAnalysisResults = data;
-                        
-                        // Check if user needs to provide email
-                        if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
-                            document.getElementById("emailModal").style.display = "block";
-                        } else {
-                            // Show results directly
-                            displayAnalysisResults(data.analysis);
-                            processAnalysisData(data);
-                        }
-                    }
-                } else {
-                    if (data.error === "Monthly limit reached") {
-                        alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
-                    } else {
-                        alert("Error: " + (data.error || "Unknown error"));
-                    }
-                }
+                // This duplicate block has been removed - the logic is handled above
             } catch (error) {
                 console.error("Error:", error);
                 alert("Error analyzing text. Please try again.");
