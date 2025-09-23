@@ -53,6 +53,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            // Check if this is a visitor response - if so, don't overwrite the visitor summary
+            if (data.is_visitor) {
+                // Don't overwrite visitor summary - it's already displayed by the new code
+                return;
+            }
+
             const risks = data.analysis?.risks || {};
             const goodPoints = data.analysis?.good_points || {};
             const rating = data.analysis?.contract_rating || {};
