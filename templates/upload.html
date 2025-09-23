@@ -565,8 +565,13 @@
                 if (response.ok) {
                     // Close modal and show results
                     closeEmailModal();
-                    displayAnalysisResults(window.tempAnalysisResults.analysis);
-                    processAnalysisData(window.tempAnalysisResults);
+                    // For visitors, show the visitor summary, not full analysis
+                    if (window.tempAnalysisResults.is_visitor) {
+                        displayVisitorSummary(window.tempAnalysisResults.visitor_summary);
+                    } else {
+                        displayAnalysisResults(window.tempAnalysisResults.analysis);
+                        processAnalysisData(window.tempAnalysisResults);
+                    }
                     
                     // Update usage display
                     await loadUserUsage();
