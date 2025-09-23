@@ -1261,9 +1261,26 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                 status_code=400
             )
         
-        # Run analysis on the entire document text
+        # Run analysis on the already extracted text
         full_text = " ".join([p["text"] for p in raw_pages if p["text"]])
-        analysis_result = analyze_pdf(temp_path)  # Should return dict with 'risks' and 'good_points'
+        
+        # Debug logging
+        print(f"DEBUG: Extracted text length: {len(full_text)} characters")
+        print(f"DEBUG: Number of pages: {len(raw_pages)}")
+        print(f"DEBUG: First 200 chars of text: {full_text[:200]}")
+        
+        # Use the analyzer with the extracted text instead of re-processing the file
+        from analyzer import analyze_text_content
+        analysis_result = analyze_text_content(full_text)
+        
+        # Debug logging for analysis results
+        print(f"DEBUG: Analysis result keys: {list(analysis_result.keys())}")
+        print(f"DEBUG: Risks found: {len(analysis_result.get('risks', {}))}")
+        print(f"DEBUG: Good points found: {len(analysis_result.get('good_points', {}))}")
+        if analysis_result.get('risks'):
+            print(f"DEBUG: Risk categories: {list(analysis_result['risks'].keys())}")
+        if analysis_result.get('good_points'):
+            print(f"DEBUG: Good point categories: {list(analysis_result['good_points'].keys())}")
 
         # Add new patterns to pending
         for category in ["risks", "good_points"]:

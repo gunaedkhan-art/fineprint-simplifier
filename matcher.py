@@ -130,14 +130,22 @@ def find_risks_in_text(text_or_pages) -> dict:
     """
     grouped_matches = defaultdict(list)
     core_risk_patterns, _ = get_all_core_patterns()
+    
+    print(f"DEBUG: find_risks_in_text called with {type(text_or_pages)}")
+    print(f"DEBUG: Available risk categories: {list(core_risk_patterns.keys())}")
 
     if isinstance(text_or_pages, str):
         # Single text string
         text = preprocess_text(text_or_pages)
+        print(f"DEBUG: Preprocessed text length: {len(text)}")
+        print(f"DEBUG: First 200 chars of preprocessed text: {text[:200]}")
         
         # Check core patterns only (exact matching)
         for category, phrases in core_risk_patterns.items():
             matches = find_exact_phrase_matches(text, phrases)
+            print(f"DEBUG: Category '{category}': {len(matches)} matches found")
+            if matches:
+                print(f"DEBUG: Matches for '{category}': {[m['match'] for m in matches]}")
             for match in matches:
                 grouped_matches[category].append({
                     "match": match["match"],
@@ -187,14 +195,21 @@ def find_good_points_in_text(text_or_pages) -> dict:
     """
     grouped_matches = defaultdict(list)
     _, core_good_patterns = get_all_core_patterns()
+    
+    print(f"DEBUG: find_good_points_in_text called with {type(text_or_pages)}")
+    print(f"DEBUG: Available good point categories: {list(core_good_patterns.keys())}")
 
     if isinstance(text_or_pages, str):
         # Single text string
         text = preprocess_text(text_or_pages)
+        print(f"DEBUG: Good points - Preprocessed text length: {len(text)}")
         
         # Check core patterns only (exact matching)
         for category, phrases in core_good_patterns.items():
             matches = find_exact_phrase_matches(text, phrases)
+            print(f"DEBUG: Good points category '{category}': {len(matches)} matches found")
+            if matches:
+                print(f"DEBUG: Good points matches for '{category}': {[m['match'] for m in matches]}")
             for match in matches:
                 grouped_matches[category].append({
                     "match": match["match"],
