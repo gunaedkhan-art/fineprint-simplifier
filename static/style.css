@@ -2061,6 +2061,33 @@ h1.logo {
     }
 }
 
+/* Analysis Page Actions */
+.analysis-actions {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    margin-top: var(--space-8);
+    padding: var(--space-6) 0;
+}
+
+.analysis-actions .btn-primary,
+.analysis-actions .btn-secondary {
+    min-width: 200px;
+}
+
+@media (max-width: 640px) {
+    .analysis-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .analysis-actions .btn-primary,
+    .analysis-actions .btn-secondary {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
 /* Additional mobile optimizations */
 @media (max-width: 640px) {
     .hero-section {

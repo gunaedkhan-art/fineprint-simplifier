@@ -215,6 +215,18 @@ async def index(request: Request):
 async def upload_page(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
+@app.get("/analysis", response_class=HTMLResponse)
+async def analysis_page(request: Request):
+    # Check if user is authenticated
+    current_user = None
+    if get_current_user_optional:
+        current_user = await get_current_user_optional(request)
+    
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    return templates.TemplateResponse("analysis.html", {"request": request})
+
 @app.get("/compare", response_class=HTMLResponse)
 async def compare_page(request: Request):
     return templates.TemplateResponse("compare.html", {"request": request})

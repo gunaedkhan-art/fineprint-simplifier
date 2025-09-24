@@ -151,8 +151,8 @@
                         localStorage.removeItem('pending_visitor_analysis');
                         // Update the user ID in localStorage
                         localStorage.setItem('fineprint_user_id', data.user_id);
-                        // Redirect to upload page to show stored results
-                        window.location.href = `/upload?user_id=${data.user_id}`;
+                        // Redirect to analysis page to show stored results
+                        window.location.href = `/analysis?user_id=${data.user_id}`;
                     } else {
                         // Redirect to profile
                         window.location.href = '/profile';

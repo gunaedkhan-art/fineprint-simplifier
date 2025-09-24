@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - Small Print Checker</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="/" class="logo-link">
+                        <h1 class="logo">📋 Small Print Checker</h1>
+                        <p class="tagline">Understand your contracts in plain English</p>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/upload" class="nav-link">Analyze</a>
+                    <a href="/compare" class="nav-link">Compare</a>
+                    <a href="/how-it-works" class="nav-link">How It Works</a>
+                    <a href="/pricing" class="nav-link">Pricing</a>
+                <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+                    <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
+                    <div class="profile-dropdown-content">
+                        <div class="user-status-info" id="userStatusInfo">
+                            <div class="status-line">
+                                <span class="status-label">Plan:</span>
+                                <span class="status-value" id="userPlan">Free</span>
+                            </div>
+                            <div class="status-line">
+                                <span class="status-label">Usage:</span>
+                                <span class="status-value" id="userUsage">0/3</span>
+                            </div>
+                        </div>
+                        <a href="/profile" class="profile-link">My Profile</a>
+                        <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
+                        <a href="#" onclick="logout()" class="logout-link">Logout</a>
+                    </div>
+                </div>
+                <div class="auth-cta" id="authCTA">
+                    <a href="/login" class="btn-primary">Sign In</a>
+                </div>
+                </nav>
+                <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile Navigation -->
+        <nav class="mobile-nav" id="mobileNav">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/upload" class="nav-link">Analyze</a>
+            <a href="/compare" class="nav-link">Compare</a>
+            <a href="/how-it-works" class="nav-link">How It Works</a>
+            <a href="/pricing" class="nav-link">Pricing</a>
+            <div class="mobile-auth-cta" id="mobileAuthCTA">
+                <a href="/login" class="btn-primary">Sign In</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Analysis Results</h1>
+                <p class="page-subtitle">Your document has been analyzed. Review the findings below.</p>
+            </div>
+
+            <!-- Analysis Results -->
+            <div id="results" class="results-section">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="analysis-actions">
+                <a href="/upload" class="btn-secondary">Analyze Another Document</a>
+                <a href="/compare" class="btn-primary">Compare Documents</a>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="/how-it-works">How It Works</a>
+                    <a href="/pricing">Pricing</a>
+                    <a href="/profile">My Profile</a>
+                </div>
+                <p class="footer-disclaimer">
+                    <strong>Legal Disclaimer:</strong> This analysis is for informational purposes only and should not be considered legal advice. Always consult with a qualified attorney for legal matters.
+                </p>
+                <p class="footer-copyright">© 2025 Small Print Checker. Making contracts understandable for everyone.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let userUsage = null;
+
+        // Initialize user management
+        async function initializeUser() {
+            // Get user ID from URL parameters or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('user_id');
+            
+            if (urlUserId) {
+                currentUserId = urlUserId;
+                localStorage.setItem('fineprint_user_id', currentUserId);
+            } else {
+                currentUserId = localStorage.getItem('fineprint_user_id');
+                if (!currentUserId) {
+                    // Redirect to login if no user ID
+                    window.location.href = '/login';
+                    return;
+                }
+            }
+            
+            await loadUserUsage();
+        }
+
+        async function loadUserUsage() {
+            try {
+                const response = await fetch(`/api/usage/${currentUserId}`);
+                userUsage = await response.json();
+                displayUserStatus();
+            } catch (error) {
+                console.error('Error loading usage:', error);
+                // Redirect to login if user not found
+                window.location.href = '/login';
+            }
+        }
+
+        function displayUserStatus() {
+            // Update navigation based on login status
+            const profileDropdown = document.getElementById("profileDropdown");
+            const authCTA = document.getElementById("authCTA");
+            const mobileAuthCTA = document.getElementById("mobileAuthCTA");
+            
+            if (userUsage && userUsage.email) {
+                // User is logged in - show profile dropdown
+                profileDropdown.style.display = "block";
+                authCTA.style.display = "none";
+                mobileAuthCTA.style.display = "none";
+                
+                // Update profile info
+                document.getElementById("userPlan").textContent = userUsage.subscription === 'paid' ? 'Pro' : 'Free';
+                document.getElementById("userUsage").textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3}`;
+                
+                // Update username in profile avatar if available
+                const profileAvatar = document.getElementById("profileAvatar");
+                if (userUsage.username && profileAvatar) {
+                    profileAvatar.textContent = userUsage.username.charAt(0).toUpperCase();
+                }
+                
+                // Show subscription management link for paid users
+                const subscriptionLink = document.getElementById("subscriptionLink");
+                if (userUsage.subscription === 'paid') {
+                    subscriptionLink.style.display = "block";
+                } else {
+                    subscriptionLink.style.display = "none";
+                }
+            } else {
+                // User is not logged in - redirect to login
+                window.location.href = '/login';
+            }
+        }
+
+        // Load stored analysis results
+        async function loadAnalysisResults() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            
+            if (userId) {
+                const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
+                if (storedResults) {
+                    try {
+                        const results = JSON.parse(storedResults);
+                        
+                        // Show success message
+                        const resultsDiv = document.getElementById("results");
+                        if (resultsDiv) {
+                            const successMessage = document.createElement('div');
+                            successMessage.className = 'success-message';
+                            successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
+                            successMessage.innerHTML = '✅ Analysis Complete! Here are your detailed results.';
+                            resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
+                        }
+                        
+                        // Display full analysis results
+                        if (results.analysis) {
+                            displayAnalysisResults(results.analysis);
+                            processAnalysisData(results);
+                        } else {
+                            // Fallback: show error message
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'error-message';
+                            errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
+                            errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
+                            resultsDiv.appendChild(errorDiv);
+                        }
+                        
+                        // Clear the stored results
+                        localStorage.removeItem(`temp_analysis_${userId}`);
+                    } catch (error) {
+                        console.error('Error parsing stored results:', error);
+                    }
+                } else {
+                    // No stored results, redirect to upload
+                    window.location.href = '/upload';
+                }
+            } else {
+                // No user ID, redirect to upload
+                window.location.href = '/upload';
+            }
+        }
+
+        // Display analysis results (same as upload.html)
+        function displayAnalysisResults(analysis) {
+            const resultsDiv = document.getElementById("results");
+            if (!resultsDiv) return;
+
+            let html = '<div class="analysis-results">';
+            
+            // Document Quality Assessment
+            if (analysis.quality_assessment) {
+                const qualityColors = {
+                    'excellent': '#28a745',
+                    'good': '#28a745', 
+                    'fair': '#ffc107',
+                    'poor': '#dc3545'
+                };
+                const qualityColor = qualityColors[analysis.quality_assessment] || '#6c757d';
+                
+                html += `
+                    <div class="quality-assessment" style="background: ${qualityColor}15; border-left: 4px solid ${qualityColor}; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
+                        <h3 style="margin: 0 0 8px 0; color: ${qualityColor};">📊 Document Quality: ${analysis.quality_assessment.charAt(0).toUpperCase() + analysis.quality_assessment.slice(1)}</h3>
+                        <p style="margin: 0; color: var(--text-secondary);">${analysis.total_pages || 0} pages • ${analysis.total_characters || 0} characters • ${analysis.readable_pages || 0} readable pages</p>
+                    </div>
+                `;
+            }
+
+            // Good Points Section
+            const goodPoints = analysis.good_points || {};
+            const risks = analysis.risks || {};
+
+            if (Object.keys(goodPoints).length > 0) {
+                html += `
+                    <div class="findings-section good-points">
+                        <h3>✅ Favorable Terms Found</h3>
+                        <div class="findings-grid">
+                `;
+                
+                for (const [category, matches] of Object.entries(goodPoints)) {
+                    if (matches && matches.length > 0) {
+                        html += `
+                            <div class="finding-category">
+                                <h4>${formatCategoryName(category)}</h4>
+                                <div class="finding-items">
+                        `;
+                        
+                        matches.forEach(item => {
+                            const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                            const pageNum = item.page || 'N/A';
+                            const score = item.score || 3;
+                            const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
+                            html += `
+                                <div class="finding-item good">
+                                    <div class="finding-text">${matchText}</div>
+                                    <div class="finding-meta">
+                                        <span>Page ${pageNum}</span>
+                                        <span class="severity-score ${scoreClass}">Severity: ${score}/5</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Risks Section
+            if (Object.keys(risks).length > 0) {
+                html += `
+                    <div class="findings-section risks">
+                        <h3>⚠️ Potential Risks Found</h3>
+                        <div class="findings-grid">
+                `;
+                
+                for (const [category, matches] of Object.entries(risks)) {
+                    if (matches && matches.length > 0) {
+                        html += `
+                            <div class="finding-category">
+                                <h4>${formatCategoryName(category)}</h4>
+                                <div class="finding-items">
+                        `;
+                        
+                        matches.forEach(item => {
+                            const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                            const pageNum = item.page || 'N/A';
+                            const score = item.score || 3;
+                            const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
+                            html += `
+                                <div class="finding-item risk">
+                                    <div class="finding-text">${matchText}</div>
+                                    <div class="finding-meta">
+                                        <span>Page ${pageNum}</span>
+                                        <span class="severity-score ${scoreClass}">Risk Level: ${score}/5</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            // No Findings Message
+            if (Object.keys(risks).length === 0 && Object.keys(goodPoints).length === 0) {
+                html += `
+                    <div class="no-findings">
+                        <h3>🔍 No Specific Findings</h3>
+                        <p>No risks or favorable terms were detected in this document. This could mean:</p>
+                        <ul>
+                            <li>The document uses standard, balanced language</li>
+                            <li>The terms are written in a way not covered by current patterns</li>
+                            <li>The document may need manual review</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        function processAnalysisData(data) {
+            // Additional processing if needed
+            console.log('Analysis data processed:', data);
+        }
+
+        function formatCategoryName(category) {
+            return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('fineprint_user_id');
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            window.location.href = '/';
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initializeUser();
+            await loadAnalysisResults();
+        });
+    </script>
+</body>
+</html>

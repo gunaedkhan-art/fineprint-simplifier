@@ -450,9 +450,9 @@
                         if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
                             document.getElementById("emailModal").style.display = "block";
                         } else {
-                            // Show results directly
-                            displayAnalysisResults(data.analysis);
-                            processAnalysisData(data);
+                            // Store results and redirect to analysis page for logged-in users
+                            localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
+                            window.location.href = `/analysis?user_id=${currentUserId}`;
                         }
                     }
                 } else {
@@ -564,18 +564,12 @@
                 });
                 
                 if (response.ok) {
-                    // Close modal and show results
+                    // Close modal and redirect to analysis page
                     closeEmailModal();
-                    // For visitors, show the visitor summary, not full analysis
-                    if (window.tempAnalysisResults.is_visitor) {
-                        displayVisitorSummary(window.tempAnalysisResults.visitor_summary);
-                    } else {
-                        displayAnalysisResults(window.tempAnalysisResults.analysis);
-                        processAnalysisData(window.tempAnalysisResults);
-                    }
                     
-                    // Update usage display
-                    await loadUserUsage();
+                    // Store results and redirect to analysis page
+                    localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(window.tempAnalysisResults));
+                    window.location.href = `/analysis?user_id=${currentUserId}`;
                 } else {
                     alert('Error saving email. Please try again.');
                 }
