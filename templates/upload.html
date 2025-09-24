@@ -609,10 +609,9 @@
                     <div class="visitor-cta-section">
                         <h3>Unlock Full Analysis</h3>
                         <div class="cta-buttons">
-                            <button class="btn-primary" onclick="startFree()">Start Free (3 uploads/month)</button>
-                            <button class="btn-secondary" onclick="upgradeToPro()">Upgrade to Pro (Unlimited)</button>
+                            <button class="btn-primary" onclick="startFree()">Create Free Account</button>
                         </div>
-                        <p class="cta-note">Free users get detailed analysis with risk scores. Pro users get unlimited uploads, side-by-side comparison, and export features.</p>
+                        <p class="cta-note">Create a free account to see your full analysis results and get 3 free document analyses per month.</p>
                     </div>
                 </div>
             `;
@@ -817,12 +816,12 @@
 
         // Visitor signup functions
         function startFree() {
-            const userId = currentUserId || generateUserId();
-            // Store the current analysis results with the user ID
+            // Store the current analysis results for retrieval after registration
             if (window.tempAnalysisResults) {
-                localStorage.setItem(`temp_analysis_${userId}`, JSON.stringify(window.tempAnalysisResults));
+                localStorage.setItem('pending_visitor_analysis', JSON.stringify(window.tempAnalysisResults));
             }
-            window.location.href = `/pricing?user_id=${userId}&redirect=upload`;
+            // Redirect to registration page
+            window.location.href = '/register';
         }
 
         // Progress indicator functions

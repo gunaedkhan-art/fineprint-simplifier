@@ -245,6 +245,10 @@ h6 {
     line-height: 1.5;
 }
 
+p.cta-note {
+    margin-top: 20px;
+}
+
 div.cta-buttons {
     margin: 20px 0;
 }
@@ -3092,6 +3096,11 @@ h1.logo {
 }
 
 /* Visitor Summary Container */
+
+.visitor-cta-section {
+    text-align: center;
+}
+
 .visitor-summary-container {
     background: var(--surface-color);
     border: 2px solid var(--primary-color);

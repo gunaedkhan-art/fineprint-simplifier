@@ -1,0 +1,29 @@
+[33mcommit b855170ebf5ad57a19177ba835b2d42d03e8c050[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: J <gunaedkhan@gmail.com>
+Date:   Wed Sep 24 00:39:35 2025 +0530
+
+    fix: critical CSS class mismatch in visitor summary display
+    
+     CRITICAL FIX - CSS Class Mismatch Resolved:
+    
+     Root Cause Identified:
+    - HTML was using 'summary-stat' class
+    - CSS was defining 'visitor-summary-stat' class
+    - This caused the results to have no styling and appear invisible
+    
+     Fixed HTML Structure:
+    - Changed 'summary-stat' to 'visitor-summary-stat'
+    - Updated to use proper h3/p tags instead of div.stat-number/div.stat-label
+    - Added 'risks' and 'good-points' classes for proper color styling
+    
+     Result:
+    - Visitor summary should now display properly
+    - Results will be visible with correct styling
+    - Backend was working correctly all along
+    
+     This explains why:
+    - Backend found 2 risks and 5 good points correctly
+    - Frontend showed 'No risks or good points found'
+    - CSS classes didn't match, so results were invisible
+
+templates/upload.html

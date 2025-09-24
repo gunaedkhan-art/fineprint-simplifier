@@ -7,7 +7,7 @@ def test_analyze():
     url = "http://localhost:8000/analyze"
     
     # Check if test file exists
-    test_file = "test_contract.pdf"
+    test_file = "test_contract_risks_and_benefits.pdf"
     if not os.path.exists(test_file):
         print(f"Test file {test_file} not found")
         return

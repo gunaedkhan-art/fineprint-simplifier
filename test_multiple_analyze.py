@@ -6,7 +6,7 @@ import time
 # Test the analyze endpoint multiple times
 def test_multiple_analyze():
     url = "http://localhost:8000/analyze"
-    test_file = "test_contract.pdf"
+    test_file = "test_contract_risks_and_benefits.pdf"
     
     if not os.path.exists(test_file):
         print(f"Test file {test_file} not found")

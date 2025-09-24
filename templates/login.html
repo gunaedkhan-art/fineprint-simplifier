@@ -91,8 +91,19 @@
                     localStorage.setItem('access_token', data.access_token);
                     document.cookie = `access_token=${data.access_token}; path=/; max-age=${30 * 24 * 60 * 60}`;
                     
-                    // Redirect to profile or home
-                    window.location.href = '/profile';
+                    // Check if there are pending visitor analysis results
+                    const pendingAnalysis = localStorage.getItem('pending_visitor_analysis');
+                    if (pendingAnalysis) {
+                        // Store the analysis with the user ID
+                        localStorage.setItem(`temp_analysis_${data.user_id}`, pendingAnalysis);
+                        // Clear the pending analysis
+                        localStorage.removeItem('pending_visitor_analysis');
+                        // Redirect to upload page to show stored results
+                        window.location.href = '/upload';
+                    } else {
+                        // Redirect to profile or home
+                        window.location.href = '/profile';
+                    }
                 } else {
                     throw new Error(data.error || 'Login failed');
                 }
