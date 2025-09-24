@@ -281,8 +281,31 @@
         }
 
         function displayUserStatus() {
-            // User status is now shown in the profile dropdown
-            // This function is kept for compatibility but doesn't need to do anything
+            // Update navigation based on login status
+            const profileDropdown = document.getElementById("profileDropdown");
+            const authCTA = document.getElementById("authCTA");
+            
+            if (userUsage && userUsage.email) {
+                // User is logged in - show profile dropdown
+                profileDropdown.style.display = "block";
+                authCTA.style.display = "none";
+                
+                // Update profile info
+                document.getElementById("userPlan").textContent = userUsage.subscription === 'paid' ? 'Pro' : 'Free';
+                document.getElementById("userUsage").textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3}`;
+                
+                // Show subscription management link for paid users
+                const subscriptionLink = document.getElementById("subscriptionLink");
+                if (userUsage.subscription === 'paid') {
+                    subscriptionLink.style.display = "block";
+                } else {
+                    subscriptionLink.style.display = "none";
+                }
+            } else {
+                // User is not logged in - show sign in button
+                profileDropdown.style.display = "none";
+                authCTA.style.display = "block";
+            }
         }
 
         // Input method toggle functions
@@ -927,14 +950,14 @@
                             resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
                         }
                         
-                        // Check if this was a visitor result (has visitor_summary) or logged-in user result (has analysis)
-                        if (results.is_visitor && results.visitor_summary) {
-                            // Display visitor summary for the new free user
-                            displayVisitorSummary(results.visitor_summary);
-                        } else if (results.analysis) {
-                            // Display full analysis for logged-in users
+                        // For newly registered users, show the full analysis results (not visitor summary)
+                        if (results.analysis) {
+                            // Display full analysis for the newly registered user
                             displayAnalysisResults(results.analysis);
                             processAnalysisData(results);
+                        } else if (results.is_visitor && results.visitor_summary) {
+                            // Fallback: if only visitor summary is available, show it
+                            displayVisitorSummary(results.visitor_summary);
                         } else {
                             // Fallback: show error message
                             const errorDiv = document.createElement('div');
