@@ -109,6 +109,14 @@
                 // Get anonymous user ID from URL parameters or localStorage
                 const urlParams = new URLSearchParams(window.location.search);
                 const anonymousUserId = urlParams.get('user_id') || localStorage.getItem('fineprint_user_id');
+                console.log('Anonymous user ID:', anonymousUserId);
+                
+                const requestData = { 
+                    email, 
+                    password, 
+                    anonymous_user_id: anonymousUserId 
+                };
+                console.log('Registration request data:', requestData);
                 
                 // Create new account
                 const response = await fetch('/api/register', {
@@ -116,14 +124,11 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ 
-                        email, 
-                        password, 
-                        anonymous_user_id: anonymousUserId 
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
                 const data = await response.json();
+                console.log('Registration response:', data);
                 
                 if (data.success) {
                     // Store token in localStorage and cookie
