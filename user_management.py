@@ -79,7 +79,9 @@ class UserManager:
     
     def create_authenticated_user(self, username: str, email: str, password_hash: str) -> Dict:
         """Create a new authenticated user"""
-        user_id = f"user_{email.replace('@', '_').replace('.', '_')}_{int(datetime.now().timestamp())}"
+        # Use username for user ID generation for better privacy
+        safe_username = username.lower().replace(' ', '_').replace('-', '_')
+        user_id = f"user_{safe_username}_{int(datetime.now().timestamp())}"
         return self.create_user(user_id, email, password_hash, username=username)
     
     def authenticate_user(self, email: str, password: str) -> Optional[Dict]:
@@ -112,6 +114,14 @@ class UserManager:
         """Get user by email address"""
         for user_id, user_data in self.users.items():
             if user_data.get("email") == email:
+                user_data["user_id"] = user_id
+                return user_data
+        return None
+    
+    def get_user_by_username(self, username: str) -> Optional[Dict]:
+        """Get user by username"""
+        for user_id, user_data in self.users.items():
+            if user_data.get("username") == username:
                 user_data["user_id"] = user_id
                 return user_data
         return None

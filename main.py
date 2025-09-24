@@ -531,11 +531,19 @@ async def register_user(request: Request):
                 status_code=400
             )
         
-        # Check if user already exists
+        # Check if user already exists by email
         existing_user = user_manager.get_user_by_email(email)
         if existing_user:
             return JSONResponse(
                 content={"error": "User with this email already exists"},
+                status_code=400
+            )
+        
+        # Check if username already exists
+        existing_username = user_manager.get_user_by_username(username)
+        if existing_username:
+            return JSONResponse(
+                content={"error": "Username already taken"},
                 status_code=400
             )
         

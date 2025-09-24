@@ -42,7 +42,7 @@
                         <a href="#" onclick="logout()" class="logout-link">Logout</a>
                     </div>
                 </div>
-                <div class="auth-cta" id="authCTA">
+                <div class="auth-cta" id="authCTA" style="display: none;">
                     <a href="/login" class="btn-primary">Sign In</a>
                 </div>
                 </nav>
@@ -61,7 +61,7 @@
             <a href="/compare" class="nav-link">Compare</a>
             <a href="/how-it-works" class="nav-link">How It Works</a>
             <a href="/pricing" class="nav-link">Pricing</a>
-            <div class="mobile-auth-cta" id="mobileAuthCTA">
+            <div class="mobile-auth-cta" id="mobileAuthCTA" style="display: none;">
                 <a href="/login" class="btn-primary">Sign In</a>
             </div>
         </nav>
@@ -178,46 +178,57 @@
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
             
-            if (userId) {
-                const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
-                if (storedResults) {
-                    try {
-                        const results = JSON.parse(storedResults);
-                        
-                        // Show success message
-                        const resultsDiv = document.getElementById("results");
-                        if (resultsDiv) {
-                            const successMessage = document.createElement('div');
-                            successMessage.className = 'success-message';
-                            successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
-                            successMessage.innerHTML = '✅ Analysis Complete! Here are your detailed results.';
-                            resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
-                        }
-                        
-                        // Display full analysis results
-                        if (results.analysis) {
-                            displayAnalysisResults(results.analysis);
-                            processAnalysisData(results);
-                        } else {
-                            // Fallback: show error message
-                            const errorDiv = document.createElement('div');
-                            errorDiv.className = 'error-message';
-                            errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
-                            errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
-                            resultsDiv.appendChild(errorDiv);
-                        }
-                        
-                        // Clear the stored results
-                        localStorage.removeItem(`temp_analysis_${userId}`);
-                    } catch (error) {
-                        console.error('Error parsing stored results:', error);
-                    }
-                } else {
-                    // No stored results, redirect to upload
-                    window.location.href = '/upload';
-                }
-            } else {
+            if (!userId) {
                 // No user ID, redirect to upload
+                window.location.href = '/upload';
+                return;
+            }
+            
+            const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
+            if (!storedResults) {
+                // No stored results, redirect to upload
+                window.location.href = '/upload';
+                return;
+            }
+            
+            try {
+                const results = JSON.parse(storedResults);
+                const resultsDiv = document.getElementById("results");
+                
+                if (!resultsDiv) {
+                    console.error('Results div not found');
+                    return;
+                }
+                
+                // Clear any existing content
+                resultsDiv.innerHTML = '';
+                
+                // Display full analysis results
+                if (results.analysis) {
+                    // Show success message
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'success-message';
+                    successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
+                    successMessage.innerHTML = '✅ Analysis Complete! Here are your detailed results.';
+                    resultsDiv.appendChild(successMessage);
+                    
+                    // Display analysis results
+                    displayAnalysisResults(results.analysis);
+                    processAnalysisData(results);
+                } else {
+                    // Show error message only
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
+                    errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
+                    resultsDiv.appendChild(errorDiv);
+                }
+                
+                // Clear the stored results
+                localStorage.removeItem(`temp_analysis_${userId}`);
+            } catch (error) {
+                console.error('Error parsing stored results:', error);
+                // Redirect to upload on error
                 window.location.href = '/upload';
             }
         }
