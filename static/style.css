@@ -92,7 +92,7 @@ h1 {
     font-size: 48px; /* 3x base (16 * 3) */
     font-weight: 700;
     line-height: 1.2;
-    margin: 40px 0 24px 0;
+    margin: 0 0 24px 0;
 }
 
 h2 {
@@ -664,7 +664,7 @@ div.status-line {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
     z-index: 1000;
-    margin-top: 12px;
+    margin-top: 4px;
     overflow: hidden;
     backdrop-filter: blur(8px);
     background-color: rgba(255, 255, 255, 0.95);
@@ -749,6 +749,18 @@ div.status-line {
 
 .profile-dropdown:hover .profile-dropdown-content {
     display: block;
+}
+
+/* Add hover bridge to prevent dropdown from disappearing */
+.profile-dropdown::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: transparent;
+    z-index: 999;
 }
 
 /* Auth CTA Button */

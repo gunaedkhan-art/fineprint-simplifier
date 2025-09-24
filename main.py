@@ -508,13 +508,14 @@ async def register_user(request: Request):
     
     try:
         data = await request.json()
+        username = data.get("username")
         email = data.get("email")
         password = data.get("password")
         anonymous_user_id = data.get("anonymous_user_id")  # For merging anonymous user data
         
-        if not email or not password:
+        if not username or not email or not password:
             return JSONResponse(
-                content={"error": "Email and password are required"},
+                content={"error": "Username, email and password are required"},
                 status_code=400
             )
         
@@ -528,7 +529,7 @@ async def register_user(request: Request):
         
         # Hash password and create user
         password_hash = auth_manager.hash_password(password)
-        user_data = user_manager.create_authenticated_user(email, password_hash)
+        user_data = user_manager.create_authenticated_user(username, email, password_hash)
         
         # Get the actual user_id (it's the key in the users dictionary)
         user_id = None

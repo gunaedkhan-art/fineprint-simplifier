@@ -219,7 +219,7 @@
         let userUsage = null;
 
         // Initialize user management
-        function initializeUser() {
+        async function initializeUser() {
             // Get user ID from URL parameters or localStorage
             const urlParams = new URLSearchParams(window.location.search);
             const urlUserId = urlParams.get('user_id');
@@ -241,7 +241,7 @@
             document.getElementById("text-user-id-input").value = currentUserId;
             
             // Load user usage
-            loadUserUsage();
+            await loadUserUsage();
         }
 
         async function loadUserUsage() {
@@ -293,6 +293,12 @@
                 // Update profile info
                 document.getElementById("userPlan").textContent = userUsage.subscription === 'paid' ? 'Pro' : 'Free';
                 document.getElementById("userUsage").textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3}`;
+                
+                // Update username in profile avatar if available
+                const profileAvatar = document.getElementById("profileAvatar");
+                if (userUsage.username && profileAvatar) {
+                    profileAvatar.textContent = userUsage.username.charAt(0).toUpperCase();
+                }
                 
                 // Show subscription management link for paid users
                 const subscriptionLink = document.getElementById("subscriptionLink");
@@ -911,12 +917,12 @@
         }
 
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeUser();
-            checkForStoredResults();
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initializeUser();
+            await checkForStoredResults();
         });
 
-        function checkForStoredResults() {
+        async function checkForStoredResults() {
             // Check if there are stored analysis results for this user
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
@@ -940,35 +946,43 @@
                     try {
                         const results = JSON.parse(storedResults);
                         
-                        // Show success message first
-                        const resultsDiv = document.getElementById("results");
-                        if (resultsDiv) {
-                            const successMessage = document.createElement('div');
-                            successMessage.className = 'success-message';
-                            successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
-                            successMessage.innerHTML = '✅ Welcome! Here are your analysis results from your uploaded document.';
-                            resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
-                        }
-                        
-                        // For newly registered users, show the full analysis results (not visitor summary)
-                        if (results.analysis) {
-                            // Display full analysis for the newly registered user
-                            displayAnalysisResults(results.analysis);
-                            processAnalysisData(results);
-                        } else if (results.is_visitor && results.visitor_summary) {
-                            // Fallback: if only visitor summary is available, show it
-                            displayVisitorSummary(results.visitor_summary);
+                        // Only show stored results if user is properly authenticated
+                        if (userUsage && userUsage.email) {
+                            // Show success message first
+                            const resultsDiv = document.getElementById("results");
+                            if (resultsDiv) {
+                                const successMessage = document.createElement('div');
+                                successMessage.className = 'success-message';
+                                successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
+                                successMessage.innerHTML = '✅ Welcome! Here are your analysis results from your uploaded document.';
+                                resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
+                            }
+                            
+                            // For newly registered users, show the full analysis results (not visitor summary)
+                            if (results.analysis) {
+                                // Display full analysis for the newly registered user
+                                displayAnalysisResults(results.analysis);
+                                processAnalysisData(results);
+                            } else if (results.is_visitor && results.visitor_summary) {
+                                // Fallback: if only visitor summary is available, show it
+                                displayVisitorSummary(results.visitor_summary);
+                            } else {
+                                // Fallback: show error message
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'error-message';
+                                errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
+                                errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
+                                resultsDiv.appendChild(errorDiv);
+                            }
+                            
+                            // Clear the stored results
+                            localStorage.removeItem(`temp_analysis_${userId}`);
                         } else {
-                            // Fallback: show error message
-                            const errorDiv = document.createElement('div');
-                            errorDiv.className = 'error-message';
-                            errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
-                            errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
-                            resultsDiv.appendChild(errorDiv);
+                            // User is not properly authenticated, show visitor summary
+                            if (results.is_visitor && results.visitor_summary) {
+                                displayVisitorSummary(results.visitor_summary);
+                            }
                         }
-                        
-                        // Clear the stored results
-                        localStorage.removeItem(`temp_analysis_${userId}`);
                     } catch (error) {
                         console.error('Error parsing stored results:', error);
                     }
