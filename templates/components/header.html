@@ -1,0 +1,86 @@
+<!-- Header -->
+<header class="header">
+    <div class="header-content">
+        <div class="logo-section">
+            <a href="/" class="logo-link">
+                <h1 class="logo">📋 Small Print Checker</h1>
+                <p class="tagline">Understand your contracts in plain English</p>
+            </a>
+        </div>
+        <nav class="nav">
+            <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Home</a>
+            <a href="/upload" class="nav-link {% if request.url.path == '/upload' %}active{% endif %}">Analyze</a>
+            <a href="/compare" class="nav-link {% if request.url.path == '/compare' %}active{% endif %}">Compare</a>
+            <a href="/how-it-works" class="nav-link {% if request.url.path == '/how-it-works' %}active{% endif %}">How It Works</a>
+            <a href="/pricing" class="nav-link {% if request.url.path == '/pricing' %}active{% endif %}">Pricing</a>
+            
+            {% if user_authenticated and user %}
+                <!-- Authenticated User Navigation -->
+                <div class="profile-dropdown">
+                    <a href="/profile" class="profile-avatar">{{ user.username[0].upper() if user.username else '👤' }}</a>
+                    <div class="profile-dropdown-content">
+                        <div class="user-status-info">
+                            <div class="status-line">
+                                <span class="status-label">Plan:</span>
+                                <span class="status-value">{{ user.subscription.title() if user.subscription else 'Free' }}</span>
+                            </div>
+                            <div class="status-line">
+                                <span class="status-label">Usage:</span>
+                                <span class="status-value">{{ user.usage.documents_this_month if user.usage else 0 }}/{{ user.usage.monthly_limit if user.usage else 3 }}</span>
+                            </div>
+                        </div>
+                        <a href="/profile" class="profile-link">My Profile</a>
+                        {% if user.subscription == 'paid' %}
+                        <a href="/subscription-management" class="profile-link">Manage Subscription</a>
+                        {% endif %}
+                        <a href="#" onclick="logout()" class="logout-link">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Guest User Navigation -->
+                <div class="auth-cta">
+                    <a href="/login" class="btn-primary">Sign In</a>
+                </div>
+            {% endif %}
+        </nav>
+        <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+</header>
+
+<!-- Mobile Navigation -->
+<nav class="mobile-nav" id="mobileNav">
+    <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Home</a>
+    <a href="/upload" class="nav-link {% if request.url.path == '/upload' %}active{% endif %}">Analyze</a>
+    <a href="/compare" class="nav-link {% if request.url.path == '/compare' %}active{% endif %}">Compare</a>
+    <a href="/how-it-works" class="nav-link {% if request.url.path == '/how-it-works' %}active{% endif %}">How It Works</a>
+    <a href="/pricing" class="nav-link {% if request.url.path == '/pricing' %}active{% endif %}">Pricing</a>
+    
+    {% if user_authenticated and user %}
+        <!-- Authenticated Mobile Navigation -->
+        <div id="mobileProfileSection">
+            <a href="/profile" class="nav-link">My Profile</a>
+            {% if user.subscription == 'paid' %}
+            <a href="/subscription-management" class="nav-link">Manage Subscription</a>
+            {% endif %}
+            <a href="#" onclick="logout()" class="nav-link">Logout</a>
+        </div>
+    {% else %}
+        <!-- Guest Mobile Navigation -->
+        <div class="mobile-auth-cta">
+            <a href="/login" class="btn-primary">Sign In</a>
+        </div>
+    {% endif %}
+</nav>
+
+<script>
+function logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('fineprint_user_id');
+    document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    window.location.href = '/';
+}
+</script>

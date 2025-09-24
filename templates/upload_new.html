@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze Document - Small Print Checker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Analyze Your Document</h1>
+    <p class="page-subtitle">Upload any contract or legal document, or paste text directly to get an instant analysis of risks, benefits, and important terms.</p>
+</div>
+
+<!-- Upload Form -->
+<div class="upload-section">
+    <form id="upload-form" class="upload-form" enctype="multipart/form-data">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <h3>Choose a document</h3>
+            <p>Drag and drop your document here, or click to browse</p>
+            <p class="supported-formats">Supported: PDF, Word (.docx), Images (.jpg, .png, .tiff)</p>
+            <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.jpg,.jpeg,.png,.tiff,.bmp,.gif" style="display: none;">
+            <button type="button" class="btn-secondary" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+        </div>
+        
+        <div class="file-info" id="fileInfo" style="display: none;">
+            <div class="file-details">
+                <span class="file-name" id="fileName"></span>
+                <span class="file-size" id="fileSize"></span>
+            </div>
+            <button type="button" class="btn-remove" id="removeFile" title="Remove file">✕</button>
+        </div>
+    </form>
+    
+    <!-- Processing Status -->
+    <div class="processing-status" id="processingStatus" style="display: none;">
+        <div class="processing-indicator">
+            <div class="spinner"></div>
+            <h3>Processing your document...</h3>
+            <p>This may take a few moments</p>
+        </div>
+        <div class="progress-steps">
+            <div class="step step-upload">✓ Uploading</div>
+            <div class="step step-extract">⏳ Extracting text</div>
+            <div class="step step-analyze">⏳ Analyzing content</div>
+            <div class="step step-complete">⏳ Generating results</div>
+        </div>
+    </div>
+    
+    <!-- Analyze Button -->
+    <div class="analyze-section">
+        <button type="button" id="analyze-btn" class="btn-large" onclick="analyzeDocument()" disabled>Analyze Document</button>
+    </div>
+</div>
+
+<!-- Text Input Alternative -->
+<div class="text-input-section">
+    <h3>📝 Paste Text</h3>
+    <textarea id="textInput" placeholder="Paste your text here..." rows="6"></textarea>
+    <div class="text-stats">
+        <span id="charCount">0 characters</span>
+    </div>
+    <button type="button" id="analyze-text-btn" class="btn-large" onclick="analyzeText()" disabled>Analyze Text</button>
+</div>
+
+<!-- Results Section -->
+<div id="results" class="results-section">
+    <!-- Results will be populated by JavaScript -->
+</div>
+
+<!-- Usage Display (for authenticated users) -->
+{% if user_authenticated and user %}
+<div class="usage-display">
+    <p>Documents this month: {{ user.usage.documents_this_month if user.usage else 0 }}/{{ user.usage.monthly_limit if user.usage else 3 }} | Total documents: {{ user.usage.total_documents if user.usage else 0 }}</p>
+</div>
+{% endif %}
+
+<!-- Upgrade Prompt (for free users) -->
+{% if user_authenticated and user and user.subscription != 'paid' %}
+<div class="upgrade-prompt" id="upgradePrompt" style="display: none;">
+    <h3>Upgrade to Pro for Unlimited Analyses</h3>
+    <p>You've reached your monthly limit. Upgrade to Pro for unlimited document analyses and advanced features.</p>
+    <button class="btn-primary" onclick="upgradeToPro()">Upgrade Now</button>
+</div>
+{% endif %}
+
+<!-- Email Modal (for free users without email) -->
+{% if user_authenticated and user and user.subscription != 'paid' and not user.email %}
+<div id="emailModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Get Your Analysis Results</h3>
+        <p>Please provide your email to view your analysis results. We'll send you a copy and may contact you about our services.</p>
+        <form id="email-form">
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="consent" name="consent" required>
+                    I agree to receive emails about Small Print Checker services
+                </label>
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="closeEmailModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">View Results</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Upload form functionality
+let currentUserId = null;
+let userUsage = null;
+
+// Initialize user management
+async function initializeUser() {
+    // Get user ID from URL parameters or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlUserId = urlParams.get('user_id');
+    
+    if (urlUserId) {
+        currentUserId = urlUserId;
+        localStorage.setItem('fineprint_user_id', currentUserId);
+    } else {
+        currentUserId = localStorage.getItem('fineprint_user_id');
+    }
+    
+    await loadUserUsage();
+}
+
+async function loadUserUsage() {
+    if (!currentUserId) return;
+    
+    try {
+        const response = await fetch(`/api/usage/${currentUserId}`);
+        userUsage = await response.json();
+    } catch (error) {
+        console.error('Error loading usage:', error);
+    }
+}
+
+// File upload handling
+document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+document.getElementById('removeFile').addEventListener('click', removeFile);
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatFileSize(file.size);
+        document.getElementById('fileInfo').style.display = 'flex';
+        document.getElementById('uploadArea').style.display = 'none';
+        document.getElementById('analyze-btn').disabled = false;
+    }
+}
+
+function removeFile() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('analyze-btn').disabled = true;
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Text input handling
+document.getElementById('textInput').addEventListener('input', function() {
+    const text = this.value;
+    document.getElementById('charCount').textContent = text.length + ' characters';
+    document.getElementById('analyze-text-btn').disabled = text.length === 0;
+});
+
+// Analysis functions
+async function analyzeDocument() {
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files[0]) return;
+    
+    showProcessingStatus();
+    
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    
+    try {
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        hideProcessingStatus();
+        
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+        
+        if (data.is_visitor) {
+            // Store the full analysis results for later retrieval
+            window.tempAnalysisResults = data;
+            // Show visitor summary and signup prompt
+            displayVisitorSummary(data.visitor_summary);
+        } else {
+            // Store results temporarily for logged in users
+            window.tempAnalysisResults = data;
+            
+            // Check if user needs to provide email
+            if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
+                document.getElementById("emailModal").style.display = "block";
+            } else {
+                // Store results and redirect to analysis page for logged-in users
+                localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
+                window.location.href = `/analysis?user_id=${currentUserId}`;
+            }
+        }
+    } catch (error) {
+        hideProcessingStatus();
+        alert('Error: ' + error.message);
+    }
+}
+
+async function analyzeText() {
+    const text = document.getElementById('textInput').value;
+    if (!text.trim()) return;
+    
+    showProcessingStatus();
+    
+    try {
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: text })
+        });
+        
+        const data = await response.json();
+        hideProcessingStatus();
+        
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+        
+        if (data.is_visitor) {
+            // Store the full analysis results for later retrieval
+            window.tempAnalysisResults = data;
+            // Show visitor summary and signup prompt
+            displayVisitorSummary(data.visitor_summary);
+        } else {
+            // Store results temporarily for logged in users
+            window.tempAnalysisResults = data;
+            
+            // Check if user needs to provide email
+            if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
+                document.getElementById("emailModal").style.display = "block";
+            } else {
+                // Store results and redirect to analysis page for logged-in users
+                localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
+                window.location.href = `/analysis?user_id=${currentUserId}`;
+            }
+        }
+    } catch (error) {
+        hideProcessingStatus();
+        alert('Error: ' + error.message);
+    }
+}
+
+function showProcessingStatus() {
+    document.getElementById('processingStatus').style.display = 'block';
+    updateProgressStep('upload');
+}
+
+function hideProcessingStatus() {
+    document.getElementById('processingStatus').style.display = 'none';
+}
+
+function updateProgressStep(step) {
+    const steps = document.querySelectorAll('.step');
+    steps.forEach(s => s.classList.remove('active', 'completed'));
+    
+    const stepMap = {
+        'upload': 'step-upload',
+        'extract': 'step-extract', 
+        'analyze': 'step-analyze',
+        'complete': 'step-complete'
+    };
+    
+    const currentStep = document.querySelector(`.${stepMap[step]}`);
+    if (currentStep) {
+        currentStep.classList.add('active');
+    }
+}
+
+// Visitor summary display
+function displayVisitorSummary(summary) {
+    const resultsDiv = document.getElementById("results");
+    if (!resultsDiv) return;
+    
+    let qualityInfo = '';
+    if (summary.quality_assessment) {
+        const qualityColors = {
+            'excellent': '#28a745',
+            'good': '#28a745', 
+            'fair': '#ffc107',
+            'poor': '#dc3545'
+        };
+        const qualityColor = qualityColors[summary.quality_assessment] || '#6c757d';
+        
+        qualityInfo = `
+            <div class="quality-assessment" style="background: ${qualityColor}15; border-left: 4px solid ${qualityColor}; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
+                <h3 style="margin: 0 0 8px 0; color: ${qualityColor};">📊 Document Quality: ${summary.quality_assessment.charAt(0).toUpperCase() + summary.quality_assessment.slice(1)}</h3>
+                <p style="margin: 0; color: var(--text-secondary);">${summary.total_pages || 0} pages • ${summary.total_characters || 0} characters • ${summary.readable_pages || 0} readable pages</p>
+            </div>
+        `;
+    }
+    
+    const html = `
+        <div class="visitor-summary-container">
+            <div class="visitor-summary-header">
+                <h2>🔍 Analysis Complete!</h2>
+                <p>We found some interesting things in your document. Sign up to see the full analysis!</p>
+            </div>
+            ${qualityInfo}
+            <div class="visitor-summary-stats">
+                <div class="visitor-summary-stat risks">
+                    <h3>${summary.risk_count}</h3>
+                    <p>Potential Risks</p>
+                </div>
+                <div class="visitor-summary-stat good-points">
+                    <h3>${summary.good_point_count}</h3>
+                    <p>Favorable Terms</p>
+                </div>
+            </div>
+            <div class="visitor-cta-section">
+                <h3>Unlock Full Analysis</h3>
+                <div class="cta-buttons">
+                    <button class="btn-primary" onclick="startFree()">Create Free Account</button>
+                </div>
+                <p class="cta-note">Create a free account to see your full analysis results and get 3 free document analyses per month.</p>
+            </div>
+        </div>
+    `;
+    
+    resultsDiv.innerHTML = html;
+    resultsDiv.style.display = "block";
+}
+
+function startFree() {
+    // Store the current analysis results for retrieval after registration
+    if (window.tempAnalysisResults) {
+        localStorage.setItem('pending_visitor_analysis', JSON.stringify(window.tempAnalysisResults));
+    }
+    // Redirect to registration page
+    window.location.href = '/register';
+}
+
+function upgradeToPro() {
+    if (!currentUserId) {
+        alert('Please sign in to upgrade to Pro');
+        return;
+    }
+    
+    // Redirect to Stripe checkout
+    window.location.href = `/api/upgrade/${currentUserId}`;
+}
+
+// Email modal functions
+function closeEmailModal() {
+    document.getElementById("emailModal").style.display = "none";
+}
+
+// Email form submission
+document.getElementById('email-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const consent = document.getElementById('consent').checked;
+    
+    if (!email || !consent) {
+        alert('Please provide email and consent to continue');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/save-email/${currentUserId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                consent: consent
+            })
+        });
+        
+        if (response.ok) {
+            // Close modal and redirect to analysis page
+            closeEmailModal();
+            
+            // Store results and redirect to analysis page
+            localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(window.tempAnalysisResults));
+            window.location.href = `/analysis?user_id=${currentUserId}`;
+        } else {
+            alert('Error saving email. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error saving email. Please try again.');
+    }
+});
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    await initializeUser();
+});
+</script>
+{% endblock %}

@@ -209,31 +209,126 @@ def save_pending_patterns(data):
 # -------------------------
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    # Get current user for server-side rendering
+    current_user = None
+    user_authenticated = False
+    
+    if get_current_user_optional:
+        try:
+            current_user = await get_current_user_optional(request)
+            if current_user:
+                user_authenticated = True
+                # Get user usage data
+                user_usage = user_manager.get_user_usage(current_user.get("user_id"))
+                if user_usage:
+                    current_user["usage"] = user_usage
+        except Exception:
+            pass
+    
+    return templates.TemplateResponse("home_new.html", {
+        "request": request,
+        "user_authenticated": user_authenticated,
+        "user": current_user
+    })
 
 @app.get("/upload", response_class=HTMLResponse)
 async def upload_page(request: Request):
-    return templates.TemplateResponse("upload.html", {"request": request})
+    # Get current user for server-side rendering
+    current_user = None
+    user_authenticated = False
+    
+    if get_current_user_optional:
+        try:
+            current_user = await get_current_user_optional(request)
+            if current_user:
+                user_authenticated = True
+                # Get user usage data
+                user_usage = user_manager.get_user_usage(current_user.get("user_id"))
+                if user_usage:
+                    current_user["usage"] = user_usage
+        except Exception:
+            pass
+    
+    return templates.TemplateResponse("upload_new.html", {
+        "request": request,
+        "user_authenticated": user_authenticated,
+        "user": current_user
+    })
 
 @app.get("/analysis", response_class=HTMLResponse)
 async def analysis_page(request: Request):
     # Check if user is authenticated
     current_user = None
-    if get_current_user_optional:
-        current_user = await get_current_user_optional(request)
+    user_authenticated = False
     
-    if not current_user:
+    if get_current_user_optional:
+        try:
+            current_user = await get_current_user_optional(request)
+            if current_user:
+                user_authenticated = True
+                # Get user usage data
+                user_usage = user_manager.get_user_usage(current_user.get("user_id"))
+                if user_usage:
+                    current_user["usage"] = user_usage
+        except Exception:
+            pass
+    
+    if not user_authenticated:
         return RedirectResponse(url="/login", status_code=302)
     
-    return templates.TemplateResponse("analysis.html", {"request": request})
+    return templates.TemplateResponse("analysis_new.html", {
+        "request": request,
+        "user_authenticated": user_authenticated,
+        "user": current_user
+    })
 
 @app.get("/compare", response_class=HTMLResponse)
 async def compare_page(request: Request):
-    return templates.TemplateResponse("compare.html", {"request": request})
+    # Get current user for server-side rendering
+    current_user = None
+    user_authenticated = False
+    
+    if get_current_user_optional:
+        try:
+            current_user = await get_current_user_optional(request)
+            if current_user:
+                user_authenticated = True
+                # Get user usage data
+                user_usage = user_manager.get_user_usage(current_user.get("user_id"))
+                if user_usage:
+                    current_user["usage"] = user_usage
+        except Exception:
+            pass
+    
+    return templates.TemplateResponse("compare.html", {
+        "request": request,
+        "user_authenticated": user_authenticated,
+        "user": current_user
+    })
 
 @app.get("/how-it-works", response_class=HTMLResponse)
 async def how_it_works_page(request: Request):
-    return templates.TemplateResponse("how-it-works.html", {"request": request})
+    # Get current user for server-side rendering
+    current_user = None
+    user_authenticated = False
+    
+    if get_current_user_optional:
+        try:
+            current_user = await get_current_user_optional(request)
+            if current_user:
+                user_authenticated = True
+                # Get user usage data
+                user_usage = user_manager.get_user_usage(current_user.get("user_id"))
+                if user_usage:
+                    current_user["usage"] = user_usage
+        except Exception:
+            pass
+    
+    return templates.TemplateResponse("how-it-works.html", {
+        "request": request,
+        "user_authenticated": user_authenticated,
+        "user": current_user
+    })
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -447,7 +542,27 @@ else:
 
 @app.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
-    return templates.TemplateResponse("pricing.html", {"request": request})
+    # Get current user for server-side rendering
+    current_user = None
+    user_authenticated = False
+    
+    if get_current_user_optional:
+        try:
+            current_user = await get_current_user_optional(request)
+            if current_user:
+                user_authenticated = True
+                # Get user usage data
+                user_usage = user_manager.get_user_usage(current_user.get("user_id"))
+                if user_usage:
+                    current_user["usage"] = user_usage
+        except Exception:
+            pass
+    
+    return templates.TemplateResponse("pricing.html", {
+        "request": request,
+        "user_authenticated": user_authenticated,
+        "user": current_user
+    })
 
 
 @app.get("/api/pricing")

@@ -1,0 +1,16 @@
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-links">
+            <a href="/how-it-works">How It Works</a>
+            <a href="/pricing">Pricing</a>
+            {% if user_authenticated and user %}
+            <a href="/profile">My Profile</a>
+            {% endif %}
+        </div>
+        <p class="footer-disclaimer">
+            <strong>Legal Disclaimer:</strong> This analysis is for informational purposes only and should not be considered legal advice. Always consult with a qualified attorney for legal matters.
+        </p>
+        <p class="footer-copyright">© 2025 Small Print Checker. Making contracts understandable for everyone.</p>
+    </div>
+</footer>
