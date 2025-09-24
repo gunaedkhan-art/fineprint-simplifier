@@ -528,7 +528,20 @@ async def register_user(request: Request):
         
         # Hash password and create user
         password_hash = auth_manager.hash_password(password)
-        user = user_manager.create_authenticated_user(email, password_hash)
+        user_data = user_manager.create_authenticated_user(email, password_hash)
+        
+        # Get the actual user_id (it's the key in the users dictionary)
+        user_id = None
+        for uid, udata in user_manager.users.items():
+            if udata == user_data:
+                user_id = uid
+                break
+        
+        if not user_id:
+            return JSONResponse(
+                content={"error": "Failed to create user"},
+                status_code=500
+            )
         
         # If there's an anonymous user ID, merge the data
         if anonymous_user_id and anonymous_user_id in user_manager.users:
@@ -536,11 +549,14 @@ async def register_user(request: Request):
             
             # Merge usage data from anonymous user
             if "usage" in anonymous_user:
-                user["usage"] = anonymous_user["usage"]
+                user_data["usage"] = anonymous_user["usage"]
             
             # Merge any other relevant data
             if "documents_analyzed" in anonymous_user:
-                user["documents_analyzed"] = anonymous_user["documents_analyzed"]
+                user_data["documents_analyzed"] = anonymous_user["documents_analyzed"]
+            
+            # Update the user data in the users dictionary
+            user_manager.users[user_id] = user_data
             
             # Save the updated user data
             user_manager._save_users()
@@ -551,14 +567,14 @@ async def register_user(request: Request):
         
         # Create access token
         access_token = auth_manager.create_access_token(
-            data={"sub": user["user_id"], "email": email}
+            data={"sub": user_id, "email": email}
         )
         
         return JSONResponse(content={
             "success": True,
             "access_token": access_token,
             "token_type": "bearer",
-            "user_id": user["user_id"]
+            "user_id": user_id
         })
         
     except Exception as e:
