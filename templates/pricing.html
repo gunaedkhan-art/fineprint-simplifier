@@ -209,11 +209,13 @@ function generateUserId() {
 }
 
 function startFree() {
-    const userId = generateUserId();
-    
-    // Check if there's a redirect parameter
+    // Check if there's an existing user_id from visitor flow
     const urlParams = new URLSearchParams(window.location.search);
+    const existingUserId = urlParams.get('user_id');
     const redirect = urlParams.get('redirect');
+    
+    // Use existing user_id if available, otherwise generate new one
+    const userId = existingUserId || generateUserId();
     
     if (redirect === 'upload') {
         // Redirect to upload page to show stored results

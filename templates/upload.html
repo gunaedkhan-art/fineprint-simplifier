@@ -917,14 +917,8 @@
                 if (storedResults) {
                     try {
                         const results = JSON.parse(storedResults);
-                        // Display the stored results
-                        displayAnalysisResults(results.analysis);
-                        processAnalysisData(results);
                         
-                        // Clear the stored results
-                        localStorage.removeItem(`temp_analysis_${userId}`);
-                        
-                        // Show success message
+                        // Show success message first
                         const resultsDiv = document.getElementById("results");
                         if (resultsDiv) {
                             const successMessage = document.createElement('div');
@@ -933,6 +927,26 @@
                             successMessage.innerHTML = '✅ Welcome! Here are your analysis results from your uploaded document.';
                             resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
                         }
+                        
+                        // Check if this was a visitor result (has visitor_summary) or logged-in user result (has analysis)
+                        if (results.is_visitor && results.visitor_summary) {
+                            // Display visitor summary for the new free user
+                            displayVisitorSummary(results.visitor_summary);
+                        } else if (results.analysis) {
+                            // Display full analysis for logged-in users
+                            displayAnalysisResults(results.analysis);
+                            processAnalysisData(results);
+                        } else {
+                            // Fallback: show error message
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'error-message';
+                            errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
+                            errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
+                            resultsDiv.appendChild(errorDiv);
+                        }
+                        
+                        // Clear the stored results
+                        localStorage.removeItem(`temp_analysis_${userId}`);
                     } catch (error) {
                         console.error('Error parsing stored results:', error);
                     }
