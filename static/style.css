@@ -542,9 +542,6 @@ p:last-child, ul:last-child, ol:last-child {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 var(--space-6);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 @media (max-width: 768px) {
@@ -554,7 +551,6 @@ p:last-child, ul:last-child, ol:last-child {
 }
 
 .page-wrapper {
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -996,6 +992,14 @@ h1.logo {
     margin: 0 auto;
     width: 100%;
     max-width: 300px;
+    text-align: center;
+}
+
+.btn-upgrade {
+    padding: var(--space-3) var(--space-6);
+    font-size: var(--font-size-base);
+    display: inline-block;
+    margin: 0 var(--space-2) 0 0;
     text-align: center;
 }
 
@@ -2073,6 +2077,12 @@ h1.logo {
         max-width: 280px;
     }
     
+    .btn-upgrade {
+        margin: 0 0 var(--space-3) 0;
+        width: 100%;
+        max-width: 280px;
+    }
+    
     #analyze-btn {
         margin: var(--space-4) auto;
         max-width: 280px;
@@ -2107,7 +2117,7 @@ h1.logo {
     .footer-content {
         flex-direction: column;
         text-align: center;
-        gap: var(--space-3);
+        gap: var(--space-2);
     }
     
     .footer-links {
@@ -2418,8 +2428,6 @@ h1.logo {
 
 /* Main Content */
 .main-content {
-    flex: 1;
-    min-height: calc(100vh - 200px);
 }
 
 /* Page Headers */
@@ -2848,7 +2856,7 @@ h1.logo {
 .footer {
     background: var(--surface-color);
     border-top: 1px solid var(--border-color);
-    padding: var(--space-6) 0;
+    padding: var(--space-4) 0;
     margin-top: var(--space-8);
 }
 
@@ -2877,14 +2885,14 @@ h1.logo {
 }
 
 .footer-disclaimer {
-    margin: var(--space-4) 0;
+    margin: var(--space-2) 0;
     color: var(--text-secondary);
     font-size: var(--font-size-sm);
     line-height: 1.6;
 }
 
 .footer-copyright {
-    margin: var(--space-2) 0 0 0;
+    margin: var(--space-1) 0 0 0;
     color: var(--text-muted);
     font-size: var(--font-size-sm);
 }
@@ -3185,6 +3193,8 @@ h1.logo {
     font-size: var(--font-size-4xl);
     margin-bottom: var(--space-4);
     display: block;
+    text-align: center;
+    width: 100%;
 }
 
 .feature-card h4 {
