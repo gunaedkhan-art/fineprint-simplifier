@@ -300,7 +300,7 @@ async def compare_page(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("compare.html", {
+    return templates.TemplateResponse("compare_new.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
