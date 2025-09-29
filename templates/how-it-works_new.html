@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}How It Works - Small Print Checker{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-content">
+        <h2>How Small Print Checker Works</h2>
+        <p>Our AI-powered tool analyzes contracts by recognizing patterns in legal language to identify potential risks and favorable terms.</p>
+    </div>
+</div>
+
+<!-- How It Works Process -->
+<div class="process-section">
+    <h3>Our Analysis Process</h3>
+    <div class="process-grid">
+        <div class="process-step">
+            <div class="step-number">1</div>
+            <h4>Upload Your Document</h4>
+            <p>Upload any contract or legal document in PDF format. Our system extracts and processes the text.</p>
+        </div>
+        <div class="process-step">
+            <div class="step-number">2</div>
+            <h4>Pattern Recognition</h4>
+            <p>Our AI scans for specific legal language patterns that indicate risks, obligations, or favorable terms.</p>
+        </div>
+        <div class="process-step">
+            <div class="step-number">3</div>
+            <h4>Risk Assessment</h4>
+            <p>Each finding is scored for severity (1-5) and categorized by type (financial, legal, operational, etc.).</p>
+        </div>
+        <div class="process-step">
+            <div class="step-number">4</div>
+            <h4>Detailed Report</h4>
+            <p>Get a comprehensive analysis with highlighted findings, risk scores, and plain-English explanations.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Document Types Section -->
+<div class="document-types-section">
+    <h3>Document Types We Analyze</h3>
+    <div class="document-grid">
+        <div class="document-category">
+            <h4>✅ Perfect for Analysis</h4>
+            <ul>
+                <li><strong>Employment Contracts</strong> - Job agreements, non-compete clauses, severance terms</li>
+                <li><strong>Rental/Lease Agreements</strong> - Property leases, commercial leases, sublease agreements</li>
+                <li><strong>Service Contracts</strong> - Consulting agreements, maintenance contracts, service level agreements</li>
+                <li><strong>Purchase Agreements</strong> - Sales contracts, terms of sale, purchase orders</li>
+                <li><strong>Partnership Agreements</strong> - Business partnerships, joint ventures, collaboration agreements</li>
+                <li><strong>Terms of Service</strong> - Software licenses, website terms, app agreements</li>
+            </ul>
+        </div>
+        <div class="document-category">
+            <h4>⚠️ Limited Analysis</h4>
+            <ul>
+                <li><strong>Complex Legal Documents</strong> - Multi-party agreements, international contracts</li>
+                <li><strong>Highly Specialized Contracts</strong> - Medical, financial, or technical agreements</li>
+                <li><strong>Very Short Documents</strong> - Simple one-page agreements with minimal terms</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Section -->
+<div class="faq-section">
+    <h3>Frequently Asked Questions</h3>
+    <div class="faq-grid">
+        <div class="faq-item">
+            <h4>How accurate is the analysis?</h4>
+            <p>Our AI achieves 95%+ accuracy in identifying common contract risks and benefits. However, this tool is for informational purposes only and should not replace professional legal advice.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Is my document secure?</h4>
+            <p>Yes, your documents are processed securely and never stored permanently. We use bank-level encryption and process everything in memory only.</p>
+        </div>
+        <div class="faq-item">
+            <h4>What file formats are supported?</h4>
+            <p>We support PDF, Word documents (.docx), and image files (JPG, PNG, TIFF). The system automatically extracts text from these formats.</p>
+        </div>
+        <div class="faq-item">
+            <h4>How long does analysis take?</h4>
+            <p>Most documents are analyzed in under 30 seconds. Complex documents with many pages may take up to 2 minutes.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Can I analyze multiple documents?</h4>
+            <p>Yes! Pro users can compare two documents side-by-side to see which contract is better for them.</p>
+        </div>
+        <div class="faq-item">
+            <h4>What if I disagree with the analysis?</h4>
+            <p>Our analysis is based on common legal patterns. Every contract is unique, so consider consulting a qualified attorney for complex matters.</p>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    <h3>Ready to Analyze Your Contract?</h3>
+    <p>Upload your document and get instant insights in plain English.</p>
+    <div class="cta-buttons">
+        <a href="/upload" class="btn-primary">Start Analyzing</a>
+        <a href="/pricing" class="btn-secondary">View Pricing</a>
+    </div>
+</div>
+{% endblock %}

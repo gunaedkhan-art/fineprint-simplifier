@@ -1,10 +1,10 @@
 <!-- Header -->
 <header class="header">
-    <div class="header-content">
+    <!-- Top Row: Logo, Navigation, Sign In -->
+    <div class="header-top">
         <div class="logo-section">
             <a href="/" class="logo-link">
                 <h1 class="logo">📋 Small Print Checker</h1>
-                <p class="tagline">Understand your contracts in plain English</p>
             </a>
         </div>
         <nav class="nav">
@@ -39,22 +39,21 @@
             {% else %}
                 <!-- Guest User Navigation -->
                 <div class="auth-cta">
-                    <a href="/login" class="btn-primary">Sign In</a>
+                    <a href="/login" class="signin-link">Sign In</a>
                 </div>
             {% endif %}
         </nav>
         
-        <!-- Mobile Sign In Button - Always Visible -->
-        {% if not user_authenticated or not user %}
-        <div class="mobile-signin-btn">
-            <a href="/login" class="btn-primary">Sign In</a>
-        </div>
-        {% endif %}
         <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
             <span></span>
             <span></span>
             <span></span>
         </button>
+    </div>
+    
+    <!-- Bottom Row: Tagline -->
+    <div class="header-bottom">
+        <p class="tagline">Understand your contracts in plain English</p>
     </div>
 </header>
 

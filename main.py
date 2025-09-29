@@ -324,7 +324,7 @@ async def how_it_works_page(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("how-it-works.html", {
+    return templates.TemplateResponse("how-it-works_new.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
@@ -558,7 +558,7 @@ async def pricing_page(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("pricing.html", {
+    return templates.TemplateResponse("pricing_new.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user

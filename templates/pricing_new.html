@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - Small Print Checker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Choose Your Plan</h1>
+    <p class="page-subtitle">Start free and upgrade when you need more features</p>
+</div>
+
+<div class="pricing-container">
+    <!-- Free Tier -->
+    <div class="pricing-card free-tier">
+        <div class="pricing-header">
+            <h2>Free</h2>
+            <div class="price">
+                <span class="amount">$0</span>
+                <span class="period">/month</span>
+            </div>
+            <p class="description">Perfect for occasional document review</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">3 documents per month</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Basic risk assessment</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Plain English summaries</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Email required for results</span>
+            </div>
+        </div>
+        
+        <a href="/upload" class="btn-outline">Start Free</a>
+    </div>
+
+    <!-- Pro Tier -->
+    <div class="pricing-card featured">
+        <div class="popular-badge">Most Popular</div>
+        <div class="pricing-header">
+            <h2>Pro</h2>
+            <div class="price">
+                <span class="amount">$9.99</span>
+                <span class="period">/month</span>
+            </div>
+            <p class="description">Unlimited analysis with advanced features</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Unlimited document analyses</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Advanced risk scoring</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Side-by-side comparison</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Export to PDF/Word/Excel</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Priority support</span>
+            </div>
+        </div>
+        
+        <a href="/pricing" class="btn-primary">Upgrade to Pro</a>
+    </div>
+</div>
+
+<div class="pricing-footer">
+    <h3>All Plans Include</h3>
+    <ul>
+        <li>Secure document processing</li>
+        <li>No data storage</li>
+        <li>Cancel anytime</li>
+        <li>30-day money-back guarantee</li>
+    </ul>
+</div>
+{% endblock %}
