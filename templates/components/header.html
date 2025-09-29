@@ -43,6 +43,13 @@
                 </div>
             {% endif %}
         </nav>
+        
+        <!-- Mobile Sign In Button - Always Visible -->
+        {% if not user_authenticated or not user %}
+        <div class="mobile-signin-btn">
+            <a href="/login" class="btn-primary">Sign In</a>
+        </div>
+        {% endif %}
         <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
             <span></span>
             <span></span>
@@ -67,11 +74,6 @@
             <a href="/subscription-management" class="nav-link">Manage Subscription</a>
             {% endif %}
             <a href="#" onclick="logout()" class="nav-link">Logout</a>
-        </div>
-    {% else %}
-        <!-- Guest Mobile Navigation -->
-        <div class="mobile-auth-cta">
-            <a href="/login" class="btn-primary">Sign In</a>
         </div>
     {% endif %}
 </nav>

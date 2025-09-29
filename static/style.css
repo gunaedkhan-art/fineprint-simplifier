@@ -938,6 +938,23 @@ h1.logo {
     font-weight: 600;
 }
 
+/* Mobile Sign In Button */
+.mobile-signin-btn {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-signin-btn {
+        display: block;
+        margin-left: var(--space-4);
+    }
+    
+    .mobile-signin-btn .btn-primary {
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--font-size-sm);
+    }
+}
+
 /* Button Styles */
 .btn-primary {
     background: var(--primary-color);
@@ -2302,7 +2319,7 @@ h1.logo {
 
 .selling-points-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--space-8);
     max-width: 1000px;
     margin: 0 auto;
@@ -2352,7 +2369,7 @@ h1.logo {
 
 .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--space-8);
     max-width: 1000px;
     margin: 0 auto;
@@ -2913,7 +2930,7 @@ h1.logo {
 
 .steps-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--space-8);
     max-width: 1000px;
     margin: 0 auto var(--space-12) auto;
@@ -3178,7 +3195,7 @@ h1.logo {
 
 .features-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--space-8);
     max-width: 1000px;
     margin: 0 auto;
@@ -3219,7 +3236,7 @@ h1.logo {
 
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--space-8);
     max-width: 800px;
     margin: 0 auto;
