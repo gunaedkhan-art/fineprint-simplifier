@@ -580,7 +580,7 @@ p:last-child, ul:last-child, ol:last-child {
 /* Header Bottom Row */
 .header-bottom {
     margin-top: var(--space-2);
-    text-align: center;
+    text-align: left;
 }
 
 .logo-section {
@@ -903,7 +903,7 @@ h1.logo {
 .mobile-nav {
     display: none;
     position: absolute;
-    top: calc(100% + 1px);
+    top: 100%;
     left: 0;
     right: 0;
     background: var(--background-color);
@@ -943,6 +943,91 @@ h1.logo {
     background: var(--surface-color);
     color: var(--primary-color);
     font-weight: 600;
+}
+
+/* Mobile Header Actions */
+.mobile-header-actions {
+    display: none;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.mobile-signin-link {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    transition: color 0.2s ease;
+}
+
+.mobile-signin-link:hover {
+    color: var(--primary-color);
+}
+
+.mobile-profile-dropdown {
+    position: relative;
+}
+
+.mobile-profile-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    transition: background-color 0.2s ease;
+}
+
+.mobile-profile-avatar:hover {
+    background: var(--primary-dark);
+}
+
+.mobile-profile-dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    min-width: 200px;
+    margin-top: var(--space-2);
+}
+
+.mobile-profile-dropdown:hover .mobile-profile-dropdown-content {
+    display: block;
+}
+
+.mobile-profile-dropdown-content .user-status-info {
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mobile-profile-dropdown-content .profile-link,
+.mobile-profile-dropdown-content .logout-link {
+    display: block;
+    padding: var(--space-3);
+    color: var(--text-color);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.mobile-profile-dropdown-content .profile-link:last-child,
+.mobile-profile-dropdown-content .logout-link:last-child {
+    border-bottom: none;
+}
+
+.mobile-profile-dropdown-content .profile-link:hover,
+.mobile-profile-dropdown-content .logout-link:hover {
+    background: var(--surface-color);
 }
 
 /* Sign In Link */
@@ -1969,6 +2054,10 @@ h1.logo {
     }
     
     .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .mobile-header-actions {
         display: flex;
     }
     

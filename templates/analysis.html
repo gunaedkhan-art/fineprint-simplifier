@@ -9,62 +9,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <a href="/" class="logo-link">
-                        <h1 class="logo">📋 Small Print Checker</h1>
-                        <p class="tagline">Understand your contracts in plain English</p>
-                    </a>
-                </div>
-                <nav class="nav">
-                    <a href="/" class="nav-link">Home</a>
-                    <a href="/upload" class="nav-link">Analyze</a>
-                    <a href="/compare" class="nav-link">Compare</a>
-                    <a href="/how-it-works" class="nav-link">How It Works</a>
-                    <a href="/pricing" class="nav-link">Pricing</a>
-                <div class="profile-dropdown" id="profileDropdown" style="display: none;">
-                    <a href="/profile" class="profile-avatar" id="profileAvatar">👤</a>
-                    <div class="profile-dropdown-content">
-                        <div class="user-status-info" id="userStatusInfo">
-                            <div class="status-line">
-                                <span class="status-label">Plan:</span>
-                                <span class="status-value" id="userPlan">Free</span>
-                            </div>
-                            <div class="status-line">
-                                <span class="status-label">Usage:</span>
-                                <span class="status-value" id="userUsage">0/3</span>
-                            </div>
-                        </div>
-                        <a href="/profile" class="profile-link">My Profile</a>
-                        <a href="/subscription-management" class="profile-link" id="subscriptionLink" style="display: none;">Manage Subscription</a>
-                        <a href="#" onclick="logout()" class="logout-link">Logout</a>
-                    </div>
-                </div>
-                <div class="auth-cta" id="authCTA" style="display: none;">
-                    <a href="/login" class="btn-primary">Sign In</a>
-                </div>
-                </nav>
-                <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </header>
-
-        <!-- Mobile Navigation -->
-        <nav class="mobile-nav" id="mobileNav">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/upload" class="nav-link">Analyze</a>
-            <a href="/compare" class="nav-link">Compare</a>
-            <a href="/how-it-works" class="nav-link">How It Works</a>
-            <a href="/pricing" class="nav-link">Pricing</a>
-            <div class="mobile-auth-cta" id="mobileAuthCTA" style="display: none;">
-                <a href="/login" class="btn-primary">Sign In</a>
-            </div>
-        </nav>
+        {% include 'components/header.html' %}
 
         <!-- Main Content -->
         <main class="main-content">
@@ -85,20 +30,7 @@
             </div>
         </main>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-links">
-                    <a href="/how-it-works">How It Works</a>
-                    <a href="/pricing">Pricing</a>
-                    <a href="/profile">My Profile</a>
-                </div>
-                <p class="footer-disclaimer">
-                    <strong>Legal Disclaimer:</strong> This analysis is for informational purposes only and should not be considered legal advice. Always consult with a qualified attorney for legal matters.
-                </p>
-                <p class="footer-copyright">© 2025 Small Print Checker. Making contracts understandable for everyone.</p>
-            </div>
-        </footer>
+        {% include 'components/footer.html' %}
     </div>
 
     <script>
