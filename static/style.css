@@ -1459,7 +1459,8 @@ h1.logo {
 .description {
     color: var(--text-secondary);
     font-size: var(--font-size-sm);
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-4);
 }
 
 .features {

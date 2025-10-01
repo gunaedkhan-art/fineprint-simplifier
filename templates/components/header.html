@@ -105,11 +105,6 @@
                 {% endif %}
                 <a href="#" onclick="logout()" class="nav-link">Logout</a>
             </div>
-        {% elif request.url.path != '/login' and request.url.path != '/register' %}
-            <!-- Guest Mobile Navigation (not on login/register pages) -->
-            <div class="auth-cta" id="mobileAuthCTA">
-                <a href="/login" class="btn-primary">Sign In</a>
-            </div>
         {% endif %}
     </nav>
 </header>
