@@ -1,11 +1,13 @@
 <header class="header">
-    <div class="header-content">
+    <!-- First Row: Site Title (Left) and Navigation (Right) -->
+    <div class="header-top">
         <div class="logo-section">
             <a href="/" class="logo-link">
                 <h1 class="logo">📋 Small Print Checker</h1>
-                <p class="tagline">Understand your contracts in plain English</p>
             </a>
         </div>
+        
+        <!-- Desktop Navigation -->
         <nav class="nav">
             <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Home</a>
             <a href="/upload" class="nav-link {% if request.url.path == '/upload' %}active{% endif %}">Analyze</a>
@@ -38,8 +40,8 @@
                         <a href="#" onclick="logout()" class="logout-link">Logout</a>
                     </div>
                 </div>
-            {% else %}
-                <!-- Guest User Navigation -->
+            {% elif request.url.path != '/login' and request.url.path != '/register' %}
+                <!-- Guest User Navigation (not on login/register pages) -->
                 <div class="auth-cta" id="authCTA">
                     <a href="/login" class="btn-primary">Sign In</a>
                 </div>
@@ -70,8 +72,8 @@
                         <a href="#" onclick="logout()" class="logout-link">Logout</a>
                     </div>
                 </div>
-            {% else %}
-                <!-- Mobile Sign In Link for Guest Users -->
+            {% elif request.url.path != '/login' and request.url.path != '/register' %}
+                <!-- Mobile Sign In Link for Guest Users (not on login/register pages) -->
                 <a href="/login" class="mobile-signin-link">Sign In</a>
             {% endif %}
             
@@ -81,6 +83,11 @@
                 <span></span>
             </button>
         </div>
+    </div>
+    
+    <!-- Second Row: Tagline (Left Aligned) -->
+    <div class="header-bottom">
+        <p class="tagline">Understand your contracts in plain English</p>
     </div>
     <nav class="mobile-nav">
         <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Home</a>
@@ -98,8 +105,8 @@
                 {% endif %}
                 <a href="#" onclick="logout()" class="nav-link">Logout</a>
             </div>
-        {% else %}
-            <!-- Guest Mobile Navigation -->
+        {% elif request.url.path != '/login' and request.url.path != '/register' %}
+            <!-- Guest Mobile Navigation (not on login/register pages) -->
             <div class="auth-cta" id="mobileAuthCTA">
                 <a href="/login" class="btn-primary">Sign In</a>
             </div>
