@@ -1475,7 +1475,7 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                 user_manager.create_user(user_id)  # This creates a clean visitor record
                 user_manager.update_usage(user_id)  # Update usage for the new record
             
-            # Visitor response - only show summary
+            # Visitor response - show summary but include full analysis for post-registration
             response_data = {
                 "is_visitor": True,
                 "visitor_summary": {
@@ -1484,6 +1484,11 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     "total_pages": total_pages,
                     "quality_assessment": quality_assessment
                 },
+                "analysis": analysis_result,  # Include full analysis for post-registration display
+                "quality_assessment": quality_assessment,
+                "readable_pages": readable_pages,
+                "total_pages": total_pages,
+                "total_characters": total_characters,
                 "message": "Analysis complete! Sign up to see detailed results."
             }
         else:
@@ -1592,7 +1597,7 @@ async def analyze_text(request: Request):
         good_point_count = sum(len(v) for v in analysis_result.get("good_points", {}).values())
         
         if is_visitor:
-            # Visitor response - only show summary
+            # Visitor response - show summary but include full analysis for post-registration
             response_data = {
                 "is_visitor": True,
                 "visitor_summary": {
@@ -1600,6 +1605,7 @@ async def analyze_text(request: Request):
                     "good_point_count": good_point_count,
                     "analysis_type": "text"
                 },
+                "analysis": analysis_result,  # Include full analysis for post-registration display
                 "message": "Analysis complete! Sign up to see detailed results."
             }
         else:
