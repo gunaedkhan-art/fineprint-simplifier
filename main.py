@@ -1598,6 +1598,7 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             # Visitor response - show summary but include full analysis for post-registration
             response_data = {
                 "is_visitor": True,
+                "filename": file.filename,
                 "visitor_summary": {
                     "risk_count": risk_count,
                     "good_point_count": good_point_count,
@@ -1615,6 +1616,7 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             # Logged in user response - full analysis
             response_data = {
                 "is_visitor": False,
+                "filename": file.filename,
             "analysis": analysis_result,
             "pages": raw_pages,  # send raw text for highlighting
             "custom_patterns": patterns,
@@ -1720,6 +1722,7 @@ async def analyze_text(request: Request):
             # Visitor response - show summary but include full analysis for post-registration
             response_data = {
                 "is_visitor": True,
+                "filename": "Text Input",
                 "visitor_summary": {
                     "risk_count": risk_count,
                     "good_point_count": good_point_count,
@@ -1732,6 +1735,7 @@ async def analyze_text(request: Request):
             # Logged in user response - full analysis
             response_data = {
                 "is_visitor": False,
+                "filename": "Text Input",
                 "analysis": analysis_result,
                 "analysis_type": "text"
             }
