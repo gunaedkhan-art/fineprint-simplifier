@@ -315,6 +315,30 @@
             </form>
         </div>
         
+        <div class="pattern-management">
+            <h2>📝 Pattern Descriptions</h2>
+            <p style="color: #6c757d; margin-bottom: 20px;">Add helpful descriptions for pattern categories to help users understand what each finding means.</p>
+            
+            <div class="form-group">
+                <label for="descPattern">Pattern Category</label>
+                <input type="text" id="descPattern" name="descPattern" placeholder="e.g., arbitration_clause" list="patternCategories">
+                <datalist id="patternCategories">
+                    <!-- Will be populated by JavaScript -->
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                <label for="descText">Description</label>
+                <textarea id="descText" name="descText" placeholder="Enter a user-friendly description..." style="min-height: 80px;"></textarea>
+            </div>
+            
+            <button onclick="saveDescription()" class="add-pattern-btn">Save Description</button>
+            
+            <div id="descriptionsDisplay" style="margin-top: 20px;">
+                <!-- Existing descriptions will be loaded here -->
+            </div>
+        </div>
+        
         <div class="patterns-display">
             <h2>📋 Existing Patterns</h2>
             
@@ -484,8 +508,173 @@
             }, 5000);
         }
         
-        // Load initial patterns
+        // Load descriptions
+        async function loadDescriptions() {
+            try {
+                const response = await fetch('/api/pattern-descriptions');
+                const descriptions = await response.json();
+                displayDescriptions(descriptions);
+                populatePatternCategories();
+            } catch (error) {
+                console.error('Error loading descriptions:', error);
+            }
+        }
+        
+        // Display descriptions
+        function displayDescriptions(descriptions) {
+            const container = document.getElementById('descriptionsDisplay');
+            
+            if (Object.keys(descriptions).length === 0) {
+                container.innerHTML = '<p style="color: #6c757d; font-style: italic;">No descriptions yet. Add one above!</p>';
+                return;
+            }
+            
+            let html = '<h3 style="margin: 20px 0 10px 0;">Existing Descriptions:</h3>';
+            html += '<div style="display: grid; gap: 12px;">';
+            
+            for (const [key, desc] of Object.entries(descriptions)) {
+                html += `
+                    <div class="pattern-item" style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+                            <strong style="color: #667eea;">${formatCategoryName(key)}</strong>
+                            <button class="pattern-action-btn delete-btn" onclick="deleteDescription('${key}')">Delete</button>
+                        </div>
+                        <span style="color: #495057; font-size: 0.9rem;">${desc}</span>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Save description
+        async function saveDescription() {
+            const pattern = document.getElementById('descPattern').value.trim();
+            const description = document.getElementById('descText').value.trim();
+            
+            if (!pattern) {
+                showMessage('Please enter a pattern category', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/pattern-descriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pattern_key: pattern,
+                        description: description
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Description saved successfully!', 'success');
+                    document.getElementById('descPattern').value = '';
+                    document.getElementById('descText').value = '';
+                    loadDescriptions();
+                } else {
+                    showMessage('Error saving description: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error saving description: ' + error.message, 'error');
+            }
+        }
+        
+        // Delete description
+        async function deleteDescription(pattern) {
+            if (!confirm(`Delete description for "${formatCategoryName(pattern)}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/pattern-descriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pattern_key: pattern,
+                        description: ''  // Empty to delete
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Description deleted successfully!', 'success');
+                    loadDescriptions();
+                } else {
+                    showMessage('Error deleting description: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error deleting description: ' + error.message, 'error');
+            }
+        }
+        
+        // Populate pattern categories for autocomplete
+        async function populatePatternCategories() {
+            try {
+                const [coreResp, customResp] = await Promise.all([
+                    fetch('/admin/api/core-patterns'),
+                    fetch('/admin/api/custom-patterns')
+                ]);
+                
+                const corePatterns = await coreResp.json();
+                const customPatterns = await customResp.json();
+                
+                const categories = new Set();
+                
+                // Add core pattern categories
+                Object.keys(corePatterns.risks).forEach(cat => categories.add(cat));
+                Object.keys(corePatterns.good_points).forEach(cat => categories.add(cat));
+                
+                // Add custom pattern categories
+                Object.keys(customPatterns.risks).forEach(cat => categories.add(cat));
+                Object.keys(customPatterns.good_points).forEach(cat => categories.add(cat));
+                
+                // Populate datalist
+                const datalist = document.getElementById('patternCategories');
+                datalist.innerHTML = Array.from(categories).map(cat => 
+                    `<option value="${cat}">${formatCategoryName(cat)}</option>`
+                ).join('');
+                
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+        
+        // Format category name
+        function formatCategoryName(category) {
+            return category.split('_').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+        
+        // Edit description when clicking on pattern category
+        document.getElementById('descPattern').addEventListener('input', async function() {
+            const pattern = this.value.trim();
+            if (!pattern) return;
+            
+            try {
+                const response = await fetch('/api/pattern-descriptions');
+                const descriptions = await response.json();
+                
+                if (descriptions[pattern]) {
+                    document.getElementById('descText').value = descriptions[pattern];
+                }
+            } catch (error) {
+                console.error('Error loading description:', error);
+            }
+        });
+        
+        // Load initial patterns and descriptions
         loadPatterns('core');
+        loadDescriptions();
     </script>
 </body>
 </html>

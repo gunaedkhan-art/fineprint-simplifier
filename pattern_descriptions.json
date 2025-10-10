@@ -1,0 +1,23 @@
+{
+  "early_termination_fee": "Charges applied if you cancel the service before the contract ends",
+  "automatic_renewal": "Contract automatically renews unless you actively cancel it",
+  "arbitration_clause": "Requires disputes to be settled through arbitration instead of court",
+  "late_payment_penalties": "Additional fees charged for late or missed payments",
+  "non_refundable": "Payments that cannot be refunded under any circumstances",
+  "limited_liability": "Limits the company's responsibility for damages or losses",
+  "service_availability_disclaimer": "No guarantee that the service will always be available",
+  "unilateral_modification": "Company can change terms without your consent",
+  "hidden_charges": "Additional fees that may not be immediately obvious",
+  "data_sharing": "Your data may be shared with third parties",
+  "rights_limitation": "Restrictions on your legal rights or ability to take action",
+  "grace_period": "Time period where you can cancel without penalties",
+  "money_back_guarantee": "Promise to refund your money if not satisfied",
+  "data_protection": "Commitments to protect and secure your personal data",
+  "limitation_of_liability": "Clear limits on company liability (can be good if reasonable)",
+  "no_win_no_fee": "You only pay if the service succeeds",
+  "fee_caps": "Maximum limits on fees you can be charged",
+  "cost_protection": "Protection against unexpected cost increases",
+  "cooling_off": "Period where you can cancel without penalty",
+  "transparency": "Clear and upfront disclosure of terms and conditions"
+}
+

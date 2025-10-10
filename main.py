@@ -204,6 +204,16 @@ def save_pending_patterns(data):
     save_json_file(PENDING_FILE, data)
 
 
+def load_pattern_descriptions():
+    """Load pattern descriptions from JSON file"""
+    return load_json_file('pattern_descriptions.json', {})
+
+
+def save_pattern_descriptions(descriptions):
+    """Save pattern descriptions to JSON file"""
+    save_json_file('pattern_descriptions.json', descriptions)
+
+
 # -------------------------
 # Routes
 # -------------------------
@@ -884,6 +894,55 @@ async def reset_password(request: Request):
     except Exception as e:
         return JSONResponse(
             content={"error": f"Password reset failed: {str(e)}"},
+            status_code=500
+        )
+
+@app.get("/api/pattern-descriptions")
+async def get_pattern_descriptions():
+    """Get all pattern descriptions"""
+    descriptions = load_pattern_descriptions()
+    return JSONResponse(content=descriptions)
+
+@app.post("/api/pattern-descriptions")
+async def update_pattern_description(request: Request):
+    """Update a pattern description (admin only)"""
+    # Check admin authentication
+    admin = get_current_admin(request)
+    if not admin:
+        return JSONResponse(
+            content={"error": "Admin authentication required"},
+            status_code=401
+        )
+    
+    try:
+        data = await request.json()
+        pattern_key = data.get("pattern_key")
+        description = data.get("description")
+        
+        if not pattern_key:
+            return JSONResponse(
+                content={"error": "Pattern key is required"},
+                status_code=400
+            )
+        
+        descriptions = load_pattern_descriptions()
+        
+        if description:
+            # Update or add description
+            descriptions[pattern_key] = description
+        else:
+            # Remove description if empty
+            descriptions.pop(pattern_key, None)
+        
+        save_pattern_descriptions(descriptions)
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": "Description updated successfully"
+        })
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e)},
             status_code=500
         )
 
