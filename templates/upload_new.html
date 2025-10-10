@@ -174,8 +174,17 @@ function switchToText() {
 }
 
 // File upload handling
-document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-document.getElementById('removeFile').addEventListener('click', removeFile);
+const fileInput = document.getElementById('fileInput');
+const removeFileBtn = document.getElementById('removeFile');
+const textInput = document.getElementById('textInput');
+
+if (fileInput) {
+    fileInput.addEventListener('change', handleFileSelect);
+}
+
+if (removeFileBtn) {
+    removeFileBtn.addEventListener('click', removeFile);
+}
 
 function handleFileSelect(event) {
     const file = event.target.files[0];
@@ -183,7 +192,7 @@ function handleFileSelect(event) {
         document.getElementById('fileName').textContent = file.name;
         document.getElementById('fileSize').textContent = formatFileSize(file.size);
         document.getElementById('fileInfo').style.display = 'flex';
-        document.getElementById('uploadArea').style.display = 'none';
+        document.getElementById('file-upload-box').style.display = 'none';
         document.getElementById('analyze-btn').disabled = false;
     }
 }
@@ -191,7 +200,7 @@ function handleFileSelect(event) {
 function removeFile() {
     document.getElementById('fileInput').value = '';
     document.getElementById('fileInfo').style.display = 'none';
-    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('file-upload-box').style.display = 'block';
     document.getElementById('analyze-btn').disabled = true;
 }
 
@@ -204,11 +213,20 @@ function formatFileSize(bytes) {
 }
 
 // Text input handling
-document.getElementById('textInput').addEventListener('input', function() {
-    const text = this.value;
-    document.getElementById('charCount').textContent = text.length + ' characters';
-    document.getElementById('analyze-text-btn').disabled = text.length === 0;
-});
+if (textInput) {
+    textInput.addEventListener('input', function() {
+        const text = this.value;
+        const charCount = document.getElementById('charCount');
+        const analyzeTextBtn = document.getElementById('analyze-text-btn');
+        
+        if (charCount) {
+            charCount.textContent = text.length + ' characters';
+        }
+        if (analyzeTextBtn) {
+            analyzeTextBtn.disabled = text.length === 0;
+        }
+    });
+}
 
 // Analysis functions
 async function analyzeDocument() {
@@ -410,44 +428,47 @@ function closeEmailModal() {
 }
 
 // Email form submission
-document.getElementById('email-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value;
-    const consent = document.getElementById('consent').checked;
-    
-    if (!email || !consent) {
-        alert('Please provide email and consent to continue');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/save-email/${currentUserId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: email,
-                consent: consent
-            })
-        });
+const emailForm = document.getElementById('email-form');
+if (emailForm) {
+    emailForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        if (response.ok) {
-            // Close modal and redirect to analysis page
-            closeEmailModal();
+        const email = document.getElementById('email').value;
+        const consent = document.getElementById('consent').checked;
+        
+        if (!email || !consent) {
+            alert('Please provide email and consent to continue');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/save-email/${currentUserId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    consent: consent
+                })
+            });
             
-            // Store results and redirect to analysis page
-            localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(window.tempAnalysisResults));
-            window.location.href = `/analysis?user_id=${currentUserId}`;
-        } else {
+            if (response.ok) {
+                // Close modal and redirect to analysis page
+                closeEmailModal();
+                
+                // Store results and redirect to analysis page
+                localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(window.tempAnalysisResults));
+                window.location.href = `/analysis?user_id=${currentUserId}`;
+            } else {
+                alert('Error saving email. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
             alert('Error saving email. Please try again.');
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error saving email. Please try again.');
-    }
-});
+    });
+}
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', async function() {

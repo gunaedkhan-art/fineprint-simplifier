@@ -31,7 +31,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const button = form ? form.querySelector('button') : null;
     const resultsDiv = document.getElementById('results');
 
-    form.addEventListener('submit', async function (e) {
+    // Only add event listener if form exists and doesn't have its own handler
+    if (form && !form.id) {
+        form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         button.disabled = true;
@@ -180,5 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
             button.disabled = false;
             button.textContent = 'Analyze';
         }
-    });
+        });
+    }
 });
