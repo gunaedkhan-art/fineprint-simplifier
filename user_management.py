@@ -127,6 +127,16 @@ class UserManager:
                 return user_data
         return None
     
+    def update_password(self, email: str, new_password_hash: str) -> bool:
+        """Update user's password by email"""
+        for user_id, user_data in self.users.items():
+            if user_data.get("email") == email:
+                user_data["password_hash"] = new_password_hash
+                self.users[user_id] = user_data
+                self._save_users()
+                return True
+        return False
+    
     def get_user(self, user_id: str) -> Optional[Dict]:
         """Get user information"""
         if user_id not in self.users:

@@ -54,6 +54,29 @@ class AuthManager:
         except jwt.JWTError:
             return None
     
+    def create_password_reset_token(self, email: str, expires_minutes: int = 30) -> str:
+        """Create a password reset token that expires in 30 minutes"""
+        expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
+        to_encode = {
+            "sub": email,
+            "type": "password_reset",
+            "exp": expire
+        }
+        encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+        return encoded_jwt
+    
+    def verify_password_reset_token(self, token: str) -> Optional[str]:
+        """Verify password reset token and return email if valid"""
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            if payload.get("type") != "password_reset":
+                return None
+            return payload.get("sub")  # Returns email
+        except jwt.ExpiredSignatureError:
+            return None
+        except jwt.JWTError:
+            return None
+    
     def get_current_user(self, credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict:
         """Get current user from JWT token"""
         token = credentials.credentials

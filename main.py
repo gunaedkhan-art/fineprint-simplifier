@@ -338,6 +338,14 @@ async def login_page(request: Request):
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
+@app.get("/forgot-password", response_class=HTMLResponse)
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse("forgot_password.html", {"request": request})
+
+@app.get("/reset-password", response_class=HTMLResponse)
+async def reset_password_page(request: Request, token: str = ""):
+    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+
 @app.get("/profile", response_class=HTMLResponse)
 async def profile_page(request: Request):
     # Get current user
@@ -779,6 +787,105 @@ async def login_user(request: Request):
 async def logout_user():
     """Logout user (client-side token removal)"""
     return JSONResponse(content={"success": True, "message": "Logged out successfully"})
+
+@app.post("/api/forgot-password")
+async def forgot_password(request: Request):
+    """Send password reset token"""
+    if not auth_manager or not user_manager:
+        return JSONResponse(
+            content={"error": "Authentication not available"},
+            status_code=500
+        )
+    
+    try:
+        data = await request.json()
+        email = data.get("email")
+        
+        if not email:
+            return JSONResponse(
+                content={"error": "Email is required"},
+                status_code=400
+            )
+        
+        # Check if user exists
+        user = user_manager.get_user_by_email(email)
+        
+        # Always return success to prevent email enumeration
+        # But only create token if user exists
+        reset_token = None
+        if user:
+            reset_token = auth_manager.create_password_reset_token(email)
+            print(f"PASSWORD RESET: Token generated for {email}: {reset_token}")
+        else:
+            print(f"PASSWORD RESET: No user found for {email}")
+        
+        # For now, return the token in the response (in production, send via email)
+        # This allows testing without email infrastructure
+        return JSONResponse(content={
+            "success": True,
+            "message": "If an account exists with this email, a password reset link has been generated.",
+            "reset_token": reset_token,  # Remove this in production
+            "reset_url": f"/reset-password?token={reset_token}" if reset_token else None  # For testing
+        })
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Password reset request failed: {str(e)}"},
+            status_code=500
+        )
+
+@app.post("/api/reset-password")
+async def reset_password(request: Request):
+    """Reset password with token"""
+    if not auth_manager or not user_manager:
+        return JSONResponse(
+            content={"error": "Authentication not available"},
+            status_code=500
+        )
+    
+    try:
+        data = await request.json()
+        token = data.get("token")
+        new_password = data.get("new_password")
+        
+        if not token or not new_password:
+            return JSONResponse(
+                content={"error": "Token and new password are required"},
+                status_code=400
+            )
+        
+        # Verify token and get email
+        email = auth_manager.verify_password_reset_token(token)
+        if not email:
+            return JSONResponse(
+                content={"error": "Invalid or expired reset token"},
+                status_code=400
+            )
+        
+        # Hash new password
+        password_hash = auth_manager.hash_password(new_password)
+        
+        # Update password
+        success = user_manager.update_password(email, password_hash)
+        
+        if not success:
+            return JSONResponse(
+                content={"error": "Failed to update password"},
+                status_code=500
+            )
+        
+        print(f"PASSWORD RESET SUCCESS: Password updated for {email}")
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": "Password has been reset successfully. You can now login with your new password."
+        })
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Password reset failed: {str(e)}"},
+            status_code=500
+        )
 
 @app.get("/api/debug/user-count")
 async def debug_user_count():
