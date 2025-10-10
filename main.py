@@ -664,20 +664,16 @@ async def register_user(request: Request):
         
         # Hash password and create user
         password_hash = auth_manager.hash_password(password)
-        user_data = user_manager.create_authenticated_user(username, email, password_hash)
+        user_id, user_data = user_manager.create_authenticated_user(username, email, password_hash)
         
-        # Get the actual user_id (it's the key in the users dictionary)
-        user_id = None
-        for uid, udata in user_manager.users.items():
-            if udata == user_data:
-                user_id = uid
-                break
-        
-        if not user_id:
+        if not user_id or not user_data:
             return JSONResponse(
                 content={"error": "Failed to create user"},
                 status_code=500
             )
+        
+        print(f"REGISTRATION SUCCESS: user_id={user_id}, email={email}, username={username}")
+        print(f"User data saved: {user_id in user_manager.users}")
         
         # If there's an anonymous user ID, merge the data
         if anonymous_user_id and anonymous_user_id in user_manager.users:
@@ -754,6 +750,8 @@ async def login_user(request: Request):
         if not user:
             # Record failed attempt
             record_login_attempt(client_ip)
+            # Log the failed attempt for debugging
+            print(f"LOGIN FAILED: Email={email}, User exists: {user_manager.get_user_by_email(email) is not None}")
             return JSONResponse(
                 content={"error": "Invalid email or password"},
                 status_code=401
@@ -781,6 +779,21 @@ async def login_user(request: Request):
 async def logout_user():
     """Logout user (client-side token removal)"""
     return JSONResponse(content={"success": True, "message": "Logged out successfully"})
+
+@app.get("/api/debug/user-count")
+async def debug_user_count():
+    """Debug endpoint to check registered users count"""
+    if not user_manager:
+        return JSONResponse(content={"error": "User manager not available"})
+    
+    total_users = len(user_manager.users)
+    authenticated_users = sum(1 for u in user_manager.users.values() if u.get("email"))
+    
+    return JSONResponse(content={
+        "total_users": total_users,
+        "authenticated_users": authenticated_users,
+        "user_ids": list(user_manager.users.keys())[:5]  # Show first 5 user IDs
+    })
 
 
 @app.get("/api/user-subscription-data")

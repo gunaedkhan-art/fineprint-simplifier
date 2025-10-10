@@ -77,12 +77,13 @@ class UserManager:
             self._save_users()
         return self.users[user_id]
     
-    def create_authenticated_user(self, username: str, email: str, password_hash: str) -> Dict:
-        """Create a new authenticated user"""
+    def create_authenticated_user(self, username: str, email: str, password_hash: str) -> tuple:
+        """Create a new authenticated user - returns (user_id, user_data)"""
         # Use username for user ID generation for better privacy
         safe_username = username.lower().replace(' ', '_').replace('-', '_')
         user_id = f"user_{safe_username}_{int(datetime.now().timestamp())}"
-        return self.create_user(user_id, email, password_hash, username=username)
+        user_data = self.create_user(user_id, email, password_hash, username=username)
+        return (user_id, user_data)
     
     def authenticate_user(self, email: str, password: str) -> Optional[Dict]:
         """Authenticate a user with email and password"""
