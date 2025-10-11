@@ -239,6 +239,12 @@ async function analyzeDocument() {
     formData.append('file', fileInput.files[0]);
     formData.append('user_id', currentUserId || '');  // Send user_id to backend
     
+    // Debug logging
+    console.log('DEBUG: Analyzing document');
+    console.log('DEBUG: currentUserId =', currentUserId);
+    console.log('DEBUG: userUsage =', userUsage);
+    console.log('DEBUG: userUsage.email =', userUsage?.email);
+    
     try {
         const response = await fetch('/analyze', {
             method: 'POST',
@@ -248,6 +254,9 @@ async function analyzeDocument() {
         const data = await response.json();
         hideProcessingStatus();
         
+        console.log('DEBUG: Backend response =', data);
+        console.log('DEBUG: data.is_visitor =', data.is_visitor);
+        
         if (data.error) {
             alert('Error: ' + data.error);
             return;
@@ -255,20 +264,26 @@ async function analyzeDocument() {
         
         // Check if user is actually logged in (has email in userUsage)
         const isActuallyLoggedIn = userUsage && userUsage.email;
+        console.log('DEBUG: isActuallyLoggedIn =', isActuallyLoggedIn);
+        console.log('DEBUG: Will show visitor summary?', data.is_visitor && !isActuallyLoggedIn);
         
         if (data.is_visitor && !isActuallyLoggedIn) {
             // True visitor - show summary and signup prompt
+            console.log('DEBUG: Showing visitor summary');
             window.tempAnalysisResults = data;
             displayVisitorSummary(data.visitor_summary);
         } else {
             // Logged in user - show full analysis
+            console.log('DEBUG: Redirecting to full analysis');
             window.tempAnalysisResults = data;
             
             // Check if user needs to provide email (edge case for old accounts)
             if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
+                console.log('DEBUG: Showing email modal');
                 document.getElementById("emailModal").style.display = "block";
             } else {
                 // Store results and redirect to analysis page for logged-in users
+                console.log('DEBUG: Storing results and redirecting');
                 localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
                 window.location.href = `/analysis?user_id=${currentUserId}`;
             }
