@@ -946,6 +946,60 @@ async def update_pattern_description(request: Request):
             status_code=500
         )
 
+@app.post("/api/fix-user-email/{user_id}")
+async def fix_user_email(user_id: str, request: Request):
+    """Fix user account that has email: null - emergency endpoint"""
+    if not user_manager:
+        return JSONResponse(content={"error": "User manager not available"})
+    
+    try:
+        data = await request.json()
+        email = data.get("email")
+        password = data.get("password")
+        
+        if not email or not password:
+            return JSONResponse(
+                content={"error": "Email and password required"},
+                status_code=400
+            )
+        
+        # Get the user
+        user = user_manager.get_user(user_id)
+        if not user:
+            return JSONResponse(
+                content={"error": "User not found"},
+                status_code=404
+            )
+        
+        # Hash the password
+        password_hash = auth_manager.hash_password(password)
+        
+        # Update the user with email and password
+        user["email"] = email
+        user["password_hash"] = password_hash
+        user_manager.users[user_id] = user
+        user_manager._save_users()
+        
+        print(f"FIXED USER ACCOUNT: {user_id} now has email: {email}")
+        
+        # Create access token
+        access_token = auth_manager.create_access_token(
+            data={"sub": user_id, "email": email}
+        )
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": "Account fixed successfully",
+            "access_token": access_token,
+            "user_id": user_id
+        })
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500
+        )
+
 @app.get("/api/debug/user-count")
 async def debug_user_count():
     """Debug endpoint to check registered users count"""
