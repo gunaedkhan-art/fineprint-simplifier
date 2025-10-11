@@ -237,6 +237,7 @@ async function analyzeDocument() {
     
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
+    formData.append('user_id', currentUserId || '');  // Send user_id to backend
     
     try {
         const response = await fetch('/analyze', {
@@ -285,12 +286,15 @@ async function analyzeText() {
     showProcessingStatus();
     
     try {
-        const response = await fetch('/analyze', {
+        const response = await fetch('/analyze-text', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ text: text })
+            body: JSON.stringify({ 
+                text: text,
+                user_id: currentUserId || ''  // Send user_id to backend
+            })
         });
         
         const data = await response.json();
