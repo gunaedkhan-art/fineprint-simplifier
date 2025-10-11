@@ -356,6 +356,10 @@ async def forgot_password_page(request: Request):
 async def reset_password_page(request: Request, token: str = ""):
     return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
 
+@app.get("/fix-account", response_class=HTMLResponse)
+async def fix_account_page(request: Request):
+    return templates.TemplateResponse("fix_account.html", {"request": request})
+
 @app.get("/profile", response_class=HTMLResponse)
 async def profile_page(request: Request):
     # Get current user

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Account - Small Print Checker</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <main class="main-content">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1>Fix Your Account</h1>
+                        <p>Add email and password to your account</p>
+                    </div>
+                    
+                    <div id="currentUserId" style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+                        <small style="color: #6c757d;">Your User ID:</small><br>
+                        <strong id="userIdDisplay" style="color: #2c3e50;"></strong>
+                    </div>
+                    
+                    <form id="fixAccountForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required placeholder="your@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required placeholder="Create a password (min 8 characters)" minlength="8">
+                        </div>
+                        
+                        <button type="submit" class="btn-primary btn-full" id="fixBtn">
+                            Fix My Account
+                        </button>
+                    </form>
+                    
+                    <div id="result" style="display: none; margin-top: 20px;"></div>
+                    
+                    <div class="auth-footer">
+                        <p><a href="/upload">← Back to Upload</a></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Get user ID from localStorage
+        const userId = localStorage.getItem('fineprint_user_id');
+        
+        if (!userId) {
+            alert('No user ID found. Please go to the home page first.');
+            window.location.href = '/';
+        } else {
+            document.getElementById('userIdDisplay').textContent = userId;
+        }
+        
+        document.getElementById('fixAccountForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fixBtn = document.getElementById('fixBtn');
+            const resultDiv = document.getElementById('result');
+            
+            // Show loading state
+            const originalText = fixBtn.textContent;
+            fixBtn.textContent = 'Fixing...';
+            fixBtn.disabled = true;
+            resultDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/fix-user-email/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store the new token
+                    localStorage.setItem('access_token', data.access_token);
+                    document.cookie = `access_token=${data.access_token}; path=/; max-age=${30 * 24 * 60 * 60}`;
+                    
+                    // Show success message
+                    resultDiv.innerHTML = `
+                        <div style="background: #d4edda; color: #155724; padding: 16px; border-radius: 8px; border: 1px solid #c3e6cb;">
+                            <h3 style="margin: 0 0 8px 0;">✅ Account Fixed!</h3>
+                            <p style="margin: 0 0 12px 0;">Your email and password have been saved. You can now log in normally.</p>
+                            <a href="/upload" style="display: inline-block; background: var(--primary-color); color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-top: 8px;">
+                                Go to Upload
+                            </a>
+                        </div>
+                    `;
+                    resultDiv.style.display = 'block';
+                    
+                    // Hide the form
+                    document.getElementById('fixAccountForm').style.display = 'none';
+                    
+                    // Redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = '/upload';
+                    }, 3000);
+                } else {
+                    throw new Error(data.error || 'Fix failed');
+                }
+            } catch (error) {
+                console.error('Fix error:', error);
+                resultDiv.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; border: 1px solid #f5c6cb;">
+                        <h3 style="margin: 0 0 8px 0;">❌ Error</h3>
+                        <p style="margin: 0;">${error.message}</p>
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+                
+                // Reset button state
+                fixBtn.textContent = originalText;
+                fixBtn.disabled = false;
+            }
+        });
+    </script>
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>
+
