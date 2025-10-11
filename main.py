@@ -952,7 +952,7 @@ async def update_pattern_description(request: Request):
 
 @app.post("/api/fix-user-email/{user_id}")
 async def fix_user_email(user_id: str, request: Request):
-    """Fix user account that has email: null - emergency endpoint"""
+    """Fix user account that has email: null - creates account if doesn't exist"""
     if not user_manager:
         return JSONResponse(content={"error": "User manager not available"})
     
@@ -960,6 +960,7 @@ async def fix_user_email(user_id: str, request: Request):
         data = await request.json()
         email = data.get("email")
         password = data.get("password")
+        username = data.get("username", email.split('@')[0])  # Default username from email
         
         if not email or not password:
             return JSONResponse(
@@ -967,24 +968,32 @@ async def fix_user_email(user_id: str, request: Request):
                 status_code=400
             )
         
-        # Get the user
-        user = user_manager.get_user(user_id)
-        if not user:
+        # Check if email is already used by another account
+        existing_by_email = user_manager.get_user_by_email(email)
+        if existing_by_email and existing_by_email.get("user_id") != user_id:
             return JSONResponse(
-                content={"error": "User not found"},
-                status_code=404
+                content={"error": "Email already in use by another account. Please login instead."},
+                status_code=400
             )
+        
+        # Get or create the user
+        user = user_manager.get_user(user_id)
         
         # Hash the password
         password_hash = auth_manager.hash_password(password)
         
-        # Update the user with email and password
-        user["email"] = email
-        user["password_hash"] = password_hash
-        user_manager.users[user_id] = user
-        user_manager._save_users()
-        
-        print(f"FIXED USER ACCOUNT: {user_id} now has email: {email}")
+        if not user:
+            # User doesn't exist - create a new one with this user_id
+            print(f"CREATING NEW USER ACCOUNT: {user_id} with email: {email}")
+            user = user_manager.create_user(user_id, email, password_hash, username)
+        else:
+            # User exists but missing email - update it
+            print(f"FIXING EXISTING USER ACCOUNT: {user_id} with email: {email}")
+            user["email"] = email
+            user["password_hash"] = password_hash
+            user["username"] = username
+            user_manager.users[user_id] = user
+            user_manager._save_users()
         
         # Create access token
         access_token = auth_manager.create_access_token(
@@ -993,12 +1002,13 @@ async def fix_user_email(user_id: str, request: Request):
         
         return JSONResponse(content={
             "success": True,
-            "message": "Account fixed successfully",
+            "message": "Account saved successfully",
             "access_token": access_token,
             "user_id": user_id
         })
         
     except Exception as e:
+        print(f"ERROR in fix_user_email: {str(e)}")
         return JSONResponse(
             content={"error": str(e)},
             status_code=500
