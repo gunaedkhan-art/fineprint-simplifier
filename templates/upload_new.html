@@ -252,16 +252,18 @@ async function analyzeDocument() {
             return;
         }
         
-        if (data.is_visitor) {
-            // Store the full analysis results for later retrieval
+        // Check if user is actually logged in (has email in userUsage)
+        const isActuallyLoggedIn = userUsage && userUsage.email;
+        
+        if (data.is_visitor && !isActuallyLoggedIn) {
+            // True visitor - show summary and signup prompt
             window.tempAnalysisResults = data;
-            // Show visitor summary and signup prompt
             displayVisitorSummary(data.visitor_summary);
         } else {
-            // Store results temporarily for logged in users
+            // Logged in user - show full analysis
             window.tempAnalysisResults = data;
             
-            // Check if user needs to provide email
+            // Check if user needs to provide email (edge case for old accounts)
             if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
                 document.getElementById("emailModal").style.display = "block";
             } else {
@@ -299,16 +301,18 @@ async function analyzeText() {
             return;
         }
         
-        if (data.is_visitor) {
-            // Store the full analysis results for later retrieval
+        // Check if user is actually logged in (has email in userUsage)
+        const isActuallyLoggedIn = userUsage && userUsage.email;
+        
+        if (data.is_visitor && !isActuallyLoggedIn) {
+            // True visitor - show summary and signup prompt
             window.tempAnalysisResults = data;
-            // Show visitor summary and signup prompt
             displayVisitorSummary(data.visitor_summary);
         } else {
-            // Store results temporarily for logged in users
+            // Logged in user - show full analysis
             window.tempAnalysisResults = data;
             
-            // Check if user needs to provide email
+            // Check if user needs to provide email (edge case for old accounts)
             if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
                 document.getElementById("emailModal").style.display = "block";
             } else {
@@ -473,6 +477,29 @@ if (emailForm) {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', async function() {
     await initializeUser();
+    
+    // Fix for browser back button - check if file input already has a file selected
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        // Simulate file select to update UI
+        const file = fileInput.files[0];
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatFileSize(file.size);
+        document.getElementById('fileInfo').style.display = 'flex';
+        document.getElementById('file-upload-box').style.display = 'none';
+        document.getElementById('analyze-btn').disabled = false;
+    }
+    
+    // Same for text input
+    const textInput = document.getElementById('textInput');
+    const analyzeTextBtn = document.getElementById('analyze-text-btn');
+    if (textInput && textInput.value.trim().length > 0 && analyzeTextBtn) {
+        analyzeTextBtn.disabled = false;
+        const charCount = document.getElementById('charCount');
+        if (charCount) {
+            charCount.textContent = textInput.value.length + ' characters';
+        }
+    }
 });
 </script>
 {% endblock %}
