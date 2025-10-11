@@ -153,6 +153,14 @@ async function loadUserUsage() {
     try {
         const response = await fetch(`/api/usage/${currentUserId}`);
         userUsage = await response.json();
+        
+        // Debug logging
+        console.log('User loaded:', {
+            userId: currentUserId,
+            hasEmail: !!userUsage?.email,
+            email: userUsage?.email,
+            subscription: userUsage?.subscription
+        });
     } catch (error) {
         console.error('Error loading usage:', error);
     }
@@ -237,13 +245,7 @@ async function analyzeDocument() {
     
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    formData.append('user_id', currentUserId || '');  // Send user_id to backend
-    
-    // Debug logging
-    console.log('DEBUG: Analyzing document');
-    console.log('DEBUG: currentUserId =', currentUserId);
-    console.log('DEBUG: userUsage =', userUsage);
-    console.log('DEBUG: userUsage.email =', userUsage?.email);
+    formData.append('user_id', currentUserId || '');
     
     try {
         const response = await fetch('/analyze', {
@@ -254,39 +256,38 @@ async function analyzeDocument() {
         const data = await response.json();
         hideProcessingStatus();
         
-        console.log('DEBUG: Backend response =', data);
-        console.log('DEBUG: data.is_visitor =', data.is_visitor);
-        
         if (data.error) {
             alert('Error: ' + data.error);
             return;
         }
         
-        // Check if user is actually logged in (has email in userUsage)
-        const isActuallyLoggedIn = userUsage && userUsage.email;
-        console.log('DEBUG: isActuallyLoggedIn =', isActuallyLoggedIn);
-        console.log('DEBUG: Will show visitor summary?', data.is_visitor && !isActuallyLoggedIn);
+        // SIMPLIFIED WORKFLOW: Check if user is logged in on frontend
+        // If logged in (has email), always go to full analysis
+        // If visitor (no email), show signup prompt
+        const isLoggedIn = userUsage && userUsage.email;
         
-        if (data.is_visitor && !isActuallyLoggedIn) {
-            // True visitor - show summary and signup prompt
-            console.log('DEBUG: Showing visitor summary');
-            window.tempAnalysisResults = data;
-            displayVisitorSummary(data.visitor_summary);
+        console.log('Analysis complete - Routing decision:', {
+            isLoggedIn: isLoggedIn,
+            userUsage: userUsage,
+            hasEmail: !!userUsage?.email,
+            backendIsVisitor: data.is_visitor
+        });
+        
+        if (isLoggedIn) {
+            // LOGGED IN USER PATH - Always go straight to analysis
+            console.log('→ Redirecting logged-in user to analysis page');
+            localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
+            window.location.href = `/analysis?user_id=${currentUserId}`;
         } else {
-            // Logged in user - show full analysis
-            console.log('DEBUG: Redirecting to full analysis');
+            // VISITOR PATH - Show summary and signup prompt
+            console.log('→ Showing visitor summary and signup prompt');
             window.tempAnalysisResults = data;
-            
-            // Check if user needs to provide email (edge case for old accounts)
-            if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
-                console.log('DEBUG: Showing email modal');
-                document.getElementById("emailModal").style.display = "block";
-            } else {
-                // Store results and redirect to analysis page for logged-in users
-                console.log('DEBUG: Storing results and redirecting');
-                localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
-                window.location.href = `/analysis?user_id=${currentUserId}`;
-            }
+            displayVisitorSummary(data.visitor_summary || {
+                risk_count: 0,
+                good_point_count: 0,
+                total_pages: data.total_pages || 0,
+                quality_assessment: data.quality_assessment || 'unknown'
+            });
         }
     } catch (error) {
         hideProcessingStatus();
@@ -308,7 +309,7 @@ async function analyzeText() {
             },
             body: JSON.stringify({ 
                 text: text,
-                user_id: currentUserId || ''  // Send user_id to backend
+                user_id: currentUserId || ''
             })
         });
         
@@ -320,25 +321,23 @@ async function analyzeText() {
             return;
         }
         
-        // Check if user is actually logged in (has email in userUsage)
-        const isActuallyLoggedIn = userUsage && userUsage.email;
+        // SIMPLIFIED WORKFLOW: Check if user is logged in on frontend
+        // If logged in (has email), always go to full analysis
+        // If visitor (no email), show signup prompt
+        const isLoggedIn = userUsage && userUsage.email;
         
-        if (data.is_visitor && !isActuallyLoggedIn) {
-            // True visitor - show summary and signup prompt
-            window.tempAnalysisResults = data;
-            displayVisitorSummary(data.visitor_summary);
+        if (isLoggedIn) {
+            // LOGGED IN USER PATH - Always go straight to analysis
+            localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
+            window.location.href = `/analysis?user_id=${currentUserId}`;
         } else {
-            // Logged in user - show full analysis
+            // VISITOR PATH - Show summary and signup prompt
             window.tempAnalysisResults = data;
-            
-            // Check if user needs to provide email (edge case for old accounts)
-            if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
-                document.getElementById("emailModal").style.display = "block";
-            } else {
-                // Store results and redirect to analysis page for logged-in users
-                localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
-                window.location.href = `/analysis?user_id=${currentUserId}`;
-            }
+            displayVisitorSummary(data.visitor_summary || {
+                risk_count: 0,
+                good_point_count: 0,
+                analysis_type: 'text'
+            });
         }
     } catch (error) {
         hideProcessingStatus();
