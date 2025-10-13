@@ -97,10 +97,61 @@ def find_regex_matches(text, patterns_with_scores):
     
     return matches
 
+def extract_sentence_context(text, start_pos, end_pos, max_length=200):
+    """
+    Extract the sentence or context around a match
+    Returns the match with surrounding context
+    """
+    # Find sentence boundaries (. ! ? or newlines)
+    # Look backwards for sentence start
+    sentence_start = start_pos
+    for i in range(start_pos - 1, max(0, start_pos - 300), -1):
+        if text[i] in '.!?\n':
+            sentence_start = i + 1
+            break
+        if i == 0:
+            sentence_start = 0
+    
+    # Look forwards for sentence end
+    sentence_end = end_pos
+    for i in range(end_pos, min(len(text), end_pos + 300)):
+        if text[i] in '.!?\n':
+            sentence_end = i + 1
+            break
+        if i == len(text) - 1:
+            sentence_end = len(text)
+    
+    # Extract the full context
+    context = text[sentence_start:sentence_end].strip()
+    
+    # If context is too long, truncate smartly
+    if len(context) > max_length:
+        # Try to keep the match in the middle
+        match_text = text[start_pos:end_pos]
+        prefix_length = (max_length - len(match_text)) // 2
+        suffix_length = max_length - len(match_text) - prefix_length
+        
+        # Get prefix
+        prefix_start = max(sentence_start, start_pos - prefix_length)
+        prefix = text[prefix_start:start_pos]
+        if prefix_start > sentence_start:
+            prefix = '...' + prefix.lstrip()
+        
+        # Get suffix
+        suffix_end = min(sentence_end, end_pos + suffix_length)
+        suffix = text[end_pos:suffix_end]
+        if suffix_end < sentence_end:
+            suffix = suffix.rstrip() + '...'
+        
+        context = prefix + match_text + suffix
+    
+    return context.strip()
+
+
 def find_exact_phrase_matches(text, phrases):
     """
     Find exact phrase matches in text (case-insensitive)
-    Returns list of matches with their positions (no overlapping matches)
+    Returns list of matches with their positions and sentence context
     """
     matches = []
     text_lower = text.lower()
@@ -112,14 +163,19 @@ def find_exact_phrase_matches(text, phrases):
             pos = text_lower.find(phrase_lower, start)
             if pos == -1:
                 break
+            
+            end_pos = pos + len(phrase)
+            context = extract_sentence_context(text, pos, end_pos)
+            
             matches.append({
-                "match": text[pos:pos + len(phrase)],  # Original case
+                "match": text[pos:end_pos],  # Original case
+                "context": context,  # Full sentence or context
                 "position": {
                     "start": pos,
-                    "end": pos + len(phrase)
+                    "end": end_pos
                 }
             })
-            start = pos + len(phrase)  # Continue searching from end of this match
+            start = end_pos  # Continue searching from end of this match
     
     return matches
 
@@ -143,6 +199,7 @@ def find_risks_in_text(text_or_pages) -> dict:
             for match in matches:
                 grouped_matches[category].append({
                     "match": match["match"],
+                    "context": match.get("context", match["match"]),  # Include sentence context
                     "score": 3,  # Default score for core patterns
                     "page": 1,  # Default to page 1 for single text
                     "position": match["position"]
@@ -159,6 +216,7 @@ def find_risks_in_text(text_or_pages) -> dict:
                 for match in matches:
                     grouped_matches[category].append({
                         "match": match["match"],
+                        "context": match.get("context", match["match"]),  # Include sentence context
                         "score": 3,  # Default score for core patterns
                         "page": page_number,
                         "position": match["position"]
@@ -202,6 +260,7 @@ def find_good_points_in_text(text_or_pages) -> dict:
             for match in matches:
                 grouped_matches[category].append({
                     "match": match["match"],
+                    "context": match.get("context", match["match"]),  # Include sentence context
                     "score": 3,  # Default score for core patterns
                     "page": 1,  # Default to page 1 for single text
                     "position": match["position"]
@@ -218,6 +277,7 @@ def find_good_points_in_text(text_or_pages) -> dict:
                 for match in matches:
                     grouped_matches[category].append({
                         "match": match["match"],
+                        "context": match.get("context", match["match"]),  # Include sentence context
                         "score": 3,  # Default score for core patterns
                         "page": page_number,
                         "position": match["position"]

@@ -477,20 +477,46 @@
                 
                 matches.forEach(item => {
                     const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                    const contextText = typeof item === 'object' ? item.context : null;
                     const pageNum = item.page || 'N/A';
                     const score = item.score || 3;
                     const severityClass = score >= 4 ? 'severity-high' : score >= 2.5 ? 'severity-medium' : 'severity-low';
                     const severityLabel = score >= 4 ? 'High' : score >= 2.5 ? 'Medium' : 'Low';
                     
+                    // Different labels for risks vs benefits
+                    const levelLabel = type === 'risk' ? 'Risk Level' : 'Benefit Level';
+                    const levelDescription = type === 'risk' ? 
+                        `${severityLabel} Risk` : 
+                        `${severityLabel} Benefit`;
+                    
+                    // Use context if available, otherwise use match
+                    let displayText = contextText || matchText;
+                    
+                    // Highlight the matched phrase within the context
+                    if (contextText && matchText && contextText.toLowerCase().includes(matchText.toLowerCase())) {
+                        // Case-insensitive replace with bold
+                        const regex = new RegExp(`(${escapeRegex(matchText)})`, 'gi');
+                        displayText = displayText.replace(regex, '<strong style="background: #fef08a; padding: 2px 4px; border-radius: 2px;">$1</strong>');
+                    }
+                    
+                    // Truncate if still too long
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = displayText;
+                    const textLength = tempDiv.textContent.length;
+                    if (textLength > 250) {
+                        displayText = displayText.substring(0, 247) + '...';
+                    }
+                    
                     html += `
                         <div class="finding-item ${type}">
-                            <div class="finding-text">"${matchText}"</div>
+                            <div class="finding-text">${displayText}</div>
                             <div class="finding-meta">
                                 <div class="meta-item">
                                     <span class="meta-label">Page:</span> ${pageNum}
                                 </div>
                                 <div class="meta-item">
-                                    <span class="severity-badge ${severityClass}">${severityLabel} ${type === 'risk' ? 'Risk' : 'Benefit'}</span>
+                                    <span class="meta-label">${levelLabel}:</span>
+                                    <span class="severity-badge ${severityClass}">${levelDescription}</span>
                                 </div>
                             </div>
                         </div>
@@ -508,6 +534,10 @@
                 .split('_')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
+        }
+        
+        function escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
         // Clear stored results when navigating away (except to login/register)
