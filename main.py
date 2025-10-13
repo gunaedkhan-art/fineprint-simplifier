@@ -91,6 +91,15 @@ except Exception as e:
     print(f"✗ stripe integration import failed: {e}")
     stripe_manager = None
 
+try:
+    from email_service import send_welcome_email, send_password_reset_email, send_password_changed_email
+    print("✓ email service imported successfully")
+except Exception as e:
+    print(f"✗ email service import failed: {e}")
+    send_welcome_email = None
+    send_password_reset_email = None
+    send_password_changed_email = None
+
 app = FastAPI()
 
 from contextlib import asynccontextmanager
@@ -724,6 +733,17 @@ async def register_user(request: Request):
             data={"sub": user_id, "email": email}
         )
         
+        # Send welcome email
+        if send_welcome_email:
+            try:
+                email_result = send_welcome_email(email, username)
+                if email_result.get("success"):
+                    print(f"✓ Welcome email sent to {email}")
+                else:
+                    print(f"⚠ Welcome email failed: {email_result.get('error')}")
+            except Exception as e:
+                print(f"⚠ Welcome email error: {str(e)}")
+        
         return JSONResponse(content={
             "success": True,
             "access_token": access_token,
@@ -825,21 +845,42 @@ async def forgot_password(request: Request):
         user = user_manager.get_user_by_email(email)
         
         # Always return success to prevent email enumeration
-        # But only create token if user exists
-        reset_token = None
+        # But only create token and send email if user exists
         if user:
             reset_token = auth_manager.create_password_reset_token(email)
-            print(f"PASSWORD RESET: Token generated for {email}: {reset_token}")
+            print(f"PASSWORD RESET: Token generated for {email}")
+            
+            # Send email if service is available
+            if send_password_reset_email:
+                try:
+                    email_result = send_password_reset_email(email, reset_token)
+                    if email_result.get("success"):
+                        print(f"✓ Password reset email sent to {email}")
+                    else:
+                        print(f"⚠ Password reset email failed: {email_result.get('error')}")
+                        # Fallback: return token in response if email fails
+                        return JSONResponse(content={
+                            "success": True,
+                            "message": "Password reset link generated (email service unavailable).",
+                            "reset_url": f"/reset-password?token={reset_token}"
+                        })
+                except Exception as e:
+                    print(f"⚠ Password reset email error: {str(e)}")
+            else:
+                # Email service not available - return link in response (development mode)
+                print(f"⚠ Email service not configured - returning reset link")
+                return JSONResponse(content={
+                    "success": True,
+                    "message": "Password reset link generated (email not configured).",
+                    "reset_url": f"/reset-password?token={reset_token}"
+                })
         else:
             print(f"PASSWORD RESET: No user found for {email}")
         
-        # For now, return the token in the response (in production, send via email)
-        # This allows testing without email infrastructure
+        # Standard response (doesn't reveal if user exists)
         return JSONResponse(content={
             "success": True,
-            "message": "If an account exists with this email, a password reset link has been generated.",
-            "reset_token": reset_token,  # Remove this in production
-            "reset_url": f"/reset-password?token={reset_token}" if reset_token else None  # For testing
+            "message": "If an account exists with this email, a password reset link has been sent."
         })
         
     except Exception as e:
@@ -889,6 +930,21 @@ async def reset_password(request: Request):
             )
         
         print(f"PASSWORD RESET SUCCESS: Password updated for {email}")
+        
+        # Send password changed notification
+        if send_password_changed_email:
+            try:
+                # Get username for personalization
+                user = user_manager.get_user_by_email(email)
+                username = user.get("username", "there") if user else "there"
+                
+                email_result = send_password_changed_email(email, username)
+                if email_result.get("success"):
+                    print(f"✓ Password changed notification sent to {email}")
+                else:
+                    print(f"⚠ Password changed notification failed: {email_result.get('error')}")
+            except Exception as e:
+                print(f"⚠ Password changed notification error: {str(e)}")
         
         return JSONResponse(content={
             "success": True,

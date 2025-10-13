@@ -8,6 +8,7 @@ Pillow>=9.0.0
 aiofiles==23.2.1
 stripe==12.5.0
 python-dotenv==1.0.0
+resend==0.8.0
 # Security dependencies
 PyJWT==2.8.0
 bcrypt==4.1.2
