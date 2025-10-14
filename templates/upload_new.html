@@ -161,8 +161,56 @@ async function loadUserUsage() {
             email: userUsage?.email,
             subscription: userUsage?.subscription
         });
+        
+        // CRITICAL: Detect broken account and offer to fix
+        if (!userUsage.email && currentUserId && currentUserId.startsWith('user_')) {
+            showBrokenAccountPrompt();
+        }
     } catch (error) {
         console.error('Error loading usage:', error);
+    }
+}
+
+function showBrokenAccountPrompt() {
+    const promptHTML = `
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin-bottom: 24px; text-align: center;">
+            <h3 style="margin: 0 0 12px 0; color: #856404;">⚠️ Account Setup Incomplete</h3>
+            <p style="margin: 0 0 16px 0; color: #856404;">
+                Your account is missing an email address. This prevents you from accessing full analysis results.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <a href="/fix-account" class="btn-primary" style="text-decoration: none;">
+                    Complete Account Setup
+                </a>
+                <button onclick="startFresh()" class="btn-secondary">
+                    Start Fresh Instead
+                </button>
+            </div>
+        </div>
+    `;
+    
+    const uploadSection = document.querySelector('.upload-section') || document.querySelector('.page-header');
+    if (uploadSection) {
+        const alertDiv = document.createElement('div');
+        alertDiv.innerHTML = promptHTML;
+        alertDiv.id = 'broken-account-alert';
+        uploadSection.parentNode.insertBefore(alertDiv, uploadSection);
+    }
+}
+
+function startFresh() {
+    if (confirm('This will clear your current session and let you register with a new account. Continue?')) {
+        // Clear all local data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear cookies
+        document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+        
+        // Redirect to registration
+        window.location.href = '/register';
     }
 }
 
