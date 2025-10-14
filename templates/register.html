@@ -127,6 +127,10 @@
                     localStorage.setItem('access_token', data.access_token);
                     document.cookie = `access_token=${data.access_token}; path=/; max-age=${30 * 24 * 60 * 60}`;
                     
+                    // CRITICAL: Always update user_id to the new one from registration
+                    localStorage.setItem('fineprint_user_id', data.user_id);
+                    console.log('✅ Updated user_id in localStorage:', data.user_id);
+                    
                     // Check if there are pending visitor analysis results
                     const pendingAnalysis = localStorage.getItem('pending_visitor_analysis');
                     if (pendingAnalysis) {
@@ -134,8 +138,6 @@
                         localStorage.setItem(`temp_analysis_${data.user_id}`, pendingAnalysis);
                         // Clear the pending analysis
                         localStorage.removeItem('pending_visitor_analysis');
-                        // Update the user ID in localStorage
-                        localStorage.setItem('fineprint_user_id', data.user_id);
                         // Redirect to analysis page to show stored results
                         window.location.href = `/analysis?user_id=${data.user_id}`;
                     } else {

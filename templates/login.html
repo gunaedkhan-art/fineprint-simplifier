@@ -79,6 +79,10 @@
                     localStorage.setItem('access_token', data.access_token);
                     document.cookie = `access_token=${data.access_token}; path=/; max-age=${30 * 24 * 60 * 60}`;
                     
+                    // CRITICAL: Always update user_id to the correct one from server
+                    localStorage.setItem('fineprint_user_id', data.user_id);
+                    console.log('✅ Updated user_id in localStorage:', data.user_id);
+                    
                     // Check if there are pending visitor analysis results
                     const pendingAnalysis = localStorage.getItem('pending_visitor_analysis');
                     if (pendingAnalysis) {
