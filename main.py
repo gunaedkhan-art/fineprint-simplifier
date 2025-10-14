@@ -1559,15 +1559,20 @@ async def delete_user(user_id: str):
     else:
         return {"error": "User management not available"}
 
-@app.post("/api/debug/clear-all-users")
+@app.get("/api/debug/clear-all-users")
 async def clear_all_users():
-    """Clear all user data for testing purposes"""
+    """Clear all user data for testing purposes - GET method for easy browser access"""
     if user_manager:
         user_manager.users = {}
         user_manager._save_users()
-        return {"success": True, "message": "All users cleared"}
+        print("🗑️ ALL USERS CLEARED - Fresh start")
+        return JSONResponse(content={
+            "success": True, 
+            "message": "All users cleared successfully. You can now register with a fresh account.",
+            "action": "Please clear your browser localStorage and register again"
+        })
     else:
-        return {"error": "User management not available"}
+        return JSONResponse(content={"error": "User management not available"})
 
 
 @app.post("/api/update-email/{user_id}")
