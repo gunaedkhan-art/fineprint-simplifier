@@ -695,7 +695,14 @@ async def register_user(request: Request):
         
         # Hash password and create user
         password_hash = auth_manager.hash_password(password)
+        
+        print(f"🔧 REGISTRATION ATTEMPT: username={username}, email={email}")
+        print(f"🔧 Password hash created: {bool(password_hash)}")
+        
         user_id, user_data = user_manager.create_authenticated_user(username, email, password_hash)
+        
+        print(f"🔧 create_authenticated_user returned: user_id={user_id}, user_data keys={list(user_data.keys()) if user_data else None}")
+        print(f"🔧 user_data email field: {user_data.get('email') if user_data else None}")
         
         if not user_id or not user_data:
             return JSONResponse(
@@ -703,8 +710,9 @@ async def register_user(request: Request):
                 status_code=500
             )
         
-        print(f"REGISTRATION SUCCESS: user_id={user_id}, email={email}, username={username}")
-        print(f"User data saved: {user_id in user_manager.users}")
+        print(f"✅ REGISTRATION SUCCESS: user_id={user_id}, email={email}, username={username}")
+        print(f"✅ User data saved to manager: {user_id in user_manager.users}")
+        print(f"✅ Email in saved data: {user_manager.users[user_id].get('email') if user_id in user_manager.users else 'NOT FOUND'}")
         
         # If there's an anonymous user ID, merge the data
         if anonymous_user_id and anonymous_user_id in user_manager.users:
