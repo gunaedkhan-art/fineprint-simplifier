@@ -315,7 +315,6 @@ async function analyzeDocument() {
         // SIMPLIFIED WORKFLOW: Check if user is logged in on frontend
         // If logged in (has email), always go to full analysis
         // If visitor (no email), show signup prompt
-        const isLoggedIn = userUsage && userUsage.email;
         
         console.log('==== ANALYSIS COMPLETE - ROUTING DECISION ====');
         console.log('Current user state:', {
