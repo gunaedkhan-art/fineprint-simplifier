@@ -159,12 +159,15 @@ async function loadUserUsage() {
             userId: currentUserId,
             hasEmail: !!userUsage?.email,
             email: userUsage?.email,
-            subscription: userUsage?.subscription
+            subscription: userUsage?.subscription,
+            username: userUsage?.username
         });
         
-        // CRITICAL: Detect broken account and offer to fix
-        if (!userUsage.email && currentUserId && currentUserId.startsWith('user_')) {
-            showBrokenAccountPrompt();
+        // Only show broken account prompt if they have a user_id but literally no email after trying to load
+        // Don't show for fresh visitors
+        if (!userUsage.email && currentUserId && currentUserId.startsWith('user_') && userUsage.subscription) {
+            // Additional check: only if they appear to have an account but it's incomplete
+            console.warn('⚠️ Detected account with no email');
         }
     } catch (error) {
         console.error('Error loading usage:', error);
@@ -314,21 +317,32 @@ async function analyzeDocument() {
         // If visitor (no email), show signup prompt
         const isLoggedIn = userUsage && userUsage.email;
         
-        console.log('Analysis complete - Routing decision:', {
-            isLoggedIn: isLoggedIn,
+        console.log('==== ANALYSIS COMPLETE - ROUTING DECISION ====');
+        console.log('Current user state:', {
+            currentUserId: currentUserId,
             userUsage: userUsage,
+            email: userUsage?.email,
             hasEmail: !!userUsage?.email,
-            backendIsVisitor: data.is_visitor
+            subscription: userUsage?.subscription
         });
+        console.log('Backend response:', {
+            backendIsVisitor: data.is_visitor,
+            hasAnalysis: !!data.analysis,
+            hasVisitorSummary: !!data.visitor_summary
+        });
+        
+        const isLoggedIn = userUsage && userUsage.email;
+        console.log('Decision: isLoggedIn =', isLoggedIn);
         
         if (isLoggedIn) {
             // LOGGED IN USER PATH - Always go straight to analysis
-            console.log('→ Redirecting logged-in user to analysis page');
+            console.log('✅ LOGGED IN USER → Redirecting to analysis page');
             localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
             window.location.href = `/analysis?user_id=${currentUserId}`;
         } else {
             // VISITOR PATH - Show summary and signup prompt
-            console.log('→ Showing visitor summary and signup prompt');
+            console.log('👤 VISITOR → Showing signup prompt');
+            console.warn('Why visitor? email =', userUsage?.email, 'userUsage =', userUsage);
             window.tempAnalysisResults = data;
             displayVisitorSummary(data.visitor_summary || {
                 risk_count: 0,
