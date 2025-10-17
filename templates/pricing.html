@@ -49,7 +49,7 @@
                 </div>
             </div>
             
-            <button class="btn-primary" onclick="startFree()">Start Free</button>
+            <a href="/register" class="btn-primary">Start Free</a>
         </div>
 
         <!-- Paid Tier -->
@@ -150,23 +150,7 @@ function generateUserId() {
     return currentUserId;
 }
 
-function startFree() {
-    // Check if there's an existing user_id from visitor flow
-    const urlParams = new URLSearchParams(window.location.search);
-    const existingUserId = urlParams.get('user_id');
-    const redirect = urlParams.get('redirect');
-    
-    // Use existing user_id if available, otherwise generate new one
-    const userId = existingUserId || generateUserId();
-    
-    if (redirect === 'upload') {
-        // Redirect to upload page to show stored results
-        window.location.href = `/upload?user_id=${userId}`;
-    } else {
-        // Default redirect to home page
-        window.location.href = `/?user_id=${userId}`;
-    }
-}
+// startFree function removed - no longer needed with simplified auth flow
 
 // Check authentication status on page load
 document.addEventListener('DOMContentLoaded', function() {

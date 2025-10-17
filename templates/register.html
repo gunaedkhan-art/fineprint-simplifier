@@ -131,19 +131,8 @@
                     localStorage.setItem('fineprint_user_id', data.user_id);
                     console.log('✅ Updated user_id in localStorage:', data.user_id);
                     
-                    // Check if there are pending visitor analysis results
-                    const pendingAnalysis = localStorage.getItem('pending_visitor_analysis');
-                    if (pendingAnalysis) {
-                        // Store the analysis with the new user ID
-                        localStorage.setItem(`temp_analysis_${data.user_id}`, pendingAnalysis);
-                        // Clear the pending analysis
-                        localStorage.removeItem('pending_visitor_analysis');
-                        // Redirect to analysis page to show stored results
-                        window.location.href = `/analysis?user_id=${data.user_id}`;
-                    } else {
-                        // Redirect to profile
-                        window.location.href = '/profile';
-                    }
+                    // Redirect to profile after successful registration
+                    window.location.href = '/profile';
                 } else {
                     throw new Error(data.error || 'Registration failed');
                 }

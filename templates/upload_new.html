@@ -449,8 +449,7 @@ if (emailForm) {
                 // Close modal and redirect to analysis page
                 closeEmailModal();
                 
-                // Store results and redirect to analysis page
-                localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(window.tempAnalysisResults));
+                // Redirect to analysis page
                 window.location.href = `/analysis?user_id=${currentUserId}`;
             } else {
                 alert('Error saving email. Please try again.');

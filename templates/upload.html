@@ -374,14 +374,8 @@
                     }, 500);
                     // Handle visitor vs logged in user response
                     
-                    if (data.is_visitor) {
-                        // Store the full analysis results for later retrieval
-                        window.tempAnalysisResults = data;
-                        // Show visitor summary and signup prompt
-                        displayVisitorSummary(data.visitor_summary);
-                    } else {
-                        // Store results temporarily for logged in users
-                        window.tempAnalysisResults = data;
+                    // Store results temporarily for logged in users
+                    window.tempAnalysisResults = data;
                         
                         // Check if user needs to provide email
                         if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
@@ -527,58 +521,7 @@
             submitEmailAndShowResults();
         });
 
-        // Visitor summary display function
-        function displayVisitorSummary(summary) {
-            const resultsDiv = document.getElementById("results");
-            
-            let qualityInfo = "";
-            if (summary && summary.quality_assessment) {
-                const qualityColors = {
-                    'excellent': '#28a745',
-                    'good': '#28a745', 
-                    'fair': '#ffc107',
-                    'poor': '#dc3545',
-                    'unreadable': '#dc3545'
-                };
-                const qualityColor = qualityColors[summary.quality_assessment] || '#6c757d';
-                qualityInfo = `
-                    <div class="quality-assessment" style="background-color: ${qualityColor}; color: white; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-                        <strong>Document Quality: ${summary.quality_assessment.toUpperCase()}</strong>
-                        ${summary.total_pages ? `<br>Total pages: ${summary.total_pages}` : ''}
-                    </div>
-                `;
-            }
-
-            const html = `
-                <div class="visitor-summary-container">
-                    <div class="visitor-summary-header">
-                        <h2>🔍 Analysis Complete!</h2>
-                        <p>We found some interesting things in your document. Sign up to see the full analysis!</p>
-                    </div>
-                    ${qualityInfo}
-                    <div class="visitor-summary-stats">
-                        <div class="visitor-summary-stat risks">
-                            <h3>${summary.risk_count}</h3>
-                            <p>Potential Risks</p>
-                        </div>
-                        <div class="visitor-summary-stat good-points">
-                            <h3>${summary.good_point_count}</h3>
-                            <p>Favorable Terms</p>
-                        </div>
-                    </div>
-                    <div class="visitor-cta-section">
-                        <h3>Unlock Full Analysis</h3>
-                        <div class="cta-buttons">
-                            <button class="btn-primary" onclick="startFree()">Create Free Account</button>
-                        </div>
-                        <p class="cta-note">Create a free account to see your full analysis results and get 3 free document analyses per month.</p>
-                    </div>
-                </div>
-            `;
-            
-            resultsDiv.innerHTML = html;
-            resultsDiv.style.display = "block";
-        }
+        // Visitor summary function removed - no longer needed with simplified auth flow
 
         // Analysis results display functions
         function displayAnalysisResults(analysis) {
@@ -775,14 +718,7 @@
         }
 
         // Visitor signup functions
-        function startFree() {
-            // Store the current analysis results for retrieval after registration
-            if (window.tempAnalysisResults) {
-                localStorage.setItem('pending_visitor_analysis', JSON.stringify(window.tempAnalysisResults));
-            }
-            // Redirect to registration page
-            window.location.href = '/register';
-        }
+        // startFree function removed - no longer needed with simplified auth flow
 
         // Progress indicator functions
         function showProcessingStatus() {
@@ -894,9 +830,6 @@
                                 // Display full analysis for the newly registered user
                                 displayAnalysisResults(results.analysis);
                                 processAnalysisData(results);
-                            } else if (results.is_visitor && results.visitor_summary) {
-                                // Fallback: if only visitor summary is available, show it
-                                displayVisitorSummary(results.visitor_summary);
                             } else {
                                 // Fallback: show error message
                                 const errorDiv = document.createElement('div');
@@ -909,10 +842,8 @@
                             // Clear the stored results
                             localStorage.removeItem(`temp_analysis_${userId}`);
                         } else {
-                            // User is not properly authenticated, show visitor summary
-                            if (results.is_visitor && results.visitor_summary) {
-                                displayVisitorSummary(results.visitor_summary);
-                            }
+                            // User is not properly authenticated, redirect to login
+                            window.location.href = '/login';
                         }
                     } catch (error) {
                         console.error('Error parsing stored results:', error);

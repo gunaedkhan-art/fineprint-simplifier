@@ -348,14 +348,14 @@
                 if (results.analysis) {
                     displayDocumentHeader(results);
                     displayAnalysisResults(results.analysis);
-                } else if (results.visitor_summary) {
+                } else {
                     const infoDiv = document.createElement('div');
                     infoDiv.className = 'info-message';
                     infoDiv.style.cssText = 'background: #cfe2ff; color: #084298; padding: 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #b6d4fe; text-align: center;';
                     infoDiv.innerHTML = `
-                        <h3 style="margin: 0 0 12px 0;">🎉 Welcome to Small Print Checker!</h3>
-                        <p style="margin: 0 0 16px 0;">Your account has been created successfully. To see the full analysis of your document, please upload it again.</p>
-                        <a href="/upload" class="btn-primary" style="display: inline-block; margin-top: 8px;">Upload Document</a>
+                        <h3 style="margin: 0 0 12px 0;">🔒 Authentication Required</h3>
+                        <p style="margin: 0 0 16px 0;">Please log in to view your analysis results.</p>
+                        <a href="/login" class="btn-primary" style="display: inline-block; margin-top: 8px;">Log In</a>
                     `;
                     resultsDiv.appendChild(infoDiv);
                 } else {
