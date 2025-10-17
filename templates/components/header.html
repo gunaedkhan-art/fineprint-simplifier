@@ -119,8 +119,7 @@ function logout() {
         localStorage.removeItem(`temp_analysis_${userId}`);
     }
     
-    // Clear visitor analysis
-    localStorage.removeItem('pending_visitor_analysis');
+    // Clear any temporary analysis data
     
     // Clear authentication data
     localStorage.removeItem('access_token');
