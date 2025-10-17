@@ -312,43 +312,17 @@ async function analyzeDocument() {
             return;
         }
         
-        // SIMPLIFIED WORKFLOW: Check if user is logged in on frontend
-        // If logged in (has email), always go to full analysis
-        // If visitor (no email), show signup prompt
-        
-        console.log('==== ANALYSIS COMPLETE - ROUTING DECISION ====');
-        console.log('Current user state:', {
-            currentUserId: currentUserId,
-            userUsage: userUsage,
-            email: userUsage?.email,
-            hasEmail: !!userUsage?.email,
-            subscription: userUsage?.subscription
-        });
-        console.log('Backend response:', {
-            backendIsVisitor: data.is_visitor,
-            hasAnalysis: !!data.analysis,
-            hasVisitorSummary: !!data.visitor_summary
-        });
-        
+        // Check if user is authenticated
         const isLoggedIn = userUsage && userUsage.email;
-        console.log('Decision: isLoggedIn =', isLoggedIn);
         
         if (isLoggedIn) {
-            // LOGGED IN USER PATH - Always go straight to analysis
-            console.log('✅ LOGGED IN USER → Redirecting to analysis page');
+            // Store results and redirect to analysis page
             localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
             window.location.href = `/analysis?user_id=${currentUserId}`;
         } else {
-            // VISITOR PATH - Show summary and signup prompt
-            console.log('👤 VISITOR → Showing signup prompt');
-            console.warn('Why visitor? email =', userUsage?.email, 'userUsage =', userUsage);
-            window.tempAnalysisResults = data;
-            displayVisitorSummary(data.visitor_summary || {
-                risk_count: 0,
-                good_point_count: 0,
-                total_pages: data.total_pages || 0,
-                quality_assessment: data.quality_assessment || 'unknown'
-            });
+            // Not authenticated - redirect to login
+            alert('Please create an account or log in to see your analysis results.');
+            window.location.href = '/login';
         }
     } catch (error) {
         hideProcessingStatus();
@@ -382,23 +356,17 @@ async function analyzeText() {
             return;
         }
         
-        // SIMPLIFIED WORKFLOW: Check if user is logged in on frontend
-        // If logged in (has email), always go to full analysis
-        // If visitor (no email), show signup prompt
+        // Check if user is authenticated
         const isLoggedIn = userUsage && userUsage.email;
         
         if (isLoggedIn) {
-            // LOGGED IN USER PATH - Always go straight to analysis
+            // Store results and redirect to analysis page
             localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
             window.location.href = `/analysis?user_id=${currentUserId}`;
         } else {
-            // VISITOR PATH - Show summary and signup prompt
-            window.tempAnalysisResults = data;
-            displayVisitorSummary(data.visitor_summary || {
-                risk_count: 0,
-                good_point_count: 0,
-                analysis_type: 'text'
-            });
+            // Not authenticated - redirect to login
+            alert('Please create an account or log in to see your analysis results.');
+            window.location.href = '/login';
         }
     } catch (error) {
         hideProcessingStatus();
@@ -432,68 +400,9 @@ function updateProgressStep(step) {
     }
 }
 
-// Visitor summary display
-function displayVisitorSummary(summary) {
-    const resultsDiv = document.getElementById("results");
-    if (!resultsDiv) return;
-    
-    let qualityInfo = '';
-    if (summary.quality_assessment) {
-        const qualityColors = {
-            'excellent': '#28a745',
-            'good': '#28a745', 
-            'fair': '#ffc107',
-            'poor': '#dc3545'
-        };
-        const qualityColor = qualityColors[summary.quality_assessment] || '#6c757d';
-        
-        qualityInfo = `
-            <div class="quality-assessment" style="background: ${qualityColor}15; border-left: 4px solid ${qualityColor}; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
-                <h3 style="margin: 0 0 8px 0; color: ${qualityColor};">📊 Document Quality: ${summary.quality_assessment.charAt(0).toUpperCase() + summary.quality_assessment.slice(1)}</h3>
-                <p style="margin: 0; color: var(--text-secondary);">${summary.total_pages || 0} pages • ${summary.total_characters || 0} characters • ${summary.readable_pages || 0} readable pages</p>
-            </div>
-        `;
-    }
-    
-    const html = `
-        <div class="visitor-summary-container">
-            <div class="visitor-summary-header">
-                <h2>🔍 Analysis Complete!</h2>
-                <p>We found some interesting things in your document. Sign up to see the full analysis!</p>
-            </div>
-            ${qualityInfo}
-            <div class="visitor-summary-stats">
-                <div class="visitor-summary-stat risks">
-                    <h3>${summary.risk_count}</h3>
-                    <p>Potential Risks</p>
-                </div>
-                <div class="visitor-summary-stat good-points">
-                    <h3>${summary.good_point_count}</h3>
-                    <p>Favorable Terms</p>
-                </div>
-            </div>
-            <div class="visitor-cta-section">
-                <h3>Unlock Full Analysis</h3>
-                <div class="cta-buttons">
-                    <button class="btn-primary" onclick="startFree()">Create Free Account</button>
-                </div>
-                <p class="cta-note">Create a free account to see your full analysis results and get 3 free document analyses per month.</p>
-            </div>
-        </div>
-    `;
-    
-    resultsDiv.innerHTML = html;
-    resultsDiv.style.display = "block";
-}
+// Visitor summary function removed - no longer needed with simplified auth flow
 
-function startFree() {
-    // Store the current analysis results for retrieval after registration
-    if (window.tempAnalysisResults) {
-        localStorage.setItem('pending_visitor_analysis', JSON.stringify(window.tempAnalysisResults));
-    }
-    // Redirect to registration page
-    window.location.href = '/register';
-}
+// startFree function removed - no longer needed with simplified auth flow
 
 function upgradeToPro() {
     if (!currentUserId) {

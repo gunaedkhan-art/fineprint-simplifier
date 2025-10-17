@@ -1769,63 +1769,39 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
 
         save_pending_patterns(pending)
 
-        # Count findings for visitor summary
-        risk_count = 0
-        good_point_count = 0
+        # Check if user has email (authenticated)
+        is_authenticated = user_usage and user_usage.get("email")
         
-        if isinstance(analysis_result.get("risks"), dict):
-            for category_risks in analysis_result["risks"].values():
-                risk_count += len(category_risks)
-        elif isinstance(analysis_result.get("risks"), list):
-            risk_count = len(analysis_result["risks"])
-            
-        if isinstance(analysis_result.get("good_points"), dict):
-            for category_good_points in analysis_result["good_points"].values():
-                good_point_count += len(category_good_points)
-        elif isinstance(analysis_result.get("good_points"), list):
-            good_point_count = len(analysis_result["good_points"])
-
-        if is_visitor:
-            # For visitors, create a fresh user record after successful analysis
-            if user_manager:
-                user_manager.create_user(user_id)  # This creates a clean visitor record
-                user_manager.update_usage(user_id)  # Update usage for the new record
-            
-            # Visitor response - show summary but include full analysis for post-registration
-            response_data = {
-                "is_visitor": True,
-                "filename": file.filename,
-                "visitor_summary": {
-                    "risk_count": risk_count,
-                    "good_point_count": good_point_count,
-                    "total_pages": total_pages,
-                    "quality_assessment": quality_assessment
+        if not is_authenticated:
+            return JSONResponse(
+                content={
+                    "success": False,
+                    "error": "Authentication required",
+                    "message": "Please create an account or log in to see your analysis results."
                 },
-                "analysis": analysis_result,  # Include full analysis for post-registration display
-                "quality_assessment": quality_assessment,
-                "readable_pages": readable_pages,
-                "total_pages": total_pages,
-                "total_characters": total_characters,
-                "message": "Analysis complete! Sign up to see detailed results."
-            }
-        else:
-            # Logged in user response - full analysis
-            response_data = {
-                "is_visitor": False,
-                "filename": file.filename,
+                status_code=401
+            )
+        
+        # Update usage for the authenticated user
+        if user_manager:
+            user_manager.update_usage(user_id)
+        
+        # Authenticated user response - full analysis
+        response_data = {
+            "success": True,
+            "filename": file.filename,
             "analysis": analysis_result,
             "pages": raw_pages,  # send raw text for highlighting
             "custom_patterns": patterns,
-                "pending_patterns": pending,
-                "quality_assessment": quality_assessment,
-                "readable_pages": readable_pages,
-                "total_pages": total_pages,
-                "total_characters": total_characters,
-                "quality_issues": quality_issues
-            }
+            "pending_patterns": pending,
+            "quality_assessment": quality_assessment,
+            "readable_pages": readable_pages,
+            "total_pages": total_pages,
+            "total_characters": total_characters,
+            "quality_issues": quality_issues
+        }
         
-        print(f"DEBUG: Returning response for {'visitor' if is_visitor else 'logged in user'}")
-        print(f"DEBUG: Risk count: {risk_count}, Good point count: {good_point_count}")
+        print(f"DEBUG: Returning analysis for authenticated user")
         
         return JSONResponse(content=response_data)
     
@@ -1867,17 +1843,15 @@ async def analyze_text(request: Request):
                 status_code=400
             )
         
-        # For visitors, we don't check any existing user data - just allow the analysis
-        # and create a fresh user record after successful analysis
-        is_visitor = True
+        # Check if user is authenticated (has email)
         user = None
+        is_authenticated = False
         
-        # Only check existing user data if they have an email (logged in user)
         if user_manager:
             user = user_manager.get_user(user_id)
             if user and user.get("email"):
-                is_visitor = False
-                # Check usage limits for logged in users only
+                is_authenticated = True
+                # Check usage limits for authenticated users
                 if not user_manager.update_usage(user_id):
                     return JSONResponse(
                         content={
@@ -1887,6 +1861,16 @@ async def analyze_text(request: Request):
                         }, 
                         status_code=429
                     )
+        
+        if not is_authenticated:
+            return JSONResponse(
+                content={
+                    "success": False,
+                    "error": "Authentication required",
+                    "message": "Please create an account or log in to see your analysis results."
+                },
+                status_code=401
+            )
         
         # Load patterns
         patterns = load_custom_patterns()
@@ -1900,44 +1884,15 @@ async def analyze_text(request: Request):
         
         save_pending_patterns(pending)
 
-        # Update usage for successful analysis
-        if user_manager:
-            if is_visitor:
-                # Create or update visitor record
-                user_manager.create_user(user_id)
-                user_manager.update_usage(user_id)
-            else:
-                # Already updated usage above for logged in users
-                pass
-
-        # Prepare response data
-        risk_count = sum(len(v) for v in analysis_result.get("risks", {}).values())
-        good_point_count = sum(len(v) for v in analysis_result.get("good_points", {}).values())
+        # Authenticated user response - full analysis
+        response_data = {
+            "success": True,
+            "filename": "Text Input",
+            "analysis": analysis_result,
+            "analysis_type": "text"
+        }
         
-        if is_visitor:
-            # Visitor response - show summary but include full analysis for post-registration
-            response_data = {
-                "is_visitor": True,
-                "filename": "Text Input",
-                "visitor_summary": {
-                    "risk_count": risk_count,
-                    "good_point_count": good_point_count,
-                    "analysis_type": "text"
-                },
-                "analysis": analysis_result,  # Include full analysis for post-registration display
-                "message": "Analysis complete! Sign up to see detailed results."
-            }
-        else:
-            # Logged in user response - full analysis
-            response_data = {
-                "is_visitor": False,
-                "filename": "Text Input",
-                "analysis": analysis_result,
-                "analysis_type": "text"
-            }
-        
-        print(f"DEBUG: Returning response for {'visitor' if is_visitor else 'logged in user'}")
-        print(f"DEBUG: Risk count: {risk_count}, Good point count: {good_point_count}")
+        print(f"DEBUG: Returning analysis for authenticated user")
         
         return JSONResponse(content=response_data)
         
