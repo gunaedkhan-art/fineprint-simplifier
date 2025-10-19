@@ -320,9 +320,17 @@ async function analyzeDocument() {
             localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
             window.location.href = `/analysis?user_id=${currentUserId}`;
         } else {
-            // Not authenticated - redirect to login
-            alert('Please create an account or log in to see your analysis results.');
-            window.location.href = '/login';
+            // Visitor - store analysis and show auth prompt
+            if (data.requires_auth) {
+                // Store the analysis for retrieval after auth
+                localStorage.setItem('pending_visitor_analysis', JSON.stringify(data));
+                // Show auth prompt
+                showAuthPrompt(data);
+            } else {
+                // Fallback - redirect to login
+                alert('Please create an account or log in to see your analysis results.');
+                window.location.href = '/login';
+            }
         }
     } catch (error) {
         hideProcessingStatus();
@@ -364,9 +372,17 @@ async function analyzeText() {
             localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
             window.location.href = `/analysis?user_id=${currentUserId}`;
         } else {
-            // Not authenticated - redirect to login
-            alert('Please create an account or log in to see your analysis results.');
-            window.location.href = '/login';
+            // Visitor - store analysis and show auth prompt
+            if (data.requires_auth) {
+                // Store the analysis for retrieval after auth
+                localStorage.setItem('pending_visitor_analysis', JSON.stringify(data));
+                // Show auth prompt
+                showAuthPrompt(data);
+            } else {
+                // Fallback - redirect to login
+                alert('Please create an account or log in to see your analysis results.');
+                window.location.href = '/login';
+            }
         }
     } catch (error) {
         hideProcessingStatus();
@@ -400,9 +416,54 @@ function updateProgressStep(step) {
     }
 }
 
-// Visitor summary function removed - no longer needed with simplified auth flow
+// Visitor auth prompt function
+function showAuthPrompt(data) {
+    const resultsDiv = document.getElementById("results");
+    if (!resultsDiv) return;
+    
+    const riskCount = data.analysis?.risks ? Object.values(data.analysis.risks).flat().length : 0;
+    const goodPointCount = data.analysis?.good_points ? Object.values(data.analysis.good_points).flat().length : 0;
+    const totalPages = data.total_pages || 0;
+    
+    resultsDiv.innerHTML = `
+        <div class="visitor-auth-prompt">
+            <div class="auth-prompt-header">
+                <h2>🔍 Analysis Complete!</h2>
+                <p>We found ${riskCount + goodPointCount} potential issues in your ${totalPages}-page document.</p>
+            </div>
+            
+            <div class="auth-prompt-stats">
+                <div class="stat-item">
+                    <h3>${riskCount}</h3>
+                    <p>Potential Risks</p>
+                </div>
+                <div class="stat-item">
+                    <h3>${goodPointCount}</h3>
+                    <p>Favorable Terms</p>
+                </div>
+            </div>
+            
+            <div class="auth-prompt-cta">
+                <h3>🔒 Unlock Full Analysis</h3>
+                <p>Create a free account to see detailed findings, page numbers, and risk levels.</p>
+                <div class="auth-buttons">
+                    <button onclick="goToRegister()" class="btn-primary">Create Free Account</button>
+                    <button onclick="goToLogin()" class="btn-secondary">Sign In</button>
+                </div>
+                <p class="auth-note">Your analysis is saved and will be available after you sign in.</p>
+            </div>
+        </div>
+    `;
+    resultsDiv.style.display = "block";
+}
 
-// startFree function removed - no longer needed with simplified auth flow
+function goToRegister() {
+    window.location.href = '/register';
+}
+
+function goToLogin() {
+    window.location.href = '/login';
+}
 
 function upgradeToPro() {
     if (!currentUserId) {

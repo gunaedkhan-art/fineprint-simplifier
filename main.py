@@ -1643,16 +1643,6 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     status_code=429
                 )
     
-    if not is_authenticated:
-        return JSONResponse(
-            content={
-                "success": False,
-                "error": "Authentication required",
-                "message": "Please create an account or log in to see your analysis results."
-            },
-            status_code=401
-        )
-    
     # Validate file upload
     from error_handler import validate_file_upload, handle_upload_error, create_user_friendly_response
     
@@ -1779,24 +1769,36 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
 
         save_pending_patterns(pending)
 
-        # User is already authenticated and usage updated above
-        
-        # Authenticated user response - full analysis
-        response_data = {
-            "success": True,
-            "filename": file.filename,
-            "analysis": analysis_result,
-            "pages": raw_pages,  # send raw text for highlighting
-            "custom_patterns": patterns,
-            "pending_patterns": pending,
-            "quality_assessment": quality_assessment,
-            "readable_pages": readable_pages,
-            "total_pages": total_pages,
-            "total_characters": total_characters,
-            "quality_issues": quality_issues
-        }
-        
-        print(f"DEBUG: Returning analysis for authenticated user")
+        if is_authenticated:
+            # Authenticated user response - full analysis
+            response_data = {
+                "success": True,
+                "filename": file.filename,
+                "analysis": analysis_result,
+                "pages": raw_pages,  # send raw text for highlighting
+                "custom_patterns": patterns,
+                "pending_patterns": pending,
+                "quality_assessment": quality_assessment,
+                "readable_pages": readable_pages,
+                "total_pages": total_pages,
+                "total_characters": total_characters,
+                "quality_issues": quality_issues
+            }
+            print(f"DEBUG: Returning full analysis for authenticated user")
+        else:
+            # Visitor response - store analysis and prompt for auth
+            response_data = {
+                "success": True,
+                "filename": file.filename,
+                "requires_auth": True,
+                "message": "Please create an account or log in to see your analysis results.",
+                "analysis": analysis_result,  # Include full analysis for post-auth display
+                "quality_assessment": quality_assessment,
+                "readable_pages": readable_pages,
+                "total_pages": total_pages,
+                "total_characters": total_characters
+            }
+            print(f"DEBUG: Returning visitor response with stored analysis")
         
         return JSONResponse(content=response_data)
     

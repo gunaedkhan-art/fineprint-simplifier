@@ -3808,3 +3808,63 @@ h1.logo {
     background: var(--surface-color);
     transform: translateY(-2px);
 }
+
+/* Visitor auth prompt styles */
+.visitor-auth-prompt {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    margin: var(--space-6) 0;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+}
+
+.auth-prompt-header h2 {
+    color: var(--primary-color);
+    margin-bottom: var(--space-2);
+}
+
+.auth-prompt-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-8);
+    margin: var(--space-6) 0;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.stat-item p {
+    color: var(--text-secondary);
+    margin: var(--space-1) 0 0 0;
+}
+
+.auth-prompt-cta {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    margin-top: var(--space-6);
+}
+
+.auth-buttons {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    margin: var(--space-4) 0;
+}
+
+.auth-note {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: var(--space-2) 0 0 0;
+}
