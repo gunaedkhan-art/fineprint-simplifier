@@ -37,8 +37,9 @@ except Exception as e:
     GOOD_PATTERNS = {}
 
 try:
-    from user_management import user_manager
-    print("✓ user_management imported successfully")
+    from user_management_db import UserManager
+    user_manager = UserManager()
+    print("✓ user_management (database-backed) imported successfully")
 except Exception as e:
     print(f"✗ user_management import failed: {e}")
     user_manager = None
@@ -110,6 +111,16 @@ async def lifespan(app):
     print("🚀 Application starting up...")
     try:
         print("✓ FastAPI app created successfully")
+        
+        # Initialize database
+        try:
+            from database import init_database
+            init_database()
+            print("✓ Database initialized successfully")
+        except Exception as e:
+            print(f"⚠ Database initialization warning: {e}")
+            # Continue startup even if database fails (fallback to file-based)
+        
     except Exception as e:
         print(f"✗ Startup error: {e}")
     yield
