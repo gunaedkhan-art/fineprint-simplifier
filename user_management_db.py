@@ -173,6 +173,14 @@ class UserManager:
         
         return False
     
+    def update_usage(self, user_id: str) -> bool:
+        """Update user usage (alias for record_document_upload)"""
+        return self.record_document_upload(user_id)
+    
+    def get_user_usage(self, user_id: str) -> Dict:
+        """Get user usage (alias for get_usage_summary)"""
+        return self.get_usage_summary(user_id)
+    
     def set_subscription(self, user_id: str, subscription_type: str):
         """Set user subscription type"""
         self.db.update_user(user_id, subscription=subscription_type)

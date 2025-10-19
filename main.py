@@ -41,8 +41,15 @@ try:
     user_manager = UserManager()
     print("✓ user_management (database-backed) imported successfully")
 except Exception as e:
-    print(f"✗ user_management import failed: {e}")
-    user_manager = None
+    print(f"⚠ Database-backed user_management failed: {e}")
+    try:
+        # Fallback to file-based user management
+        from user_management import user_manager as file_user_manager
+        user_manager = file_user_manager
+        print("✓ Fallback to file-based user_management successful")
+    except Exception as e2:
+        print(f"✗ Both user_management systems failed: {e2}")
+        user_manager = None
 
 try:
     from auth import auth_manager, get_current_user_optional
@@ -119,6 +126,7 @@ async def lifespan(app):
             print("✓ Database initialized successfully")
         except Exception as e:
             print(f"⚠ Database initialization warning: {e}")
+            print("ℹ️ App will continue with file-based storage as fallback")
             # Continue startup even if database fails (fallback to file-based)
         
     except Exception as e:
@@ -1645,10 +1653,10 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
         print(f"DEBUG: User found: {user is not None}")
         if user and user.get("email"):
             is_authenticated = True
-            user_usage = user_manager.get_user_usage(user_id)
+            user_usage = user_manager.get_usage_summary(user_id)
             print(f"DEBUG: User is authenticated: {is_authenticated}")
             # Check usage limits for authenticated users
-            if not user_manager.update_usage(user_id):
+            if not user_manager.can_upload_document(user_id):
                 return JSONResponse(
                     content={
                         "error": "Monthly limit reached", 
@@ -1785,6 +1793,10 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
         save_pending_patterns(pending)
 
         if is_authenticated:
+            # Record usage for authenticated users
+            if user_manager:
+                user_manager.record_document_upload(user_id)
+            
             # Authenticated user response - full analysis
             response_data = {
                 "success": True,
@@ -1868,7 +1880,7 @@ async def analyze_text(request: Request):
             if user and user.get("email"):
                 is_authenticated = True
                 # Check usage limits for authenticated users
-                if not user_manager.update_usage(user_id):
+                if not user_manager.can_upload_document(user_id):
                     return JSONResponse(
                         content={
                             "error": "Monthly limit reached", 
@@ -1900,6 +1912,10 @@ async def analyze_text(request: Request):
         
         save_pending_patterns(pending)
 
+        # Record usage for authenticated users
+        if user_manager:
+            user_manager.record_document_upload(user_id)
+        
         # Authenticated user response - full analysis
         response_data = {
             "success": True,
