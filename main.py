@@ -1622,17 +1622,17 @@ async def update_user_email(user_id: str, request: Request):
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
-    # For visitors, we don't check any existing user data - just allow the upload
-    # and create a fresh user record after successful analysis
-    is_visitor = True
+    # Check if user is authenticated (has email)
     user = None
+    user_usage = None
+    is_authenticated = False
     
-    # Only check existing user data if they have an email (logged in user)
     if user_manager:
         user = user_manager.get_user(user_id)
         if user and user.get("email"):
-            is_visitor = False
-            # Check usage limits for logged in users only
+            is_authenticated = True
+            user_usage = user_manager.get_user_usage(user_id)
+            # Check usage limits for authenticated users
             if not user_manager.update_usage(user_id):
                 return JSONResponse(
                     content={
@@ -1642,6 +1642,16 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     }, 
                     status_code=429
                 )
+    
+    if not is_authenticated:
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": "Authentication required",
+                "message": "Please create an account or log in to see your analysis results."
+            },
+            status_code=401
+        )
     
     # Validate file upload
     from error_handler import validate_file_upload, handle_upload_error, create_user_friendly_response
@@ -1769,22 +1779,7 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
 
         save_pending_patterns(pending)
 
-        # Check if user has email (authenticated)
-        is_authenticated = user_usage and user_usage.get("email")
-        
-        if not is_authenticated:
-            return JSONResponse(
-                content={
-                    "success": False,
-                    "error": "Authentication required",
-                    "message": "Please create an account or log in to see your analysis results."
-                },
-                status_code=401
-            )
-        
-        # Update usage for the authenticated user
-        if user_manager:
-            user_manager.update_usage(user_id)
+        # User is already authenticated and usage updated above
         
         # Authenticated user response - full analysis
         response_data = {
