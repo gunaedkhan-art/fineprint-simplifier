@@ -3825,28 +3825,7 @@ h1.logo {
     margin-bottom: var(--space-2);
 }
 
-.auth-prompt-stats {
-    display: flex;
-    justify-content: center;
-    gap: var(--space-8);
-    margin: var(--space-6) 0;
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-item h3 {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin: 0;
-}
-
-.stat-item p {
-    color: var(--text-secondary);
-    margin: var(--space-1) 0 0 0;
-}
+/* Stats section removed - no analysis details shown to visitors */
 
 .auth-prompt-cta {
     background: var(--background-color);

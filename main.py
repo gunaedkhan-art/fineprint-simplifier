@@ -1786,19 +1786,19 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             }
             print(f"DEBUG: Returning full analysis for authenticated user")
         else:
-            # Visitor response - store analysis and prompt for auth
+            # Visitor response - store analysis but don't show any details
             response_data = {
                 "success": True,
                 "filename": file.filename,
                 "requires_auth": True,
                 "message": "Please create an account or log in to see your analysis results.",
-                "analysis": analysis_result,  # Include full analysis for post-auth display
+                "analysis": analysis_result,  # Include full analysis for post-auth display (hidden from visitor)
                 "quality_assessment": quality_assessment,
                 "readable_pages": readable_pages,
                 "total_pages": total_pages,
                 "total_characters": total_characters
             }
-            print(f"DEBUG: Returning visitor response with stored analysis")
+            print(f"DEBUG: Returning visitor response with hidden analysis")
         
         return JSONResponse(content=response_data)
     

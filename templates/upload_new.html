@@ -416,36 +416,21 @@ function updateProgressStep(step) {
     }
 }
 
-// Visitor auth prompt function
+// Visitor auth prompt function - no analysis details shown
 function showAuthPrompt(data) {
     const resultsDiv = document.getElementById("results");
     if (!resultsDiv) return;
     
-    const riskCount = data.analysis?.risks ? Object.values(data.analysis.risks).flat().length : 0;
-    const goodPointCount = data.analysis?.good_points ? Object.values(data.analysis.good_points).flat().length : 0;
-    const totalPages = data.total_pages || 0;
-    
     resultsDiv.innerHTML = `
         <div class="visitor-auth-prompt">
             <div class="auth-prompt-header">
-                <h2>🔍 Analysis Complete!</h2>
-                <p>We found ${riskCount + goodPointCount} potential issues in your ${totalPages}-page document.</p>
-            </div>
-            
-            <div class="auth-prompt-stats">
-                <div class="stat-item">
-                    <h3>${riskCount}</h3>
-                    <p>Potential Risks</p>
-                </div>
-                <div class="stat-item">
-                    <h3>${goodPointCount}</h3>
-                    <p>Favorable Terms</p>
-                </div>
+                <h2>🔍 Document Analysis Complete!</h2>
+                <p>Your document has been analyzed successfully.</p>
             </div>
             
             <div class="auth-prompt-cta">
-                <h3>🔒 Unlock Full Analysis</h3>
-                <p>Create a free account to see detailed findings, page numbers, and risk levels.</p>
+                <h3>🔒 Sign In to View Results</h3>
+                <p>Create a free account or sign in to see your detailed analysis results, including potential risks, favorable terms, and specific recommendations.</p>
                 <div class="auth-buttons">
                     <button onclick="goToRegister()" class="btn-primary">Create Free Account</button>
                     <button onclick="goToLogin()" class="btn-secondary">Sign In</button>
