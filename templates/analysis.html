@@ -213,7 +213,7 @@
 
             <!-- Action Buttons -->
             <div class="analysis-actions">
-                <a href="/upload" class="btn-secondary">Analyze Another Document</a>
+                <a href="/upload" class="btn-secondary" onclick="this.href='/upload?user_id=' + new URLSearchParams(window.location.search).get('user_id')">Analyze Another Document</a>
                 <a href="/compare" class="btn-primary">Compare Documents</a>
             </div>
         </main>

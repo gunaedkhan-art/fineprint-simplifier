@@ -126,7 +126,7 @@ class EmailService:
                 </div>
                 
                 <p style="text-align: center;">
-                    <a href="{self.site_url}/upload" class="button">Start Analyzing Documents</a>
+                    <a href="{self.site_url}/upload" class="button" style="display: inline-block; background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">Start Analyzing Documents</a>
                 </p>
                 
                 <p>Need more? <a href="{self.site_url}/pricing">Upgrade to Pro</a> for unlimited analyses and advanced features.</p>
@@ -218,7 +218,7 @@ class EmailService:
                 <p>We received a request to reset your password for Small Print Checker. If you didn't make this request, you can safely ignore this email.</p>
                 
                 <p style="text-align: center;">
-                    <a href="{reset_url}" class="button">Reset My Password</a>
+                    <a href="{reset_url}" class="button" style="display: inline-block; background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">Reset My Password</a>
                 </p>
                 
                 <div class="warning">
@@ -323,7 +323,7 @@ class EmailService:
                 <p>You can now log in with your new password.</p>
                 
                 <p style="text-align: center;">
-                    <a href="{self.site_url}/login" class="button">Go to Login</a>
+                    <a href="{self.site_url}/login" class="button" style="display: inline-block; background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">Go to Login</a>
                 </p>
                 
                 <p style="margin-bottom: 0;">
@@ -418,7 +418,7 @@ class EmailService:
                 <p>Want unlimited analyses? Upgrade to Pro for just $9.99/month!</p>
                 
                 <p style="text-align: center;">
-                    <a href="{self.site_url}/pricing" class="button">Upgrade to Pro</a>
+                    <a href="{self.site_url}/pricing" class="button" style="display: inline-block; background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">Upgrade to Pro</a>
                 </p>
                 
                 <p style="margin-bottom: 0;">

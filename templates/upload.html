@@ -360,6 +360,15 @@
                 updateProgressText("Analyzing document content...");
                 
                 const res = await fetch("/analyze", { method: "POST", body: formData });
+                
+                // Check if response is ok before trying to parse JSON
+                if (!res.ok) {
+                    console.error("Server error:", res.status, res.statusText);
+                    const errorText = await res.text();
+                    console.error("Error response:", errorText);
+                    throw new Error(`Server error: ${res.status} ${res.statusText}`);
+                }
+                
                 const data = await res.json();
 
                 if (res.ok) {

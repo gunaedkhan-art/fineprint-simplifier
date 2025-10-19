@@ -1622,6 +1622,8 @@ async def update_user_email(user_id: str, request: Request):
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
+    print(f"DEBUG: Analyze called with user_id: {user_id}, file: {file.filename}")
+    
     # Check if user is authenticated (has email)
     user = None
     user_usage = None
@@ -1629,9 +1631,11 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
     
     if user_manager:
         user = user_manager.get_user(user_id)
+        print(f"DEBUG: User found: {user is not None}")
         if user and user.get("email"):
             is_authenticated = True
             user_usage = user_manager.get_user_usage(user_id)
+            print(f"DEBUG: User is authenticated: {is_authenticated}")
             # Check usage limits for authenticated users
             if not user_manager.update_usage(user_id):
                 return JSONResponse(
@@ -1805,6 +1809,10 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
     except Exception as e:
         # Handle processing errors with user-friendly messages
         from error_handler import handle_processing_error, create_user_friendly_response, log_error
+        
+        print(f"DEBUG: Exception in analyze function: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         
         # Log the error for debugging
         log_error(e, {"user_id": user_id, "file_type": file_type, "file_info": file_info})
