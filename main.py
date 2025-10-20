@@ -1651,28 +1651,44 @@ async def update_user_email(user_id: str, request: Request):
 async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
     print(f"DEBUG: Analyze called with user_id: {user_id}, file: {file.filename}")
     
-    # Check if user is authenticated (has email)
+    # Check user authentication and usage limits BEFORE processing
     user = None
-    user_usage = None
     is_authenticated = False
+    usage_status = None
     
     if user_manager:
         user = user_manager.get_user(user_id)
         print(f"DEBUG: User found: {user is not None}")
+        
         if user and user.get("email"):
+            # Authenticated user - check usage limits
             is_authenticated = True
-            user_usage = user_manager.get_usage_summary(user_id)
-            print(f"DEBUG: User is authenticated: {is_authenticated}")
-            # Check usage limits for authenticated users
+            usage_status = user_manager.get_usage_summary(user_id)
+            print(f"DEBUG: Authenticated user - usage: {usage_status}")
+            
+            # Check if user can upload (within limits)
             if not user_manager.can_upload_document(user_id):
                 return JSONResponse(
                     content={
-                        "error": "Monthly limit reached", 
+                        "success": False,
+                        "error": "Monthly limit reached",
                         "upgrade_required": True,
-                        "usage": user_manager.get_usage_summary(user_id)
+                        "usage": usage_status,
+                        "message": f"You've used {usage_status.get('documents_this_month', 0)}/{usage_status.get('monthly_limit', 3)} documents this month. Upgrade to continue analyzing documents."
                     }, 
                     status_code=429
                 )
+        else:
+            # Visitor user - no usage limits, but will need to register to see results
+            print(f"DEBUG: Visitor user - no usage limits")
+            usage_status = {
+                "subscription": "free",
+                "email": None,
+                "documents_this_month": 0,
+                "total_documents": 0,
+                "monthly_limit": 3,
+                "can_upload": True
+            }
     
     # Validate file upload
     from error_handler import validate_file_upload, handle_upload_error, create_user_friendly_response
@@ -1819,7 +1835,8 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                 "readable_pages": readable_pages,
                 "total_pages": total_pages,
                 "total_characters": total_characters,
-                "quality_issues": quality_issues
+                "quality_issues": quality_issues,
+                "usage": usage_status  # Include updated usage info
             }
             print(f"DEBUG: Returning full analysis for authenticated user")
         else:
@@ -1833,7 +1850,8 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                 "quality_assessment": quality_assessment,
                 "readable_pages": readable_pages,
                 "total_pages": total_pages,
-                "total_characters": total_characters
+                "total_characters": total_characters,
+                "usage": usage_status  # Include usage info for visitor
             }
             print(f"DEBUG: Returning visitor response with hidden analysis")
         

@@ -181,79 +181,15 @@
             document.getElementById("user-id-input").value = currentUserId;
             document.getElementById("text-user-id-input").value = currentUserId;
             
-            // Load user usage
-            await loadUserUsage();
+            // Simplified - no complex userUsage loading
+            // Usage will be checked server-side during upload
         }
 
-        async function loadUserUsage() {
-            try {
-                const response = await fetch(`/api/usage/${currentUserId}`);
-                userUsage = await response.json();
-                displayUsage();
-                displayUserStatus();
-            } catch (error) {
-                console.error('Error loading usage:', error);
-            }
-        }
+        // Removed loadUserUsage - usage will be checked server-side during upload
 
-        function displayUsage() {
-            if (!userUsage) return;
-            
-            // Only show usage for logged-in users (free or paid)
-            if (userUsage.email) {
-                document.getElementById("documents-this-month").textContent = userUsage.documents_this_month || 0;
-                document.getElementById("monthly-limit").textContent = userUsage.monthly_limit || 3;
-                document.getElementById("total-documents").textContent = userUsage.total_documents || 0;
-                
-                // Show usage display for logged-in users
-                document.getElementById("usage-display").style.display = "block";
-                
-                // Show upgrade prompt if limit reached
-                if (!userUsage.can_upload) {
-                    document.getElementById("upgrade-prompt").style.display = "block";
-                } else {
-                    document.getElementById("upgrade-prompt").style.display = "none";
-                }
-            } else {
-                // Hide usage display for visitors
-                document.getElementById("usage-display").style.display = "none";
-                document.getElementById("upgrade-prompt").style.display = "none";
-            }
-        }
+        // Removed displayUsage - usage will be shown in upload responses
 
-        function displayUserStatus() {
-            // Update navigation based on login status
-            const profileDropdown = document.getElementById("profileDropdown");
-            const authCTA = document.getElementById("authCTA");
-            
-            if (userUsage && userUsage.email) {
-                // User is logged in - show profile dropdown
-                profileDropdown.style.display = "block";
-                authCTA.style.display = "none";
-                
-                // Update profile info
-                document.getElementById("userPlan").textContent = userUsage.subscription === 'paid' ? 'Pro' : 'Free';
-                document.getElementById("userUsage").textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3}`;
-                
-                // Update username in profile avatar if available
-                const profileAvatar = document.getElementById("profileAvatar");
-                if (userUsage.username && profileAvatar) {
-                    profileAvatar.textContent = userUsage.username.charAt(0).toUpperCase();
-                }
-                
-                // Show subscription management link for paid users
-                const subscriptionLink = document.getElementById("subscriptionLink");
-                if (userUsage.subscription === 'paid') {
-                    subscriptionLink.style.display = "block";
-                } else {
-                    subscriptionLink.style.display = "none";
-                }
-            } else {
-                // User is not logged in - show sign in button
-                profileDropdown.style.display = "none";
-                authCTA.style.display = "block";
-            }
-        }
+        // Removed displayUserStatus - user status will be handled by upload responses
 
         // Input method toggle functions
         function switchToFile() {
@@ -339,11 +275,8 @@
                 return;
             }
             
-            // Check if user can upload (only for logged-in users)
-            if (userUsage && userUsage.email && !userUsage.can_upload) {
-                alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
-                return;
-            }
+            // Simplified - no frontend usage checking
+            // Usage will be checked server-side during upload
             
             // Show progress indicator
             showProcessingStatus();
@@ -385,23 +318,21 @@
                     setTimeout(() => {
                         hideProcessingStatus();
                     }, 500);
-                    // Handle visitor vs logged in user response
                     
-                    // Store results temporarily for logged in users
-                    window.tempAnalysisResults = data;
-                        
-                        // Check if user needs to provide email
-                        if (userUsage && userUsage.subscription !== 'paid' && !userUsage.email) {
-                            document.getElementById("emailModal").style.display = "block";
-                        } else {
-                            // Store results and redirect to analysis page for logged-in users
-                            localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
-                            window.location.href = `/analysis?user_id=${currentUserId}`;
-                        }
+                    // Handle different response types based on server response
+                    if (data.requires_auth) {
+                        // Visitor response - show email modal
+                        window.tempAnalysisResults = data;
+                        document.getElementById("emailModal").style.display = "block";
+                    } else {
+                        // Authenticated user response - redirect to analysis page
+                        localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
+                        window.location.href = `/analysis?user_id=${currentUserId}`;
                     }
                 } else {
+                    // Handle error responses
                     if (data.error === "Monthly limit reached") {
-                        alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
+                        alert(`You've used ${data.usage?.documents_this_month || 0}/${data.usage?.monthly_limit || 3} documents this month. Upgrade to continue analyzing documents.`);
                     } else {
                         alert("Error: " + (data.error || "Unknown error"));
                     }
@@ -428,11 +359,8 @@
                 return;
             }
             
-            // Check if user can upload (only for logged-in users)
-            if (userUsage && userUsage.email && !userUsage.can_upload) {
-                alert("You've reached your monthly limit. Please upgrade to Pro for unlimited uploads.");
-                return;
-            }
+            // Simplified - no frontend usage checking
+            // Usage will be checked server-side during upload
             
             // Show analyzing state
             document.getElementById("analyze-text-text").style.display = "none";
@@ -799,19 +727,12 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async function() {
             await initializeUser();
-            // Ensure userUsage is loaded before checking stored results
+            // Check for stored results (simplified - no complex timing)
             await checkForStoredResults();
         });
 
         async function checkForStoredResults() {
-            // Wait for userUsage to be loaded
-            let attempts = 0;
-            while (!userUsage && attempts < 10) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
-            
-            // Check if there are stored analysis results for this user
+            // Simplified - just check for stored results and display them
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
             const upgradeCancelled = urlParams.get('upgrade_cancelled');
@@ -834,40 +755,14 @@
                     try {
                         const results = JSON.parse(storedResults);
                         
-                        // Only show stored results if user is properly authenticated
-                        console.log('🔍 checkForStoredResults: userUsage =', userUsage);
-                        console.log('🔍 checkForStoredResults: userUsage.email =', userUsage?.email);
-                        if (userUsage && userUsage.email) {
-                            // Show success message first
-                            const resultsDiv = document.getElementById("results");
-                            if (resultsDiv) {
-                                const successMessage = document.createElement('div');
-                                successMessage.className = 'success-message';
-                                successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
-                                successMessage.innerHTML = '✅ Welcome! Here are your analysis results from your uploaded document.';
-                                resultsDiv.insertBefore(successMessage, resultsDiv.firstChild);
-                            }
-                            
-                            // For newly registered users, show the full analysis results (not visitor summary)
-                            if (results.analysis) {
-                                // Display full analysis for the newly registered user
-                                displayAnalysisResults(results.analysis);
-                                processAnalysisData(results);
-                            } else {
-                                // Fallback: show error message
-                                const errorDiv = document.createElement('div');
-                                errorDiv.className = 'error-message';
-                                errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
-                                errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
-                                resultsDiv.appendChild(errorDiv);
-                            }
-                            
-                            // Clear the stored results
-                            localStorage.removeItem(`temp_analysis_${userId}`);
-                        } else {
-                            // User is not properly authenticated, redirect to login
-                            window.location.href = '/login';
+                        // Show stored results (authentication will be handled by upload endpoint)
+                        if (results.analysis) {
+                            displayAnalysisResults(results.analysis);
+                            processAnalysisData(results);
                         }
+                        
+                        // Clear the stored results
+                        localStorage.removeItem(`temp_analysis_${userId}`);
                     } catch (error) {
                         console.error('Error parsing stored results:', error);
                     }
