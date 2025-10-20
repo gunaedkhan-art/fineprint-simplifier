@@ -799,12 +799,18 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async function() {
             await initializeUser();
-            // Wait a bit for userUsage to be properly set
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Ensure userUsage is loaded before checking stored results
             await checkForStoredResults();
         });
 
         async function checkForStoredResults() {
+            // Wait for userUsage to be loaded
+            let attempts = 0;
+            while (!userUsage && attempts < 10) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
             // Check if there are stored analysis results for this user
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
