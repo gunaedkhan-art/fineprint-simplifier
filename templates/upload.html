@@ -337,12 +337,11 @@
                     
                     // Handle different response types based on server response
                     if (data.requires_auth) {
-                        // Visitor flow: show confirmation and redirect to registration
-                        alert('✅ Document analyzed successfully! Please create an account to view your results.');
+                        // Visitor flow: show success message and account creation prompt in context
+                        showVisitorSuccessPrompt(data);
                         try {
                             localStorage.setItem('pending_visitor_analysis', JSON.stringify(data));
                         } catch (e) { console.warn('Could not store pending analysis', e); }
-                        window.location.href = `/register?user_id=${currentUserId}`;
                     } else {
                         // Authenticated user response - redirect to analysis page
                         localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
@@ -429,12 +428,11 @@
                 
                 // Handle successful response
                 if (data.requires_auth) {
-                    // Visitor flow: show confirmation and redirect to registration
-                    alert('✅ Text analyzed successfully! Please create an account to view your results.');
+                    // Visitor flow: show success message and account creation prompt in context
+                    showVisitorSuccessPrompt(data);
                     try {
                         localStorage.setItem('pending_visitor_analysis', JSON.stringify(data));
                     } catch (e) { console.warn('Could not store pending analysis', e); }
-                    window.location.href = `/register?user_id=${currentUserId}`;
                 } else {
                     // Authenticated user response - redirect to analysis page
                     localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
@@ -491,6 +489,39 @@
                             <button onclick="window.location.href='/register'" class="btn-primary">Create Free Account</button>
                             <button onclick="window.location.href='/login'" class="btn-secondary">Sign In</button>
                         </div>
+                        <p class="cta-note">Free accounts get 3 document analyses per month</p>
+                    </div>
+                </div>
+            `;
+            resultsDiv.style.display = "block";
+        }
+
+        function showVisitorSuccessPrompt(data) {
+            // Show success message and account creation prompt in context
+            const resultsDiv = document.getElementById("results");
+            if (!resultsDiv) return;
+            
+            resultsDiv.innerHTML = `
+                <div class="visitor-success-prompt">
+                    <div class="success-header">
+                        <h2>✅ Document Analyzed Successfully!</h2>
+                        <p>Your document has been processed and analyzed</p>
+                    </div>
+                    
+                    <div class="success-cta">
+                        <p>Create a free account to view your detailed analysis results, including:</p>
+                        <ul>
+                            <li>📊 Risk assessment and scoring</li>
+                            <li>⚠️ Potential issues and concerns</li>
+                            <li>✅ Positive clauses and benefits</li>
+                            <li>📝 Plain English summary</li>
+                        </ul>
+                        
+                        <div class="cta-buttons">
+                            <button onclick="window.location.href='/register?user_id=${currentUserId}'" class="btn-primary">Create Free Account</button>
+                            <button onclick="window.location.href='/login'" class="btn-secondary">Sign In</button>
+                        </div>
+                        
                         <p class="cta-note">Free accounts get 3 document analyses per month</p>
                     </div>
                 </div>
