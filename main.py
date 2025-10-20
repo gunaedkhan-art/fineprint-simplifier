@@ -1801,10 +1801,11 @@ async def update_user_email(user_id: str, request: Request):
 async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
     print(f"DEBUG: Analyze called with user_id: {user_id}, file: {file.filename}")
     
-    # Check user authentication and usage limits BEFORE processing
-    user = None
-    is_authenticated = False
-    usage_status = None
+    try:
+        # Check user authentication and usage limits BEFORE processing
+        user = None
+        is_authenticated = False
+        usage_status = None
     
     if user_manager:
         user = user_manager.get_user(user_id)
@@ -2057,6 +2058,20 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             os.unlink(temp_path)
         except:
             pass
+    
+    except Exception as e:
+        print(f"CRITICAL ERROR in analyze endpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": "Internal server error",
+                "message": "An unexpected error occurred. Please try again."
+            },
+            status_code=500
+        )
 
 
 @app.post("/analyze-text")
