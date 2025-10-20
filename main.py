@@ -287,7 +287,7 @@ async def upload_page(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("upload_new.html", {
+    return templates.TemplateResponse("upload.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
