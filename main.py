@@ -1798,7 +1798,7 @@ async def update_user_email(user_id: str, request: Request):
 
 
 @app.post("/analyze")
-async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
+async def analyze(request: Request, file: UploadFile = File(...), user_id: str = Form("user_id")):
     print(f"DEBUG: Analyze called with user_id: {user_id}, file: {file.filename}")
     
     # Check user authentication and usage limits BEFORE processing
