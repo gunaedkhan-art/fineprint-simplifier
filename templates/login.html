@@ -89,7 +89,17 @@
                         // Check usage before showing analysis
                         const usage = data.usage;
                         if (usage && usage.can_upload) {
-                            // User has usage available - record the upload and show analysis
+                            // Record usage for this login since they have pending analysis
+                            fetch('/api/record-usage', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${data.access_token}`
+                                },
+                                body: JSON.stringify({ user_id: data.user_id })
+                            }).catch(error => console.warn('Usage recording failed:', error));
+                            
+                            // User has usage available - show analysis
                             localStorage.setItem(`temp_analysis_${data.user_id}`, pendingAnalysis);
                             localStorage.removeItem('pending_visitor_analysis');
                             window.location.href = `/analysis?user_id=${data.user_id}`;
@@ -100,7 +110,7 @@
                             window.location.href = '/pricing';
                         }
                     } else {
-                        // Redirect to profile after successful login
+                        // Redirect to profile after successful login (no usage recorded)
                         window.location.href = '/profile';
                     }
                 } else {

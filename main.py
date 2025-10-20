@@ -763,11 +763,9 @@ async def register_user(request: Request):
             # Remove the anonymous user
             user_manager.delete_user(anonymous_user_id)
         
-        # Record usage for registration (if user came from visitor upload)
-        # This ensures they get 1/3 usage after creating account
-        if user_manager:
-            user_manager.record_document_upload(user_id)
-            print(f"📊 Recorded usage for new registration: {user_id}")
+        # Record usage for registration ONLY if there is pending visitor analysis
+        # This ensures they get 1/3 usage only if they uploaded as a visitor
+        # Direct registration without upload should start at 0/3 usage
         
         # Create access token
         access_token = auth_manager.create_access_token(
@@ -856,6 +854,41 @@ async def login_user(request: Request):
     except Exception as e:
         return JSONResponse(
             content={"error": f"Login failed: {str(e)}"},
+            status_code=500
+        )
+
+@app.post("/api/record-usage")
+async def record_usage(request: Request):
+    """Record usage for a user (called when showing pending analysis)"""
+    try:
+        # Get current user
+        current_user = await get_current_user_optional(request)
+        if not current_user:
+            return JSONResponse(
+                content={"error": "Authentication required"},
+                status_code=401
+            )
+        
+        user_id = current_user.get("user_id")
+        if user_manager:
+            success = user_manager.record_document_upload(user_id)
+            if success:
+                print(f"📊 Recorded usage for user: {user_id}")
+                return JSONResponse(content={"success": True})
+            else:
+                return JSONResponse(
+                    content={"error": "Failed to record usage"},
+                    status_code=500
+                )
+        else:
+            return JSONResponse(
+                content={"error": "User management not available"},
+                status_code=500
+            )
+            
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Usage recording failed: {str(e)}"},
             status_code=500
         )
 

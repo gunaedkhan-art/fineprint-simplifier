@@ -134,6 +134,16 @@
                     // Check if there are pending visitor analysis results
                     const pendingAnalysis = localStorage.getItem('pending_visitor_analysis');
                     if (pendingAnalysis) {
+                        // Record usage for this registration since they uploaded as visitor
+                        fetch('/api/record-usage', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${data.access_token}`
+                            },
+                            body: JSON.stringify({ user_id: data.user_id })
+                        }).catch(error => console.warn('Usage recording failed:', error));
+                        
                         // Store the analysis with the new user ID
                         localStorage.setItem(`temp_analysis_${data.user_id}`, pendingAnalysis);
                         // Clear the pending analysis
@@ -141,7 +151,7 @@
                         // Redirect to analysis page to show stored results
                         window.location.href = `/analysis?user_id=${data.user_id}`;
                     } else {
-                        // Redirect to profile after successful registration
+                        // Redirect to profile after successful registration (no usage recorded)
                         window.location.href = '/profile';
                     }
                 } else {
