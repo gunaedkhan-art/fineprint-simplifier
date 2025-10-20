@@ -56,6 +56,8 @@ def get_visitor_uploads_today(request: Request) -> int:
         
     except Exception as e:
         print(f"Error loading visitor upload data: {e}")
+        import traceback
+        traceback.print_exc()
         return 0
 
 def record_visitor_upload(request: Request):
@@ -86,6 +88,8 @@ def record_visitor_upload(request: Request):
         
     except Exception as e:
         print(f"Error recording visitor upload: {e}")
+        import traceback
+        traceback.print_exc()
 
 def cleanup_old_visitor_data():
     """Clean up visitor data older than 30 days"""
@@ -118,6 +122,8 @@ def cleanup_old_visitor_data():
         
     except Exception as e:
         print(f"Error cleaning up visitor data: {e}")
+        import traceback
+        traceback.print_exc()
 
 try:
     from dotenv import load_dotenv
