@@ -157,20 +157,24 @@
 
         // Initialize user management
         async function initializeUser() {
-            // Get user ID from URL parameters or localStorage
+            // Get user ID from localStorage first (updated during registration), then URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const urlUserId = urlParams.get('user_id');
+            const storedUserId = localStorage.getItem('fineprint_user_id');
             
-            if (urlUserId) {
+            // Prioritize stored user ID (from registration) over URL parameter (visitor ID)
+            if (storedUserId) {
+                currentUserId = storedUserId;
+                console.log('🔍 Using stored user_id:', currentUserId);
+            } else if (urlUserId) {
                 currentUserId = urlUserId;
                 localStorage.setItem('fineprint_user_id', currentUserId);
+                console.log('🔍 Using URL user_id:', currentUserId);
             } else {
-                currentUserId = localStorage.getItem('fineprint_user_id');
-                if (!currentUserId) {
-                    // Generate a new user ID for visitors
-                    currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('fineprint_user_id', currentUserId);
-                }
+                // Generate a new user ID for visitors
+                currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('fineprint_user_id', currentUserId);
+                console.log('🔍 Generated new user_id:', currentUserId);
             }
             
             // Set user ID in hidden inputs
