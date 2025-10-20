@@ -321,9 +321,11 @@
                     
                     // Handle different response types based on server response
                     if (data.requires_auth) {
-                        // Visitor response - show email modal
-                        window.tempAnalysisResults = data;
-                        document.getElementById("emailModal").style.display = "block";
+                        // Visitor flow: stash analysis and redirect to registration
+                        try {
+                            localStorage.setItem('pending_visitor_analysis', JSON.stringify(data));
+                        } catch (e) { console.warn('Could not store pending analysis', e); }
+                        window.location.href = `/register?user_id=${currentUserId}`;
                     } else {
                         // Authenticated user response - redirect to analysis page
                         localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
