@@ -301,9 +301,25 @@
                 // Check if response is ok before trying to parse JSON
                 if (!res.ok) {
                     console.error("Server error:", res.status, res.statusText);
-                    const errorText = await res.text();
-                    console.error("Error response:", errorText);
-                    throw new Error(`Server error: ${res.status} ${res.statusText}`);
+                    let errorMessage = `Server error: ${res.status}`;
+                    
+                    try {
+                        const errorData = await res.json();
+                        console.error("Error response:", errorData);
+                        
+                        // Show user-friendly error message if available
+                        if (errorData.message) {
+                            errorMessage = errorData.message;
+                        } else if (errorData.error) {
+                            errorMessage = errorData.error;
+                        }
+                    } catch (parseError) {
+                        console.error("Could not parse error response as JSON");
+                        const errorText = await res.text();
+                        console.error("Error response:", errorText);
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
                 
                 const data = await res.json();
@@ -382,10 +398,49 @@
                     })
                 });
                 
-                // This duplicate block has been removed - the logic is handled above
+                // Check if response is ok before trying to parse JSON
+                if (!response.ok) {
+                    console.error("Server error:", response.status, response.statusText);
+                    let errorMessage = `Server error: ${response.status}`;
+                    
+                    try {
+                        const errorData = await response.json();
+                        console.error("Error response:", errorData);
+                        
+                        // Show user-friendly error message if available
+                        if (errorData.message) {
+                            errorMessage = errorData.message;
+                        } else if (errorData.error) {
+                            errorMessage = errorData.error;
+                        }
+                    } catch (parseError) {
+                        console.error("Could not parse error response as JSON");
+                        const errorText = await response.text();
+                        console.error("Error response:", errorText);
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
+                const data = await response.json();
+                
+                // Handle successful response
+                if (data.requires_auth) {
+                    // Visitor flow: show confirmation and redirect to registration
+                    alert('✅ Text analyzed successfully! Please create an account to view your results.');
+                    try {
+                        localStorage.setItem('pending_visitor_analysis', JSON.stringify(data));
+                    } catch (e) { console.warn('Could not store pending analysis', e); }
+                    window.location.href = `/register?user_id=${currentUserId}`;
+                } else {
+                    // Authenticated user response - redirect to analysis page
+                    localStorage.setItem(`temp_analysis_${currentUserId}`, JSON.stringify(data));
+                    window.location.href = `/analysis?user_id=${currentUserId}`;
+                }
+                
             } catch (error) {
                 console.error("Error:", error);
-                alert("Error analyzing text. Please try again.");
+                alert(error.message || "Error analyzing text. Please try again.");
             } finally {
                 // Reset button state
                 document.getElementById("analyze-text-text").style.display = "inline";
