@@ -655,9 +655,13 @@ async def get_usage(user_id: str):
     """Get user usage information"""
     if user_manager:
         user = user_manager.get_user(user_id)
+        print(f"🔍 USAGE DEBUG: user_id={user_id}, user_found={user is not None}")
+        if user:
+            print(f"🔍 USAGE DEBUG: user_email={user.get('email')}, has_email={bool(user.get('email'))}")
         
         # If user doesn't exist or has no email, they're a visitor
         if not user or not user.get("email"):
+            print(f"🔍 USAGE DEBUG: Returning visitor data (no email)")
             # Visitors can always upload (no limits)
             return {
                 "subscription": "free",
@@ -668,6 +672,7 @@ async def get_usage(user_id: str):
                 "can_upload": True  # Visitors can always upload
             }
         
+        print(f"🔍 USAGE DEBUG: Returning authenticated user data")
         # For logged-in users, get normal usage summary
         return user_manager.get_usage_summary(user_id)
     else:
@@ -730,30 +735,33 @@ async def register_user(request: Request):
             )
         
         print(f"✅ REGISTRATION SUCCESS: user_id={user_id}, email={email}, username={username}")
-        print(f"✅ User data saved to manager: {user_id in user_manager.users}")
-        print(f"✅ Email in saved data: {user_manager.users[user_id].get('email') if user_id in user_manager.users else 'NOT FOUND'}")
+        
+        # Verify user was created successfully
+        created_user = user_manager.get_user(user_id)
+        if created_user:
+            print(f"✅ User verification successful: email={created_user.get('email')}")
+        else:
+            print(f"❌ User verification failed: user not found after creation")
         
         # If there's an anonymous user ID, merge the data
-        if anonymous_user_id and anonymous_user_id in user_manager.users:
-            anonymous_user = user_manager.users[anonymous_user_id]
-            
-            # Merge usage data from anonymous user
-            if "usage" in anonymous_user:
-                user_data["usage"] = anonymous_user["usage"]
-            
-            # Merge any other relevant data
-            if "documents_analyzed" in anonymous_user:
-                user_data["documents_analyzed"] = anonymous_user["documents_analyzed"]
-            
-            # Update the user data in the users dictionary
-            user_manager.users[user_id] = user_data
-            
-            # Save the updated user data
-            user_manager._save_users()
+        if anonymous_user_id:
+            anonymous_user = user_manager.get_user(anonymous_user_id)
+            if anonymous_user:
+                print(f"🔄 Merging anonymous user data from {anonymous_user_id}")
+                
+                # Merge usage data from anonymous user
+                if "usage" in anonymous_user:
+                    user_data["usage"] = anonymous_user["usage"]
+                
+                # Merge any other relevant data
+                if "documents_analyzed" in anonymous_user:
+                    user_data["documents_analyzed"] = anonymous_user["documents_analyzed"]
+                
+                # Update the user data in the database
+                user_manager.db.update_user(user_id, **user_data)
             
             # Remove the anonymous user
-            del user_manager.users[anonymous_user_id]
-            user_manager._save_users()
+            user_manager.delete_user(anonymous_user_id)
         
         # Create access token
         access_token = auth_manager.create_access_token(
