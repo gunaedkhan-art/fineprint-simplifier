@@ -1858,7 +1858,7 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                 "monthly_limit": 3,
                 "can_upload": True,
                 "visitor_uploads_today": visitor_uploads_today,
-                "visitor_daily_limit": visitor_daily_limit
+                "visitor_daily_limit": 2
             }
     
     # Validate file upload
