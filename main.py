@@ -1700,6 +1700,8 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
         user = user_manager.get_user(user_id)
         print(f"DEBUG: User found: {user is not None}")
         
+        # CRITICAL: Only check usage limits for users with email addresses (authenticated users)
+        # Visitors (users without email) should have unlimited uploads but must register to see results
         if user and user.get("email"):
             # Authenticated user - check usage limits
             is_authenticated = True
@@ -1719,8 +1721,9 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     status_code=429
                 )
         else:
-            # Visitor user - no usage limits, but will need to register to see results
-            print(f"DEBUG: Visitor user - no usage limits")
+            # Visitor user (no email) - no usage limits, but will need to register to see results
+            # This includes both: users who don't exist in DB AND users who exist but have no email
+            print(f"DEBUG: Visitor user - no usage limits (user_exists={user is not None}, has_email={user.get('email') if user else None})")
             usage_status = {
                 "subscription": "free",
                 "email": None,
