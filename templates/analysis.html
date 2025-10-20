@@ -135,108 +135,123 @@ function displayAnalysisResults(analysis) {
         const qualityColor = qualityColors[analysis.quality_assessment] || '#6c757d';
         
         html += `
-            <div class="quality-assessment" style="background: ${qualityColor}15; border-left: 4px solid ${qualityColor}; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
-                <h3 style="margin: 0 0 8px 0; color: ${qualityColor};">📊 Document Quality: ${analysis.quality_assessment.charAt(0).toUpperCase() + analysis.quality_assessment.slice(1)}</h3>
-                <p style="margin: 0; color: var(--text-secondary);">${analysis.total_pages || 0} pages • ${analysis.total_characters || 0} characters • ${analysis.readable_pages || 0} readable pages</p>
+            <div class="quality-assessment">
+                <h3 class="quality-title">📊 Document Quality: ${analysis.quality_assessment.charAt(0).toUpperCase() + analysis.quality_assessment.slice(1)}</h3>
+                <p class="quality-details">${analysis.total_pages || 0} pages • ${analysis.total_characters || 0} characters • ${analysis.readable_pages || 0} readable pages</p>
             </div>
         `;
     }
 
-    // Good Points Section
+    // Main findings container with two columns
     const goodPoints = analysis.good_points || {};
     const risks = analysis.risks || {};
-
-    if (Object.keys(goodPoints).length > 0) {
+    
+    if (Object.keys(risks).length > 0 || Object.keys(goodPoints).length > 0) {
         html += `
-            <div class="findings-section good-points">
-                <h3>✅ Favorable Terms Found</h3>
-                <div class="findings-grid">
+            <div class="findings-container">
+                <div class="findings-column risks-column">
+                    <div class="findings-header risks-header">
+                        <h2>⚠️ Potential Risks</h2>
+                        <p>Issues that may require attention</p>
+                    </div>
+                    <div class="findings-content">
         `;
         
-        for (const [category, matches] of Object.entries(goodPoints)) {
-            if (matches && matches.length > 0) {
-                html += `
-                    <div class="finding-category">
-                        <h4>${formatCategoryName(category)}</h4>
-                        <div class="finding-items">
-                `;
-                
-                matches.forEach(item => {
-                    const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
-                    const pageNum = item.page || 'N/A';
-                    const score = item.score || 3;
-                    const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
+        // Risks Section
+        if (Object.keys(risks).length > 0) {
+            for (const [category, matches] of Object.entries(risks)) {
+                if (matches && matches.length > 0) {
                     html += `
-                        <div class="finding-item good">
-                            <div class="finding-text">${matchText}</div>
-                            <div class="finding-meta">
-                                <span>Page ${pageNum}</span>
-                                <span class="severity-score ${scoreClass}">Severity: ${score}/5</span>
+                        <div class="finding-category-card risk-category">
+                            <h3 class="category-title">${formatCategoryName(category)}</h3>
+                            <div class="finding-items">
+                    `;
+                    
+                    matches.forEach(item => {
+                        const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                        const pageNum = item.page || 'N/A';
+                        const score = item.score || 3;
+                        const scoreClass = getRiskScoreClass(score);
+                        html += `
+                            <div class="finding-item risk-item">
+                                <div class="finding-text">${matchText}</div>
+                                <div class="finding-page">Page ${pageNum}</div>
+                                <div class="finding-score ${scoreClass}">Risk Score: ${score}/5</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
                             </div>
                         </div>
                     `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
+                }
             }
+        } else {
+            html += `
+                <div class="no-findings-message">
+                    <p>✅ No potential risks detected in this document.</p>
+                </div>
+            `;
         }
         
         html += `
+                    </div>
                 </div>
-            </div>
-        `;
-    }
-
-    // Risks Section
-    if (Object.keys(risks).length > 0) {
-        html += `
-            <div class="findings-section risks">
-                <h3>⚠️ Potential Risks Found</h3>
-                <div class="findings-grid">
+                
+                <div class="findings-column benefits-column">
+                    <div class="findings-header benefits-header">
+                        <h2>✅ Benefits Found</h2>
+                        <p>Favorable terms and protections</p>
+                    </div>
+                    <div class="findings-content">
         `;
         
-        for (const [category, matches] of Object.entries(risks)) {
-            if (matches && matches.length > 0) {
-                html += `
-                    <div class="finding-category">
-                        <h4>${formatCategoryName(category)}</h4>
-                        <div class="finding-items">
-                `;
-                
-                matches.forEach(item => {
-                    const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
-                    const pageNum = item.page || 'N/A';
-                    const score = item.score || 3;
-                    const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
+        // Benefits Section
+        if (Object.keys(goodPoints).length > 0) {
+            for (const [category, matches] of Object.entries(goodPoints)) {
+                if (matches && matches.length > 0) {
                     html += `
-                        <div class="finding-item risk">
-                            <div class="finding-text">${matchText}</div>
-                            <div class="finding-meta">
-                                <span>Page ${pageNum}</span>
-                                <span class="severity-score ${scoreClass}">Risk Level: ${score}/5</span>
+                        <div class="finding-category-card benefit-category">
+                            <h3 class="category-title">${formatCategoryName(category)}</h3>
+                            <div class="finding-items">
+                    `;
+                    
+                    matches.forEach(item => {
+                        const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                        const pageNum = item.page || 'N/A';
+                        const score = item.score || 3;
+                        const scoreClass = getBenefitScoreClass(score);
+                        html += `
+                            <div class="finding-item benefit-item">
+                                <div class="finding-text">${matchText}</div>
+                                <div class="finding-page">Page ${pageNum}</div>
+                                <div class="finding-score ${scoreClass}">Benefit Score: ${score}/5</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
                             </div>
                         </div>
                     `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
+                }
             }
+        } else {
+            html += `
+                <div class="no-findings-message">
+                    <p>No specific benefits detected in this document.</p>
+                </div>
+            `;
         }
         
         html += `
+                    </div>
                 </div>
             </div>
         `;
-    }
-
-    // No Findings Message
-    if (Object.keys(risks).length === 0 && Object.keys(goodPoints).length === 0) {
+    } else {
+        // No Findings Message
         html += `
             <div class="no-findings">
                 <h3>🔍 No Specific Findings</h3>
@@ -252,6 +267,22 @@ function displayAnalysisResults(analysis) {
 
     html += '</div>';
     resultsDiv.innerHTML = html;
+}
+
+// Helper function to get risk score class
+function getRiskScoreClass(score) {
+    if (score >= 4) return 'score-critical';
+    if (score >= 3) return 'score-high';
+    if (score >= 2) return 'score-medium';
+    return 'score-low';
+}
+
+// Helper function to get benefit score class
+function getBenefitScoreClass(score) {
+    if (score >= 4) return 'score-excellent';
+    if (score >= 3) return 'score-good';
+    if (score >= 2) return 'score-fair';
+    return 'score-minimal';
 }
 
 function processAnalysisData(data) {
