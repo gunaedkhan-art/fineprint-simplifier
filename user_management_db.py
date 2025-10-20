@@ -141,24 +141,32 @@ class UserManager:
     
     def record_document_upload(self, user_id: str) -> bool:
         """Record a document upload for usage tracking"""
+        print(f"📊 record_document_upload called for user: {user_id}")
         user = self.get_user(user_id)
         if not user:
+            print(f"📊 User not found: {user_id}")
             return False
         
         usage = user.get("usage", {})
         current_month = datetime.now().strftime("%Y-%m")
+        print(f"📊 Current usage before update: {usage}")
         
         # Reset monthly usage if it's a new month
         if usage.get("current_month") != current_month:
             usage["current_month"] = current_month
             usage["documents_this_month"] = 0
+            print(f"📊 Reset monthly usage for new month: {current_month}")
         
         # Update usage
-        usage["documents_this_month"] = usage.get("documents_this_month", 0) + 1
+        old_count = usage.get("documents_this_month", 0)
+        usage["documents_this_month"] = old_count + 1
         usage["total_documents"] = usage.get("total_documents", 0) + 1
         usage["last_upload"] = datetime.now().isoformat()
         
-        return self.db.update_usage(user_id, usage)
+        print(f"📊 Updated usage: {usage}")
+        result = self.db.update_usage(user_id, usage)
+        print(f"📊 Database update result: {result}")
+        return result
     
     def can_use_feature(self, user_id: str, feature: str) -> bool:
         """Check if user can use a specific feature"""

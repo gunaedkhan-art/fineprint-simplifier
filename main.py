@@ -1803,7 +1803,9 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
         if is_authenticated:
             # Record usage for authenticated users
             if user_manager:
-                user_manager.record_document_upload(user_id)
+                print(f"📊 Recording document upload for user: {user_id}")
+                success = user_manager.record_document_upload(user_id)
+                print(f"📊 Usage recording result: {success}")
             
             # Authenticated user response - full analysis
             response_data = {
