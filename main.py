@@ -763,6 +763,12 @@ async def register_user(request: Request):
             # Remove the anonymous user
             user_manager.delete_user(anonymous_user_id)
         
+        # Record usage for registration (if user came from visitor upload)
+        # This ensures they get 1/3 usage after creating account
+        if user_manager:
+            user_manager.record_document_upload(user_id)
+            print(f"📊 Recorded usage for new registration: {user_id}")
+        
         # Create access token
         access_token = auth_manager.create_access_token(
             data={"sub": user_id, "email": email}
@@ -843,7 +849,8 @@ async def login_user(request: Request):
             "success": True,
             "access_token": access_token,
             "token_type": "bearer",
-            "user_id": user["user_id"]
+            "user_id": user["user_id"],
+            "usage": user_manager.get_usage_summary(user["user_id"]) if user_manager else None
         })
         
     except Exception as e:

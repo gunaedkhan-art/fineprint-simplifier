@@ -321,7 +321,8 @@
                     
                     // Handle different response types based on server response
                     if (data.requires_auth) {
-                        // Visitor flow: stash analysis and redirect to registration
+                        // Visitor flow: show confirmation and redirect to registration
+                        alert('✅ Document analyzed successfully! Please create an account to view your results.');
                         try {
                             localStorage.setItem('pending_visitor_analysis', JSON.stringify(data));
                         } catch (e) { console.warn('Could not store pending analysis', e); }
