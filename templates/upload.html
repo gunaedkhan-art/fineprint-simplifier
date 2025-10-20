@@ -795,6 +795,8 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async function() {
             await initializeUser();
+            // Wait a bit for userUsage to be properly set
+            await new Promise(resolve => setTimeout(resolve, 100));
             await checkForStoredResults();
         });
 
@@ -823,6 +825,8 @@
                         const results = JSON.parse(storedResults);
                         
                         // Only show stored results if user is properly authenticated
+                        console.log('🔍 checkForStoredResults: userUsage =', userUsage);
+                        console.log('🔍 checkForStoredResults: userUsage.email =', userUsage?.email);
                         if (userUsage && userUsage.email) {
                             // Show success message first
                             const resultsDiv = document.getElementById("results");
