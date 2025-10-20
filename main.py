@@ -13,11 +13,112 @@ from analyzer import analyze_pdf, analyze_text_content
 import os
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
+import pickle
 from collections import defaultdict
 
 # Load environment variables from .env file if it exists
+
+# Visitor tracking for fair use limits
+VISITOR_UPLOADS_FILE = "visitor_uploads.pkl"
+
+def get_visitor_ip(request: Request) -> str:
+    """Get visitor IP address"""
+    # Try to get real IP from headers (for proxies)
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip
+    
+    # Fallback to client host
+    return request.client.host if request.client else "unknown"
+
+def get_visitor_uploads_today(request: Request) -> int:
+    """Get number of uploads by this visitor today"""
+    visitor_ip = get_visitor_ip(request)
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    try:
+        # Load existing visitor data
+        if os.path.exists(VISITOR_UPLOADS_FILE):
+            with open(VISITOR_UPLOADS_FILE, 'rb') as f:
+                visitor_data = pickle.load(f)
+        else:
+            visitor_data = {}
+        
+        # Get uploads for this IP today
+        ip_data = visitor_data.get(visitor_ip, {})
+        return ip_data.get(today, 0)
+        
+    except Exception as e:
+        print(f"Error loading visitor upload data: {e}")
+        return 0
+
+def record_visitor_upload(request: Request):
+    """Record a visitor upload for fair use tracking"""
+    visitor_ip = get_visitor_ip(request)
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    try:
+        # Load existing visitor data
+        if os.path.exists(VISITOR_UPLOADS_FILE):
+            with open(VISITOR_UPLOADS_FILE, 'rb') as f:
+                visitor_data = pickle.load(f)
+        else:
+            visitor_data = {}
+        
+        # Initialize IP data if needed
+        if visitor_ip not in visitor_data:
+            visitor_data[visitor_ip] = {}
+        
+        # Increment upload count for today
+        visitor_data[visitor_ip][today] = visitor_data[visitor_ip].get(today, 0) + 1
+        
+        # Save updated data
+        with open(VISITOR_UPLOADS_FILE, 'wb') as f:
+            pickle.dump(visitor_data, f)
+        
+        print(f"📊 Recorded visitor upload: {visitor_ip} - {visitor_data[visitor_ip][today]} uploads today")
+        
+    except Exception as e:
+        print(f"Error recording visitor upload: {e}")
+
+def cleanup_old_visitor_data():
+    """Clean up visitor data older than 30 days"""
+    try:
+        if not os.path.exists(VISITOR_UPLOADS_FILE):
+            return
+        
+        with open(VISITOR_UPLOADS_FILE, 'rb') as f:
+            visitor_data = pickle.load(f)
+        
+        cutoff_date = datetime.now() - timedelta(days=30)
+        cutoff_str = cutoff_date.strftime("%Y-%m-%d")
+        
+        # Clean up old data
+        for ip in list(visitor_data.keys()):
+            ip_data = visitor_data[ip]
+            for date_str in list(ip_data.keys()):
+                if date_str < cutoff_str:
+                    del ip_data[date_str]
+            
+            # Remove IP if no data left
+            if not ip_data:
+                del visitor_data[ip]
+        
+        # Save cleaned data
+        with open(VISITOR_UPLOADS_FILE, 'wb') as f:
+            pickle.dump(visitor_data, f)
+        
+        print(f"🧹 Cleaned up visitor data older than {cutoff_str}")
+        
+    except Exception as e:
+        print(f"Error cleaning up visitor data: {e}")
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -128,6 +229,9 @@ async def lifespan(app):
             print(f"⚠ Database initialization warning: {e}")
             print("ℹ️ App will continue with file-based storage as fallback")
             # Continue startup even if database fails (fallback to file-based)
+        
+        # Clean up old visitor data
+        cleanup_old_visitor_data()
         
     except Exception as e:
         print(f"✗ Startup error: {e}")
@@ -1721,16 +1825,36 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
                     status_code=429
                 )
         else:
-            # Visitor user (no email) - no usage limits, but will need to register to see results
+            # Visitor user (no email) - check daily fair use limits
             # This includes both: users who don't exist in DB AND users who exist but have no email
-            print(f"DEBUG: Visitor user - no usage limits (user_exists={user is not None}, has_email={user.get('email') if user else None})")
+            print(f"DEBUG: Visitor user - checking daily limits (user_exists={user is not None}, has_email={user.get('email') if user else None})")
+            
+            # Check visitor daily limits (fair use policy)
+            visitor_daily_limit = 3
+            visitor_uploads_today = get_visitor_uploads_today(request)
+            
+            if visitor_uploads_today >= visitor_daily_limit:
+                return JSONResponse(
+                    content={
+                        "success": False,
+                        "error": "Daily upload limit reached",
+                        "fair_use_limit": True,
+                        "visitor_uploads_today": visitor_uploads_today,
+                        "daily_limit": visitor_daily_limit,
+                        "message": f"You've uploaded {visitor_uploads_today}/{visitor_daily_limit} documents today as a visitor. Please create an account for unlimited uploads or try again tomorrow."
+                    }, 
+                    status_code=429
+                )
+            
             usage_status = {
-                "subscription": "free",
+                "subscription": "visitor",
                 "email": None,
                 "documents_this_month": 0,
                 "total_documents": 0,
                 "monthly_limit": 3,
-                "can_upload": True
+                "can_upload": True,
+                "visitor_uploads_today": visitor_uploads_today,
+                "visitor_daily_limit": visitor_daily_limit
             }
     
     # Validate file upload
@@ -1883,6 +2007,9 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             }
             print(f"DEBUG: Returning full analysis for authenticated user")
         else:
+            # Record visitor upload for fair use tracking
+            record_visitor_upload(request)
+            
             # Visitor response - store analysis but don't show any details
             response_data = {
                 "success": True,
@@ -1962,14 +2089,22 @@ async def analyze_text(request: Request):
                     )
         
         if not is_authenticated:
-            return JSONResponse(
-                content={
-                    "success": False,
-                    "error": "Authentication required",
-                    "message": "Please create an account or log in to see your analysis results."
-                },
-                status_code=401
-            )
+            # Check visitor daily limits for text analysis too
+            visitor_daily_limit = 3
+            visitor_uploads_today = get_visitor_uploads_today(request)
+            
+            if visitor_uploads_today >= visitor_daily_limit:
+                return JSONResponse(
+                    content={
+                        "success": False,
+                        "error": "Daily upload limit reached",
+                        "fair_use_limit": True,
+                        "visitor_uploads_today": visitor_uploads_today,
+                        "daily_limit": visitor_daily_limit,
+                        "message": f"You've uploaded {visitor_uploads_today}/{visitor_daily_limit} documents today as a visitor. Please create an account for unlimited uploads or try again tomorrow."
+                    }, 
+                    status_code=429
+                )
         
         # Load patterns
         patterns = load_custom_patterns()
@@ -1983,17 +2118,31 @@ async def analyze_text(request: Request):
         
         save_pending_patterns(pending)
 
-        # Record usage for authenticated users
-        if user_manager:
-            user_manager.record_document_upload(user_id)
-        
-        # Authenticated user response - full analysis
-        response_data = {
-            "success": True,
-            "filename": "Text Input",
-            "analysis": analysis_result,
-            "analysis_type": "text"
-        }
+        if is_authenticated:
+            # Record usage for authenticated users
+            if user_manager:
+                user_manager.record_document_upload(user_id)
+            
+            # Authenticated user response - full analysis
+            response_data = {
+                "success": True,
+                "filename": "Text Input",
+                "analysis": analysis_result,
+                "analysis_type": "text"
+            }
+        else:
+            # Record visitor upload for fair use tracking
+            record_visitor_upload(request)
+            
+            # Visitor response - requires authentication
+            response_data = {
+                "success": True,
+                "filename": "Text Input",
+                "requires_auth": True,
+                "message": "Please create an account or log in to see your analysis results.",
+                "analysis": analysis_result,  # Include full analysis for post-auth display (hidden from visitor)
+                "analysis_type": "text"
+            }
         
         print(f"DEBUG: Returning analysis for authenticated user")
         
