@@ -661,7 +661,7 @@ div.status-line {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: white !important;
     font-weight: 600;
     font-size: 16px;
     text-decoration: none;
@@ -676,6 +676,10 @@ div.status-line {
     border-color: var(--primary-color);
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.profile-avatar * {
+    color: white !important;
 }
 
 /* Profile section with avatar and text */
@@ -975,7 +979,7 @@ h1.logo {
     width: 32px;
     height: 32px;
     background: var(--primary-color);
-    color: white;
+    color: white !important;
     border-radius: 50%;
     text-decoration: none;
     font-weight: 600;
@@ -985,6 +989,10 @@ h1.logo {
 
 .mobile-profile-avatar:hover {
     background: var(--primary-dark);
+}
+
+.mobile-profile-avatar * {
+    color: white !important;
 }
 
 .mobile-profile-dropdown-content {
