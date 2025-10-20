@@ -352,6 +352,9 @@
                     // Handle error responses
                     if (data.error === "Monthly limit reached") {
                         alert(`You've used ${data.usage?.documents_this_month || 0}/${data.usage?.monthly_limit || 3} documents this month. Upgrade to continue analyzing documents.`);
+                    } else if (data.requires_account) {
+                        // Show account creation prompt instead of generic error
+                        showAccountRequiredPrompt();
                     } else {
                         alert("Error: " + (data.error || "Unknown error"));
                     }
@@ -440,7 +443,11 @@
                 
             } catch (error) {
                 console.error("Error:", error);
-                alert(error.message || "Error analyzing text. Please try again.");
+                if (error.message && error.message.includes("Account required")) {
+                    showAccountRequiredPrompt();
+                } else {
+                    alert(error.message || "Error analyzing text. Please try again.");
+                }
             } finally {
                 // Reset button state
                 document.getElementById("analyze-text-text").style.display = "inline";
@@ -464,6 +471,31 @@
         // Email modal functions
         function closeEmailModal() {
             document.getElementById('emailModal').style.display = 'none';
+        }
+
+        function showAccountRequiredPrompt() {
+            // Show a clear call-to-action to create an account
+            const resultsDiv = document.getElementById("results");
+            if (!resultsDiv) return;
+            
+            resultsDiv.innerHTML = `
+                <div class="account-required-prompt">
+                    <div class="prompt-header">
+                        <h2>🔒 Account Required</h2>
+                        <p>Create an account or sign in to analyze this document</p>
+                    </div>
+                    
+                    <div class="prompt-cta">
+                        <p>You've used your free uploads for today. Create an account to continue analyzing documents with unlimited access.</p>
+                        <div class="cta-buttons">
+                            <button onclick="window.location.href='/register'" class="btn-primary">Create Free Account</button>
+                            <button onclick="window.location.href='/login'" class="btn-secondary">Sign In</button>
+                        </div>
+                        <p class="cta-note">Free accounts get 3 document analyses per month</p>
+                    </div>
+                </div>
+            `;
+            resultsDiv.style.display = "block";
         }
 
         async function submitEmailAndShowResults() {

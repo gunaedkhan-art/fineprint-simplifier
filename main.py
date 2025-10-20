@@ -1830,20 +1830,18 @@ async def analyze(file: UploadFile = File(...), user_id: str = Form("user_id")):
             print(f"DEBUG: Visitor user - checking daily limits (user_exists={user is not None}, has_email={user.get('email') if user else None})")
             
             # Check visitor daily limits (fair use policy)
-            visitor_daily_limit = 3
+            # Allow 2 uploads, then prompt for account creation on 3rd attempt
             visitor_uploads_today = get_visitor_uploads_today(request)
             
-            if visitor_uploads_today >= visitor_daily_limit:
+            if visitor_uploads_today >= 2:
                 return JSONResponse(
                     content={
                         "success": False,
-                        "error": "Daily upload limit reached",
-                        "fair_use_limit": True,
-                        "visitor_uploads_today": visitor_uploads_today,
-                        "daily_limit": visitor_daily_limit,
-                        "message": f"You've uploaded {visitor_uploads_today}/{visitor_daily_limit} documents today as a visitor. Please create an account for unlimited uploads or try again tomorrow."
+                        "error": "Account required",
+                        "requires_account": True,
+                        "message": "Create an account or sign in to analyze this document"
                     }, 
-                    status_code=429
+                    status_code=401
                 )
             
             usage_status = {
@@ -2090,20 +2088,18 @@ async def analyze_text(request: Request):
         
         if not is_authenticated:
             # Check visitor daily limits for text analysis too
-            visitor_daily_limit = 3
+            # Allow 2 uploads, then prompt for account creation on 3rd attempt
             visitor_uploads_today = get_visitor_uploads_today(request)
             
-            if visitor_uploads_today >= visitor_daily_limit:
+            if visitor_uploads_today >= 2:
                 return JSONResponse(
                     content={
                         "success": False,
-                        "error": "Daily upload limit reached",
-                        "fair_use_limit": True,
-                        "visitor_uploads_today": visitor_uploads_today,
-                        "daily_limit": visitor_daily_limit,
-                        "message": f"You've uploaded {visitor_uploads_today}/{visitor_daily_limit} documents today as a visitor. Please create an account for unlimited uploads or try again tomorrow."
+                        "error": "Account required",
+                        "requires_account": True,
+                        "message": "Create an account or sign in to analyze this document"
                     }, 
-                    status_code=429
+                    status_code=401
                 )
         
         # Load patterns
