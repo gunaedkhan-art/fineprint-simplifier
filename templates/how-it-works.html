@@ -1,236 +1,107 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How It Works - Small Print Checker</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <div class="container">
-        {% include 'components/header.html' %}
+{% extends "base.html" %}
 
+{% block title %}How It Works - Small Print Checker{% endblock %}
 
-        <!-- Main Content -->
-        <main class="container">
-            <!-- Hero Section -->
-            <div class="hero-section">
-                <div class="hero-content">
-                    <h2>How Small Print Checker Works</h2>
-                    <p>Our AI-powered tool analyzes contracts by recognizing patterns in legal language to identify potential risks and favorable terms.</p>
-                </div>
-            </div>
-
-            <!-- How It Works Process -->
-            <div class="process-section">
-                <h3>Our Analysis Process</h3>
-                <div class="process-grid">
-                    <div class="process-step">
-                        <div class="step-number">1</div>
-                        <h4>Upload Your Document</h4>
-                        <p>Upload any contract or legal document in PDF format. Our system extracts and processes the text.</p>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">2</div>
-                        <h4>Pattern Recognition</h4>
-                        <p>Our AI scans for specific legal language patterns that indicate risks, obligations, or favorable terms.</p>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">3</div>
-                        <h4>Risk Assessment</h4>
-                        <p>Each finding is scored for severity (1-5) and categorized by type (financial, legal, operational, etc.).</p>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">4</div>
-                        <h4>Detailed Report</h4>
-                        <p>Get a comprehensive analysis with highlighted findings, risk scores, and plain-English explanations.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Document Types Section -->
-            <div class="document-types-section">
-                <h3>Document Types We Analyze</h3>
-                <div class="document-grid">
-                    <div class="document-category">
-                        <h4>✅ Perfect for Analysis</h4>
-                        <ul>
-                            <li><strong>Employment Contracts</strong> - Job agreements, non-compete clauses, severance terms</li>
-                            <li><strong>Rental/Lease Agreements</strong> - Property leases, commercial leases, sublease agreements</li>
-                            <li><strong>Service Contracts</strong> - Consulting agreements, maintenance contracts, service level agreements</li>
-                            <li><strong>Purchase Agreements</strong> - Sales contracts, terms of sale, purchase orders</li>
-                            <li><strong>Partnership Agreements</strong> - Business partnerships, joint ventures, shareholder agreements</li>
-                            <li><strong>Insurance Policies</strong> - Coverage terms, exclusions, claim procedures</li>
-                            <li><strong>Loan Agreements</strong> - Personal loans, business loans, mortgage documents</li>
-                            <li><strong>NDAs</strong> - Non-disclosure agreements, confidentiality clauses</li>
-                            <li><strong>Terms of Service</strong> - Website terms, app terms, platform agreements</li>
-                            <li><strong>Licensing Agreements</strong> - Software licenses, intellectual property licenses</li>
-                        </ul>
-                    </div>
-                    <div class="document-category">
-                        <h4>❌ Not Suitable for Analysis</h4>
-                        <ul>
-                            <li><strong>Invoices & Receipts</strong> - No contractual language to analyze</li>
-                            <li><strong>Bank Statements</strong> - Financial records, not contracts</li>
-                            <li><strong>Medical Records</strong> - Personal health information</li>
-                            <li><strong>Academic Papers</strong> - Research documents, not legal agreements</li>
-                            <li><strong>News Articles</strong> - Informational content</li>
-                            <li><strong>Personal Letters</strong> - Correspondence, not contracts</li>
-                            <li><strong>Technical Manuals</strong> - Instructional content</li>
-                            <li><strong>Marketing Materials</strong> - Promotional content</li>
-                            <li><strong>Government Forms</strong> - Application forms, not contracts</li>
-                            <li><strong>Scanned Images</strong> - Photos, artwork, non-text documents</li>
-                        </ul>
-                        <div class="smallprint-alternative" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
-                            <p style="margin-bottom: 15px; color: #6c757d; font-size: 0.9rem;">
-                                <strong>💡 Tip:</strong> Even if your document isn't suitable for upload, you can still analyze specific fine print or terms by pasting the text directly.
-                            </p>
-                            <a href="/upload" class="btn-primary" style="display: inline-block; padding: 8px 16px; font-size: 0.9rem; text-decoration: none;">Paste Small Print Instead</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Use Cases Section -->
-            <div class="use-cases-section">
-                <h3>Common Use Cases</h3>
-                <div class="use-cases-grid">
-                    <div class="use-case">
-                        <h4>🏢 Business Owners</h4>
-                        <p>Review vendor contracts, service agreements, and partnership deals before signing. Identify hidden costs, unfavorable terms, and potential liabilities.</p>
-                    </div>
-                    <div class="use-case">
-                        <h4>🏠 Renters & Landlords</h4>
-                        <p>Analyze lease agreements to understand maintenance responsibilities, rent increases, security deposits, and termination clauses.</p>
-                    </div>
-                    <div class="use-case">
-                        <h4>💼 Job Seekers</h4>
-                        <p>Review employment contracts for non-compete clauses, intellectual property rights, severance terms, and restrictive covenants.</p>
-                    </div>
-                    <div class="use-case">
-                        <h4>🏦 Loan Applicants</h4>
-                        <p>Understand loan terms, interest rates, fees, prepayment penalties, and default consequences before committing.</p>
-                    </div>
-                    <div class="use-case">
-                        <h4>🔒 Insurance Policyholders</h4>
-                        <p>Review coverage limits, exclusions, deductibles, claim procedures, and cancellation terms in insurance policies.</p>
-                    </div>
-                    <div class="use-case">
-                        <h4>📱 App & Service Users</h4>
-                        <p>Analyze terms of service and privacy policies to understand data usage, cancellation policies, and user rights.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FAQ Section -->
-            <div class="faq-section">
-                <h3>Frequently Asked Questions</h3>
-                <div class="faq-grid">
-                    <div class="faq-item">
-                        <h4>What types of risks does the tool identify?</h4>
-                        <p>We identify various risk categories including financial obligations, legal liabilities, restrictive clauses, termination penalties, data privacy issues, and unfair terms.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>How accurate is the analysis?</h4>
-                        <p>Our tool provides a comprehensive analysis based on pattern recognition, but it's designed to assist rather than replace legal advice. Always consult with a qualified attorney for complex legal matters.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>Can I upload handwritten documents?</h4>
-                        <p>No, the tool works best with typed text. Handwritten documents or poor-quality scans may not be processed accurately.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>What if my document is password-protected?</h4>
-                        <p>Password-protected PDFs cannot be analyzed. Please remove the password protection before uploading.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>How long does the analysis take?</h4>
-                        <p>Most documents are analyzed within 30-60 seconds, depending on the length and complexity of the document.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>Can I compare two contracts?</h4>
-                        <p>Yes! Pro users can upload two documents for side-by-side comparison to identify differences in terms and conditions.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>Is my document data secure?</h4>
-                        <p>Yes, we take data security seriously. Documents are processed securely and not stored permanently. We use industry-standard encryption and security measures.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>What if the tool doesn't find any risks?</h4>
-                        <p>This could mean the contract is well-balanced, or it might contain risks in language patterns we haven't yet learned. We continuously improve our pattern recognition.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>Can I export the analysis results?</h4>
-                        <p>Pro users can export analysis results in PDF, Word, or Excel formats for sharing with legal professionals or team members.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>Does this replace legal advice?</h4>
-                        <p>No, this tool is for educational and informational purposes only. It helps you understand potential issues but should not replace consultation with a qualified attorney.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CTA Section -->
-            <div class="cta-section">
-                <h3>Ready to Analyze Your Documents?</h3>
-                <p>Start with a free analysis to see how Small Print Checker can help you understand your contracts better.</p>
-                <div class="cta-buttons">
-                    <a href="/upload" class="btn-primary">Start Free Analysis</a>
-                    <a href="/pricing" class="btn-secondary">View Pricing</a>
-                </div>
-            </div>
-
-            <!-- Legal Disclaimer -->
-            <div class="legal-disclaimer-subtle">
-                <p><strong>Legal Disclaimer:</strong> Small Print Checker provides educational and informational analysis only. This tool is not a substitute for professional legal advice. Always consult with a qualified attorney for legal matters.</p>
-            </div>
-        </main>
-
-        {% include 'components/footer.html' %}
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-content">
+        <h2>How Small Print Checker Works</h2>
+        <p>Our AI-powered tool analyzes contracts by recognizing patterns in legal language to identify potential risks and favorable terms.</p>
     </div>
+</div>
 
-    <script>
-        let currentUserId = null;
-        let userUsage = null;
+<!-- How It Works Process -->
+<div class="process-section">
+    <h3>Our Analysis Process</h3>
+    <div class="process-grid">
+        <div class="process-step">
+            <div class="step-number">1</div>
+            <h4>Upload Your Document</h4>
+            <p>Upload any contract or legal document in PDF format. Our system extracts and processes the text.</p>
+        </div>
+        <div class="process-step">
+            <div class="step-number">2</div>
+            <h4>Pattern Recognition</h4>
+            <p>Our AI scans for specific legal language patterns that indicate risks, obligations, or favorable terms.</p>
+        </div>
+        <div class="process-step">
+            <div class="step-number">3</div>
+            <h4>Risk Assessment</h4>
+            <p>Each finding is scored for severity (1-5) and categorized by type (financial, legal, operational, etc.).</p>
+        </div>
+        <div class="process-step">
+            <div class="step-number">4</div>
+            <h4>Detailed Report</h4>
+            <p>Get a comprehensive analysis with highlighted findings, risk scores, and plain-English explanations.</p>
+        </div>
+    </div>
+</div>
 
-        // Initialize user management
-        function initializeUser() {
-            // Get user ID from URL parameters or localStorage
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlUserId = urlParams.get('user_id');
-            
-            if (urlUserId) {
-                currentUserId = urlUserId;
-                localStorage.setItem('fineprint_user_id', currentUserId);
-            } else {
-                currentUserId = localStorage.getItem('fineprint_user_id');
-                if (!currentUserId) {
-                    // Generate a new user ID for visitors
-                    currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('fineprint_user_id', currentUserId);
-                }
-            }
-            
-            // Load user usage
-            loadUserUsage();
-        }
+<!-- Document Types Section -->
+<div class="document-types-section">
+    <h3>Document Types We Analyze</h3>
+    <div class="document-grid">
+        <div class="document-category">
+            <h4>✅ Perfect for Analysis</h4>
+            <ul>
+                <li><strong>Employment Contracts</strong> - Job agreements, non-compete clauses, severance terms</li>
+                <li><strong>Rental/Lease Agreements</strong> - Property leases, commercial leases, sublease agreements</li>
+                <li><strong>Service Contracts</strong> - Consulting agreements, maintenance contracts, service level agreements</li>
+                <li><strong>Purchase Agreements</strong> - Sales contracts, terms of sale, purchase orders</li>
+                <li><strong>Partnership Agreements</strong> - Business partnerships, joint ventures, collaboration agreements</li>
+                <li><strong>Terms of Service</strong> - Software licenses, website terms, app agreements</li>
+            </ul>
+        </div>
+        <div class="document-category">
+            <h4>⚠️ Limited Analysis</h4>
+            <ul>
+                <li><strong>Complex Legal Documents</strong> - Multi-party agreements, international contracts</li>
+                <li><strong>Highly Specialized Contracts</strong> - Medical, financial, or technical agreements</li>
+                <li><strong>Very Short Documents</strong> - Simple one-page agreements with minimal terms</li>
+            </ul>
+        </div>
+    </div>
+</div>
 
-        async function loadUserUsage() {
-            try {
-                const response = await fetch(`/api/usage/${currentUserId}`);
-                userUsage = await response.json();
-                displayUserStatus();
-            } catch (error) {
-                console.error('Error loading usage:', error);
-            }
-        }
+<!-- FAQ Section -->
+<div class="faq-section">
+    <h3>Frequently Asked Questions</h3>
+    <div class="faq-grid">
+        <div class="faq-item">
+            <h4>How accurate is the analysis?</h4>
+            <p>Our AI achieves 95%+ accuracy in identifying common contract risks and benefits. However, this tool is for informational purposes only and should not replace professional legal advice.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Is my document secure?</h4>
+            <p>Yes, your documents are processed securely and never stored permanently. We use bank-level encryption and process everything in memory only.</p>
+        </div>
+        <div class="faq-item">
+            <h4>What file formats are supported?</h4>
+            <p>We support PDF, Word documents (.docx), and image files (JPG, PNG, TIFF). The system automatically extracts text from these formats.</p>
+        </div>
+        <div class="faq-item">
+            <h4>How long does analysis take?</h4>
+            <p>Most documents are analyzed in under 30 seconds. Complex documents with many pages may take up to 2 minutes.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Can I analyze multiple documents?</h4>
+            <p>Yes! Pro users can compare two documents side-by-side to see which contract is better for them.</p>
+        </div>
+        <div class="faq-item">
+            <h4>What if I disagree with the analysis?</h4>
+            <p>Our analysis is based on common legal patterns. Every contract is unique, so consider consulting a qualified attorney for complex matters.</p>
+        </div>
+    </div>
+</div>
 
-        function displayUserStatus() {
-            // User status is now shown in the profile dropdown
-            // This function is kept for compatibility but doesn't need to do anything
-        }
-
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initializeUser);
-    </script>
-</body>
-</html>
+<!-- CTA Section -->
+<div class="cta-section">
+    <h3>Ready to Analyze Your Contract?</h3>
+    <p>Upload your document and get instant insights in plain English.</p>
+    <div class="cta-buttons">
+        <a href="/upload" class="btn-primary">Start Analyzing</a>
+        <a href="/pricing" class="btn-secondary">View Pricing</a>
+    </div>
+</div>
+{% endblock %}

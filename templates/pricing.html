@@ -1,402 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing - Small Print Checker</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-</head>
-<body>
-    <div class="container">
-        {% include 'components/header.html' %}
+{% extends "base.html" %}
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="page-header">
-                <h1 class="page-title">Choose Your Plan</h1>
-                <p class="page-subtitle">Start free and upgrade when you need more features</p>
-            </div>
+{% block title %}Pricing - Small Print Checker{% endblock %}
 
-    <div class="pricing-container">
-        <!-- Free Tier -->
-        <div class="pricing-card free-tier">
-            <div class="pricing-header">
-                <h2>Free</h2>
-                <div class="price">
-                    <span class="amount">$0</span>
-                    <span class="period">/month</span>
-                </div>
-                <p class="description">Perfect for occasional document review</p>
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Choose Your Plan</h1>
+    <p class="page-subtitle">Start free and upgrade when you need more features</p>
+</div>
+
+<div class="pricing-container">
+    <!-- Free Tier -->
+    <div class="pricing-card free-tier">
+        <div class="pricing-header">
+            <h2>Free</h2>
+            <div class="price">
+                <span class="amount">$0</span>
+                <span class="period">/month</span>
             </div>
-            
-            <div class="features">
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">3 documents per month</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Plain English summaries</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Basic risk detection</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Basic good points detection</span>
-                </div>
-            </div>
-            
-            <a href="/register" class="btn-primary">Start Free</a>
+            <p class="description">Perfect for occasional document review</p>
         </div>
-
-        <!-- Paid Tier -->
-        <div class="pricing-card paid-tier featured">
-            <div class="popular-badge">Most Popular</div>
-            <div class="pricing-header">
-                <h2>Pro</h2>
-                <div class="price">
-                    <span class="amount">$9.99</span>
-                    <span class="period">/month</span>
-                </div>
-                <p class="description">Unlimited analysis with advanced features</p>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">3 documents per month</span>
             </div>
-            
-            <div class="features">
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Unlimited documents</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Risk score badges (Green/Yellow/Red)</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Side-by-side comparison</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Export to PDF/Word/Excel</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Advanced analytics</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">✓</span>
-                    <span class="feature-text">Priority support</span>
-                </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Basic risk assessment</span>
             </div>
-            
-            <button class="btn-primary" onclick="upgradeToPro()">Upgrade to Pro</button>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Plain English summaries</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Email required for results</span>
+            </div>
         </div>
+        
+        <a href="/upload" class="btn-outline">Start Free</a>
     </div>
 
-    <div class="pricing-footer">
-        <h3>All plans include:</h3>
-        <ul>
-            <li>Secure document processing</li>
-            <li>No document storage (processed in memory)</li>
-            <li>Standard support</li>
-        </ul>
-    </div>
-    
-    <!-- Subscription Management Section -->
-    <div class="subscription-management" id="subscriptionManagement" style="display: none;">
-        <h3>Manage Your Subscription</h3>
-        <div class="subscription-info">
-            <p>You have an active Pro subscription.</p>
-            <button class="btn-secondary" onclick="manageSubscription()">Manage Subscription</button>
-        </div>
-    </div>
-    
-    <!-- Email Collection Modal -->
-    <div id="emailModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Upgrade to Pro</h3>
-                <span class="close" onclick="closeEmailModal()">&times;</span>
+    <!-- Pro Tier -->
+    <div class="pricing-card featured">
+        <div class="popular-badge">Most Popular</div>
+        <div class="pricing-header">
+            <h2>Pro</h2>
+            <div class="price">
+                <span class="amount">$9.99</span>
+                <span class="period">/month</span>
             </div>
-            <div class="modal-body">
-                <p>Enter your email address to continue with the Pro subscription:</p>
-                <form id="emailForm" onsubmit="handleEmailSubmit(event)">
-                    <div class="form-group">
-                        <label for="userEmail">Email Address</label>
-                        <input type="email" id="userEmail" name="email" required placeholder="your@email.com">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="closeEmailModal()">Cancel</button>
-                        <button type="submit" class="btn-primary" id="submitEmailBtn">Continue to Checkout</button>
-                    </div>
-                </form>
+            <p class="description">Unlimited analysis with advanced features</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Unlimited document analyses</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Advanced risk scoring</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Side-by-side comparison</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Export to PDF/Word/Excel</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <span class="feature-text">Priority support</span>
             </div>
         </div>
+        
+        <a href="/pricing" class="btn-primary">Upgrade to Pro</a>
     </div>
 </div>
 
-<script src="/static/script.js"></script>
-<script>
-let currentUserId = null;
-
-// Generate a simple user ID (in production, this would come from authentication)
-function generateUserId() {
-    if (!currentUserId) {
-        currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('fineprint_user_id', currentUserId);
-    }
-    return currentUserId;
-}
-
-// startFree function removed - no longer needed with simplified auth flow
-
-// Check authentication status on page load
-document.addEventListener('DOMContentLoaded', function() {
-    checkAuthStatus();
-});
-
-async function checkAuthStatus() {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-        try {
-            const response = await fetch('/api/user-subscription-data', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    showAuthenticatedUI(data.user_data);
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-        }
-    }
-    
-    showUnauthenticatedUI();
-}
-
-function showAuthenticatedUI(userData) {
-    // Show profile dropdown
-    document.getElementById('profileDropdown').style.display = 'block';
-    document.getElementById('mobileProfileSection').style.display = 'block';
-    
-    // Hide auth CTA buttons
-    document.getElementById('authCTA').style.display = 'none';
-    document.getElementById('mobileAuthCTA').style.display = 'none';
-    
-    // Update avatar with user initial
-    const avatar = document.getElementById('profileAvatar');
-    if (userData.email) {
-        avatar.textContent = userData.email.charAt(0).toUpperCase();
-    }
-    
-    // Update user status info in dropdown
-    updateUserStatusInfo(userData);
-    
-    // Show subscription management if user has paid subscription
-    if (userData.subscription === 'paid') {
-        document.getElementById('subscriptionLink').style.display = 'block';
-        document.getElementById('mobileSubscriptionLink').style.display = 'block';
-    }
-}
-
-function updateUserStatusInfo(userData) {
-    const planElement = document.getElementById('userPlan');
-    const usageElement = document.getElementById('userUsage');
-    
-    if (planElement && usageElement) {
-        // Update plan status
-        if (userData.subscription === 'paid') {
-            planElement.textContent = 'Pro';
-            planElement.className = 'status-value pro';
-        } else {
-            planElement.textContent = 'Free';
-            planElement.className = 'status-value free';
-        }
-        
-        // Update usage info
-        const documentsThisMonth = userData.documents_this_month || 0;
-        const monthlyLimit = userData.subscription === 'paid' ? '∞' : '3';
-        usageElement.textContent = `${documentsThisMonth}/${monthlyLimit}`;
-    }
-}
-
-function showUnauthenticatedUI() {
-    // Hide profile dropdown
-    document.getElementById('profileDropdown').style.display = 'none';
-    document.getElementById('mobileProfileSection').style.display = 'none';
-    
-    // Show auth CTA buttons
-    document.getElementById('authCTA').style.display = 'flex';
-    document.getElementById('mobileAuthCTA').style.display = 'flex';
-}
-
-function logout() {
-    // Remove token from localStorage and cookie
-    localStorage.removeItem('access_token');
-    document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    
-    // Show unauthenticated UI
-    showUnauthenticatedUI();
-    
-    // Redirect to home page
-    window.location.href = '/';
-}
-
-function upgradeToPro() {
-    // Show the email collection modal
-    document.getElementById('emailModal').style.display = 'block';
-    document.getElementById('userEmail').focus();
-}
-
-function closeEmailModal() {
-    document.getElementById('emailModal').style.display = 'none';
-    document.getElementById('emailForm').reset();
-}
-
-function handleEmailSubmit(event) {
-    event.preventDefault();
-    
-    const userId = generateUserId();
-    const email = document.getElementById('userEmail').value.trim();
-    
-    if (!email) {
-        alert('Email is required to upgrade to Pro.');
-        return;
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        alert('Please enter a valid email address.');
-        return;
-    }
-    
-    // Show loading state
-    const submitBtn = document.getElementById('submitEmailBtn');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Processing...';
-    submitBtn.disabled = true;
-    
-    // Create checkout session
-    fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            user_id: userId,
-            email: email
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Redirect to Stripe checkout
-            window.location.href = data.checkout_url;
-        } else {
-            throw new Error(data.error || 'Failed to create checkout session');
-        }
-    })
-    .catch(error => {
-        console.error('Error creating checkout session:', error);
-        alert('Error processing payment. Please try again or contact support.');
-        
-        // Reset button state
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    });
-}
-
-function manageSubscription() {
-    const userId = generateUserId();
-    
-    // Create customer portal session
-    fetch('/api/create-portal-session', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            user_id: userId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Redirect to Stripe customer portal
-            window.location.href = data.portal_url;
-        } else {
-            throw new Error(data.error || 'Failed to create portal session');
-        }
-    })
-    .catch(error => {
-        console.error('Error creating portal session:', error);
-        alert('Error accessing subscription management. Please try again or contact support.');
-    });
-}
-
-// Check if user has active subscription
-async function checkSubscriptionStatus() {
-    const userId = generateUserId();
-    
-    try {
-        const response = await fetch(`/api/usage/${userId}`);
-        const data = await response.json();
-        
-        if (data.subscription === 'paid') {
-            // Show subscription management section
-            document.getElementById('subscriptionManagement').style.display = 'block';
-            
-            // Hide upgrade button
-            const upgradeButton = document.querySelector('.paid-tier button');
-            if (upgradeButton) {
-                upgradeButton.textContent = 'Current Plan';
-                upgradeButton.disabled = true;
-                upgradeButton.classList.remove('btn-primary');
-                upgradeButton.classList.add('btn-secondary');
-            }
-        }
-    } catch (error) {
-        console.error('Error checking subscription status:', error);
-    }
-}
-
-// Load user ID from localStorage on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const savedUserId = localStorage.getItem('fineprint_user_id');
-    if (savedUserId) {
-        currentUserId = savedUserId;
-    }
-    
-    // Check subscription status
-    checkSubscriptionStatus();
-    
-    // Add click-outside-to-close functionality for modal
-    document.getElementById('emailModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeEmailModal();
-        }
-    });
-    
-    // Add escape key to close modal
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeEmailModal();
-        }
-    });
-});
-</script>
-        </main>
-        
-        {% include 'components/footer.html' %}
-    </div>
-</body>
-</html>
+<div class="pricing-footer">
+    <h3>All Plans Include</h3>
+    <ul>
+        <li>Secure document processing</li>
+        <li>No data storage</li>
+        <li>Cancel anytime</li>
+        <li>30-day money-back guarantee</li>
+    </ul>
+</div>
+{% endblock %}

@@ -1,656 +1,272 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Results - Small Print Checker</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <style>
-        .document-header {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            margin-bottom: var(--space-6);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .document-title {
-            font-size: var(--font-size-xl);
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0 0 var(--space-2) 0;
-            word-break: break-word;
-        }
-        
-        .document-meta {
-            color: var(--text-secondary);
-            font-size: var(--font-size-sm);
-        }
-        
-        .findings-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-6);
-            margin: var(--space-6) 0;
-        }
-        
-        @media (max-width: 768px) {
-            .findings-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .findings-column {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: var(--space-6);
-            min-height: 400px;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
-        }
-        
-        .findings-column:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-        }
-        
-        .findings-column.risks {
-            border-top: 6px solid #dc3545;
-            background: linear-gradient(135deg, rgba(220, 53, 69, 0.02) 0%, var(--surface-color) 100%);
-        }
-        
-        .findings-column.good-points {
-            border-top: 6px solid #28a745;
-            background: linear-gradient(135deg, rgba(40, 167, 69, 0.02) 0%, var(--surface-color) 100%);
-        }
-        
-        .findings-column h2 {
-            margin: 0 0 var(--space-6) 0;
-            font-size: var(--font-size-2xl);
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-            padding: var(--space-3) var(--space-4);
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: var(--radius-lg);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .findings-count {
-            background: var(--primary-color);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: var(--font-size-sm);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .risk-count {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .good-count {
-            background: linear-gradient(135deg, #28a745, #1e7e34);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .finding-category {
-            margin-bottom: var(--space-6);
-            padding-bottom: var(--space-4);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .finding-category:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        
-        .category-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: var(--space-3);
-        }
-        
-        .category-name {
-            font-size: var(--font-size-lg);
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
-            padding: var(--space-2) var(--space-3);
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: var(--radius-md);
-            border-left: 4px solid var(--primary-color);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .category-description {
-            font-size: var(--font-size-sm);
-            color: var(--text-secondary);
-            margin: var(--space-2) 0 var(--space-4) 0;
-            font-style: italic;
-            padding: var(--space-2) var(--space-3);
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: var(--radius-md);
-            border-left: 3px solid var(--text-muted);
-        }
-        
-        .finding-item {
-            background: var(--background-color);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid transparent;
-            padding: var(--space-4);
-            margin-bottom: var(--space-3);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            transition: all 0.2s ease;
-        }
-        
-        .finding-item:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-1px);
-        }
-        
-        .finding-item.risk {
-            border-left-color: #dc3545;
-            background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
-            border-color: rgba(220, 53, 69, 0.2);
-        }
-        
-        .finding-item.risk:hover {
-            border-color: rgba(220, 53, 69, 0.3);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
-        }
-        
-        .finding-item.good {
-            border-left-color: #28a745;
-            background: linear-gradient(135deg, #f0f9f4 0%, #ffffff 100%);
-            border-color: rgba(40, 167, 69, 0.2);
-        }
-        
-        .finding-item.good:hover {
-            border-color: rgba(40, 167, 69, 0.3);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
-        }
-        
-        .finding-text {
-            font-size: var(--font-size-base);
-            color: var(--text-primary);
-            margin-bottom: var(--space-3);
-            line-height: 1.7;
-            background: rgba(255, 255, 255, 0.7);
-            padding: var(--space-3);
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .finding-text strong {
-            font-weight: 700;
-            background: #fef08a;
-            padding: 2px 6px;
-            border-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-        
-        .finding-meta {
-            display: flex;
-            gap: var(--space-4);
-            font-size: var(--font-size-sm);
-            color: var(--text-secondary);
-            background: rgba(255, 255, 255, 0.6);
-            padding: var(--space-2) var(--space-3);
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-            padding: var(--space-1) var(--space-2);
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: var(--radius-sm);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .meta-label {
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        
-        .severity-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: var(--font-size-xs);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        
-        .severity-high {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            border-color: #b02a37;
-        }
-        
-        .severity-medium {
-            background: linear-gradient(135deg, #ffc107, #e0a800);
-            color: #000;
-            border-color: #d39e00;
-        }
-        
-        .severity-low {
-            background: linear-gradient(135deg, #28a745, #1e7e34);
-            color: white;
-            border-color: #1c7430;
-        }
-        
-        .no-findings {
-            text-align: center;
-            padding: var(--space-12) var(--space-6);
-            color: var(--text-secondary);
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: var(--radius-lg);
-            border: 2px dashed var(--border-color);
-            margin: var(--space-4) 0;
-        }
-        
-        .no-findings-icon {
-            font-size: 64px;
-            margin-bottom: var(--space-4);
-            opacity: 0.7;
-            filter: grayscale(0.3);
-        }
-        
-        .no-findings p {
-            margin-bottom: var(--space-2);
-        }
-        
-        .no-findings p:first-of-type {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        {% include 'components/header.html' %}
+{% extends "base.html" %}
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="page-header">
-                <h1 class="page-title">Analysis Results</h1>
-                <p class="page-subtitle">Detailed findings from your document analysis</p>
+{% block title %}Analysis Results - Small Print Checker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Analysis Results</h1>
+    <p class="page-subtitle">Your document has been analyzed. Review the findings below.</p>
+</div>
+
+<!-- Analysis Results -->
+<div id="results" class="results-section">
+    <!-- Results will be populated by JavaScript -->
+</div>
+
+<!-- Action Buttons -->
+<div class="analysis-actions">
+    <a href="/upload" class="btn-secondary" onclick="this.href='/upload?user_id=' + new URLSearchParams(window.location.search).get('user_id')">Analyze Another Document</a>
+    <a href="/compare" class="btn-primary">Compare Documents</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentUserId = null;
+let userUsage = null;
+
+// Initialize user management
+async function initializeUser() {
+    // Get user ID from URL parameters or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlUserId = urlParams.get('user_id');
+    
+    if (urlUserId) {
+        currentUserId = urlUserId;
+        localStorage.setItem('fineprint_user_id', currentUserId);
+    } else {
+        currentUserId = localStorage.getItem('fineprint_user_id');
+        if (!currentUserId) {
+            // Redirect to login if no user ID
+            window.location.href = '/login';
+            return;
+        }
+    }
+    
+    await loadUserUsage();
+}
+
+async function loadUserUsage() {
+    try {
+        const response = await fetch(`/api/usage/${currentUserId}`);
+        userUsage = await response.json();
+    } catch (error) {
+        console.error('Error loading usage:', error);
+        // Redirect to login if user not found
+        window.location.href = '/login';
+    }
+}
+
+// Load stored analysis results
+async function loadAnalysisResults() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id');
+    
+    if (!userId) {
+        // No user ID, redirect to upload
+        window.location.href = '/upload';
+        return;
+    }
+    
+    const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
+    if (!storedResults) {
+        // No stored results, redirect to upload
+        window.location.href = '/upload';
+        return;
+    }
+    
+    try {
+        const results = JSON.parse(storedResults);
+        const resultsDiv = document.getElementById("results");
+        
+        if (!resultsDiv) {
+            console.error('Results div not found');
+            return;
+        }
+        
+        // Clear any existing content
+        resultsDiv.innerHTML = '';
+        
+        // Display full analysis results
+        if (results.analysis) {
+            // Show success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.style.cssText = 'background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;';
+            successMessage.innerHTML = '✅ Analysis Complete! Here are your detailed results.';
+            resultsDiv.appendChild(successMessage);
+            
+            // Display analysis results
+            displayAnalysisResults(results.analysis);
+            processAnalysisData(results);
+        } else {
+            // Show error message only
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
+            errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
+            resultsDiv.appendChild(errorDiv);
+        }
+        
+        // Clear the stored results
+        localStorage.removeItem(`temp_analysis_${userId}`);
+    } catch (error) {
+        console.error('Error parsing stored results:', error);
+        // Redirect to upload on error
+        window.location.href = '/upload';
+    }
+}
+
+// Display analysis results
+function displayAnalysisResults(analysis) {
+    const resultsDiv = document.getElementById("results");
+    if (!resultsDiv) return;
+
+    let html = '<div class="analysis-results">';
+    
+    // Document Quality Assessment
+    if (analysis.quality_assessment) {
+        const qualityColors = {
+            'excellent': '#28a745',
+            'good': '#28a745', 
+            'fair': '#ffc107',
+            'poor': '#dc3545'
+        };
+        const qualityColor = qualityColors[analysis.quality_assessment] || '#6c757d';
+        
+        html += `
+            <div class="quality-assessment" style="background: ${qualityColor}15; border-left: 4px solid ${qualityColor}; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
+                <h3 style="margin: 0 0 8px 0; color: ${qualityColor};">📊 Document Quality: ${analysis.quality_assessment.charAt(0).toUpperCase() + analysis.quality_assessment.slice(1)}</h3>
+                <p style="margin: 0; color: var(--text-secondary);">${analysis.total_pages || 0} pages • ${analysis.total_characters || 0} characters • ${analysis.readable_pages || 0} readable pages</p>
             </div>
+        `;
+    }
 
-            <!-- Document Header -->
-            <div id="document-header" class="document-header" style="display: none;"></div>
+    // Good Points Section
+    const goodPoints = analysis.good_points || {};
+    const risks = analysis.risks || {};
 
-            <!-- Analysis Results -->
-            <div id="results" class="results-section">
-                <!-- Results will be populated by JavaScript -->
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="analysis-actions">
-                <a href="/upload" class="btn-secondary" onclick="this.href='/upload?user_id=' + new URLSearchParams(window.location.search).get('user_id')">Analyze Another Document</a>
-                <a href="/compare" class="btn-primary">Compare Documents</a>
-            </div>
-        </main>
-        
-        {% include 'components/footer.html' %}
-    </div>
-
-    <script>
-        let currentUserId = null;
-        let userUsage = null;
-        let PATTERN_DESCRIPTIONS = {};
-
-        // Load pattern descriptions from API
-        async function loadPatternDescriptions() {
-            try {
-                const response = await fetch('/api/pattern-descriptions');
-                PATTERN_DESCRIPTIONS = await response.json();
-            } catch (error) {
-                console.error('Error loading pattern descriptions:', error);
-                // Fallback descriptions
-                PATTERN_DESCRIPTIONS = {
-                    "early_termination_fee": "Charges applied if you cancel the service before the contract ends",
-                    "automatic_renewal": "Contract automatically renews unless you actively cancel it",
-                    "arbitration_clause": "Requires disputes to be settled through arbitration instead of court",
-                    "late_payment_penalties": "Additional fees charged for late or missed payments",
-                    "non_refundable": "Payments that cannot be refunded under any circumstances",
-                    "limited_liability": "Limits the company's responsibility for damages or losses",
-                    "service_availability_disclaimer": "No guarantee that the service will always be available",
-                    "unilateral_modification": "Company can change terms without your consent",
-                    "hidden_charges": "Additional fees that may not be immediately obvious",
-                    "data_sharing": "Your data may be shared with third parties",
-                    "rights_limitation": "Restrictions on your legal rights or ability to take action",
-                    "grace_period": "Time period where you can cancel without penalties",
-                    "money_back_guarantee": "Promise to refund your money if not satisfied",
-                    "data_protection": "Commitments to protect and secure your personal data",
-                    "limitation_of_liability": "Clear limits on company liability (can be good if reasonable)",
-                    "no_win_no_fee": "You only pay if the service succeeds",
-                    "fee_caps": "Maximum limits on fees you can be charged",
-                    "cost_protection": "Protection against unexpected cost increases",
-                    "cooling_off": "Period where you can cancel without penalty",
-                    "transparency": "Clear and upfront disclosure of terms and conditions"
-                };
-            }
-        }
-
-        // Initialize user management
-        async function initializeUser() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlUserId = urlParams.get('user_id');
-            
-            if (urlUserId) {
-                currentUserId = urlUserId;
-                localStorage.setItem('fineprint_user_id', currentUserId);
-            } else {
-                currentUserId = localStorage.getItem('fineprint_user_id');
-                if (!currentUserId) {
-                    window.location.href = '/login';
-                    return;
-                }
-            }
-            
-            await loadUserUsage();
-        }
-
-        async function loadUserUsage() {
-            try {
-                const response = await fetch(`/api/usage/${currentUserId}`);
-                userUsage = await response.json();
-                displayUserStatus();
-            } catch (error) {
-                console.error('Error loading usage:', error);
-                window.location.href = '/login';
-            }
-        }
-
-        function displayUserStatus() {
-            const profileDropdown = document.getElementById("profileDropdown");
-            const authCTA = document.getElementById("authCTA");
-            const mobileAuthCTA = document.getElementById("mobileAuthCTA");
-            
-            if (userUsage && userUsage.email) {
-                profileDropdown.style.display = "block";
-                authCTA.style.display = "none";
-                mobileAuthCTA.style.display = "none";
-                
-                document.getElementById("userPlan").textContent = userUsage.subscription === 'paid' ? 'Pro' : 'Free';
-                document.getElementById("userUsage").textContent = `${userUsage.documents_this_month || 0}/${userUsage.monthly_limit || 3}`;
-                
-                const profileAvatar = document.getElementById("profileAvatar");
-                if (userUsage.username && profileAvatar) {
-                    profileAvatar.textContent = userUsage.username.charAt(0).toUpperCase();
-                }
-                
-                const subscriptionLink = document.getElementById("subscriptionLink");
-                if (userUsage.subscription === 'paid') {
-                    subscriptionLink.style.display = "block";
-                } else {
-                    subscriptionLink.style.display = "none";
-                }
-            } else {
-                window.location.href = '/login';
-            }
-        }
-
-        // Load stored analysis results
-        async function loadAnalysisResults() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('user_id');
-            
-            if (!userId) {
-                window.location.href = '/upload';
-                return;
-            }
-            
-            const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
-            if (!storedResults) {
-                window.location.href = '/upload';
-                return;
-            }
-            
-            try {
-                const results = JSON.parse(storedResults);
-                const resultsDiv = document.getElementById("results");
-                
-                if (!resultsDiv) {
-                    console.error('Results div not found');
-                    return;
-                }
-                
-                resultsDiv.innerHTML = '';
-                
-                if (results.analysis) {
-                    displayDocumentHeader(results);
-                    displayAnalysisResults(results.analysis);
-                } else {
-                    const infoDiv = document.createElement('div');
-                    infoDiv.className = 'info-message';
-                    infoDiv.style.cssText = 'background: #cfe2ff; color: #084298; padding: 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #b6d4fe; text-align: center;';
-                    infoDiv.innerHTML = `
-                        <h3 style="margin: 0 0 12px 0;">🔒 Authentication Required</h3>
-                        <p style="margin: 0 0 16px 0;">Please log in to view your analysis results.</p>
-                        <a href="/login" class="btn-primary" style="display: inline-block; margin-top: 8px;">Log In</a>
-                    `;
-                    resultsDiv.appendChild(infoDiv);
-                } else {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message';
-                    errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
-                    errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
-                    resultsDiv.appendChild(errorDiv);
-                }
-                
-                // Clear stored results after displaying - prevents abuse
-                localStorage.removeItem(`temp_analysis_${userId}`);
-            } catch (error) {
-                console.error('Error parsing stored results:', error);
-                window.location.href = '/upload';
-            }
-        }
-
-        function displayDocumentHeader(results) {
-            const headerDiv = document.getElementById("document-header");
-            if (!headerDiv) return;
-            
-            const filename = results.filename || 'Unknown Document';
-            const totalPages = results.total_pages || 0;
-            const totalCharacters = results.total_characters || 0;
-            const qualityAssessment = results.quality_assessment || 'Unknown';
-            
-            const qualityColors = {
-                'excellent': '#28a745',
-                'good': '#28a745', 
-                'fair': '#ffc107',
-                'poor': '#dc3545'
-            };
-            const qualityColor = qualityColors[qualityAssessment] || '#6c757d';
-            
-            headerDiv.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 200px;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                            <span style="font-size: 32px;">📄</span>
-                            <h2 class="document-title">${filename}</h2>
-                        </div>
-                        <div class="document-meta">
-                            ${totalPages} page${totalPages !== 1 ? 's' : ''} • ${totalCharacters.toLocaleString()} characters
-                        </div>
-                    </div>
-                    <div style="padding: 12px 20px; background: ${qualityColor}15; border: 2px solid ${qualityColor}; border-radius: 8px;">
-                        <div style="font-size: 12px; font-weight: 600; color: ${qualityColor}; margin-bottom: 4px;">QUALITY</div>
-                        <div style="font-size: 18px; font-weight: 700; color: ${qualityColor}; text-transform: uppercase;">${qualityAssessment}</div>
-                    </div>
-                </div>
-            `;
-            headerDiv.style.display = 'block';
-        }
-
-        function displayAnalysisResults(analysis) {
-            const resultsDiv = document.getElementById("results");
-            if (!resultsDiv) return;
-
-            const risks = analysis.risks || {};
-            const goodPoints = analysis.good_points || {};
-            
-            const riskCount = Object.values(risks).reduce((sum, items) => sum + items.length, 0);
-            const goodPointCount = Object.values(goodPoints).reduce((sum, items) => sum + items.length, 0);
-
-            let html = `
+    if (Object.keys(goodPoints).length > 0) {
+        html += `
+            <div class="findings-section good-points">
+                <h3>✅ Favorable Terms Found</h3>
                 <div class="findings-grid">
-                    <!-- Risks Column -->
-                    <div class="findings-column risks">
-                        <h2>
-                            ⚠️ Potential Risks
-                            <span class="findings-count risk-count">${riskCount}</span>
-                        </h2>
-                        ${riskCount > 0 ? generateFindingsHTML(risks, 'risk') : `
-                            <div class="no-findings">
-                                <div class="no-findings-icon">✓</div>
-                                <p><strong>No Risks Found</strong></p>
-                                <p>This document appears to have no obvious risk patterns.</p>
-                            </div>
-                        `}
-                    </div>
-                    
-                    <!-- Good Points Column -->
-                    <div class="findings-column good-points">
-                        <h2>
-                            ✅ Favorable Terms
-                            <span class="findings-count good-count">${goodPointCount}</span>
-                        </h2>
-                        ${goodPointCount > 0 ? generateFindingsHTML(goodPoints, 'good') : `
-                            <div class="no-findings">
-                                <div class="no-findings-icon">○</div>
-                                <p><strong>No Favorable Terms Found</strong></p>
-                                <p>This document does not contain obvious consumer-friendly terms.</p>
-                            </div>
-                        `}
-                    </div>
-                </div>
-            `;
-            
-            resultsDiv.innerHTML = html;
-        }
-
-        function generateFindingsHTML(findings, type) {
-            let html = '';
-            
-            for (const [category, matches] of Object.entries(findings)) {
-                if (!matches || matches.length === 0) continue;
-                
-                const categoryName = formatCategoryName(category);
-                const categoryDescription = PATTERN_DESCRIPTIONS[category] || '';
-                
+        `;
+        
+        for (const [category, matches] of Object.entries(goodPoints)) {
+            if (matches && matches.length > 0) {
                 html += `
                     <div class="finding-category">
-                        <div class="category-header">
-                            <h3 class="category-name">${categoryName}</h3>
-                        </div>
-                        ${categoryDescription ? `<p class="category-description">${categoryDescription}</p>` : ''}
+                        <h4>${formatCategoryName(category)}</h4>
+                        <div class="finding-items">
                 `;
                 
                 matches.forEach(item => {
                     const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
-                    const contextText = typeof item === 'object' ? item.context : null;
                     const pageNum = item.page || 'N/A';
                     const score = item.score || 3;
-                    const severityClass = score >= 4 ? 'severity-high' : score >= 2.5 ? 'severity-medium' : 'severity-low';
-                    const severityLabel = score >= 4 ? 'High' : score >= 2.5 ? 'Medium' : 'Low';
-                    
-                    // Different labels for risks vs benefits
-                    const levelLabel = type === 'risk' ? 'Risk Level' : 'Benefit Level';
-                    const levelDescription = type === 'risk' ? 
-                        `${severityLabel} Risk` : 
-                        `${severityLabel} Benefit`;
-                    
-                    // Use context if available, otherwise use match
-                    let displayText = contextText || matchText;
-                    
-                    // Highlight the matched phrase within the context
-                    if (contextText && matchText && contextText.toLowerCase().includes(matchText.toLowerCase())) {
-                        // Case-insensitive replace with bold
-                        const regex = new RegExp(`(${escapeRegex(matchText)})`, 'gi');
-                        displayText = displayText.replace(regex, '<strong style="background: #fef08a; padding: 3px 6px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); font-weight: 700;">$1</strong>');
-                    }
-                    
-                    // Truncate if still too long
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = displayText;
-                    const textLength = tempDiv.textContent.length;
-                    if (textLength > 250) {
-                        displayText = displayText.substring(0, 247) + '...';
-                    }
-                    
+                    const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
                     html += `
-                        <div class="finding-item ${type}">
-                            <div class="finding-text">${displayText}</div>
+                        <div class="finding-item good">
+                            <div class="finding-text">${matchText}</div>
                             <div class="finding-meta">
-                                <div class="meta-item">
-                                    <span class="meta-label">Page:</span> ${pageNum}
-                                </div>
-                                <div class="meta-item">
-                                    <span class="meta-label">${levelLabel}:</span>
-                                    <span class="severity-badge ${severityClass}">${levelDescription}</span>
-                                </div>
+                                <span>Page ${pageNum}</span>
+                                <span class="severity-score ${scoreClass}">Severity: ${score}/5</span>
                             </div>
                         </div>
                     `;
                 });
                 
-                html += `</div>`;
+                html += `
+                        </div>
+                    </div>
+                `;
             }
-            
-            return html;
-        }
-
-        function formatCategoryName(category) {
-            return category
-                .split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
         }
         
-        function escapeRegex(str) {
-            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
+        html += `
+                </div>
+            </div>
+        `;
+    }
 
-        // Clear stored results when navigating away (except to login/register)
-        window.addEventListener('beforeunload', function(e) {
-            // Don't clear if going to auth pages
-            const currentPath = window.location.pathname;
-            if (!currentPath.includes('login') && !currentPath.includes('register')) {
-                const userId = new URLSearchParams(window.location.search).get('user_id');
-                if (userId) {
-                    localStorage.removeItem(`temp_analysis_${userId}`);
-                }
+    // Risks Section
+    if (Object.keys(risks).length > 0) {
+        html += `
+            <div class="findings-section risks">
+                <h3>⚠️ Potential Risks Found</h3>
+                <div class="findings-grid">
+        `;
+        
+        for (const [category, matches] of Object.entries(risks)) {
+            if (matches && matches.length > 0) {
+                html += `
+                    <div class="finding-category">
+                        <h4>${formatCategoryName(category)}</h4>
+                        <div class="finding-items">
+                `;
+                
+                matches.forEach(item => {
+                    const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                    const pageNum = item.page || 'N/A';
+                    const score = item.score || 3;
+                    const scoreClass = score >= 4 ? 'score-high' : score >= 2.5 ? 'score-medium' : 'score-low';
+                    html += `
+                        <div class="finding-item risk">
+                            <div class="finding-text">${matchText}</div>
+                            <div class="finding-meta">
+                                <span>Page ${pageNum}</span>
+                                <span class="severity-score ${scoreClass}">Risk Level: ${score}/5</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
             }
-        });
+        }
+        
+        html += `
+                </div>
+            </div>
+        `;
+    }
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', async function() {
-            await loadPatternDescriptions();
-            await initializeUser();
-            await loadAnalysisResults();
-        });
-    </script>
-    
-    <script src="/static/script.js"></script>
-</body>
-</html>
+    // No Findings Message
+    if (Object.keys(risks).length === 0 && Object.keys(goodPoints).length === 0) {
+        html += `
+            <div class="no-findings">
+                <h3>🔍 No Specific Findings</h3>
+                <p>No risks or favorable terms were detected in this document. This could mean:</p>
+                <ul>
+                    <li>The document uses standard, balanced language</li>
+                    <li>The terms are written in a way not covered by current patterns</li>
+                    <li>The document may need manual review</li>
+                </ul>
+            </div>
+        `;
+    }
+
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+}
+
+function processAnalysisData(data) {
+    // Additional processing if needed
+    console.log('Analysis data processed:', data);
+}
+
+function formatCategoryName(category) {
+    return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    await initializeUser();
+    await loadAnalysisResults();
+});
+</script>
+{% endblock %}

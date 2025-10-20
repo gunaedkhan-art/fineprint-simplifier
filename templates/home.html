@@ -1,342 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Small Print Checker - Contract Analysis Made Simple</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-</head>
-<body>
-    <div class="container">
-        {% include 'components/header.html' %}
+{% extends "base.html" %}
 
+{% block title %}Small Print Checker - Spot Hidden Risks in Any Contract{% endblock %}
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Hero Section -->
-            <section class="hero-section">
-                <div class="hero-content">
-                    <h1 class="hero-title">The world's most trusted contract analyzer</h1>
-                    <p class="hero-subtitle">Upload any contract and get an instant analysis of risks, benefits, and hidden terms in plain English.</p>
-                    
-                    <!-- Visitor CTA -->
-                    <div id="visitor-cta" class="cta-section">
-                        <a href="/upload" class="btn-primary btn-large">Start Analyzing Now</a>
-                        <p class="cta-subtitle">Free analysis available - provide email to view results</p>
-                    </div>
-
-                    <!-- Free User CTA -->
-                    <div id="free-user-cta" class="cta-section" style="display: none;">
-                        <a href="/upload" class="btn-primary btn-large">Analyze Document</a>
-                        <p class="cta-subtitle">You have <span id="free-uploads-left"></span> free analyses remaining this month</p>
-                    </div>
-
-                    <!-- Paid User CTA -->
-                    <div id="paid-user-cta" class="cta-section" style="display: none;">
-                        <a href="/upload" class="btn-primary btn-large">Analyze Document</a>
-                        <p class="cta-subtitle">Unlimited analyses with advanced features</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Selling Points Section -->
-            <section class="selling-points">
-                <div class="selling-points-grid">
-                    <div class="selling-point">
-                        <div class="selling-point-icon">⚡</div>
-                        <h3>Blazing Fast</h3>
-                        <p>Get comprehensive contract analysis in seconds, not hours. Our AI-powered system processes documents at lightning speed.</p>
-                    </div>
-                    <div class="selling-point">
-                        <div class="selling-point-icon">🔒</div>
-                        <h3>Private & Secure</h3>
-                        <p>Your documents are processed in memory and never stored. We use bank-level encryption to protect your sensitive information.</p>
-                    </div>
-                    <div class="selling-point">
-                        <div class="selling-point-icon">🎯</div>
-                        <h3>Highly Accurate</h3>
-                        <p>Our advanced pattern recognition identifies 95%+ of contract risks and benefits. Continuously improved by legal experts.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tools Grid -->
-            <section class="tools-section">
-                <h3>Our Tools</h3>
-                <div class="tools-grid">
-                    <!-- Single Document Analysis -->
-                    <div class="tool-card">
-                        <div class="tool-icon">📄</div>
-                        <h4>Single Document Analysis</h4>
-                        <p>Upload one contract and get a detailed breakdown of risks and benefits.</p>
-                        <a href="/upload" class="btn-secondary">Analyze Document</a>
-                    </div>
-
-                    <!-- Document Comparison -->
-                    <div class="tool-card" id="comparison-card">
-                        <div class="tool-icon">⚖️</div>
-                        <h4>Document Comparison</h4>
-                        <p>Compare two contracts side-by-side to see which is better for you.</p>
-                        <a href="/compare" class="btn-secondary" id="comparison-link">Compare Documents</a>
-                        <div class="pro-badge" id="comparison-badge">PRO</div>
-                    </div>
-
-                    <!-- Export Results -->
-                    <div class="tool-card" id="export-card">
-                        <div class="tool-icon">📊</div>
-                        <h4>Export Analysis</h4>
-                        <p>Download your analysis results as PDF, Word, or Excel files.</p>
-                        <a href="/export" class="btn-secondary" id="export-link">Export Results</a>
-                        <div class="pro-badge" id="export-badge">PRO</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Features Section -->
-            <section class="features-section">
-                <h3>Why Choose Small Print Checker?</h3>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">🔍</div>
-                        <h4>Comprehensive Analysis</h4>
-                        <p>Identifies hidden risks, favorable terms, and important clauses you might miss.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">⚡</div>
-                        <h4>Instant Results</h4>
-                        <p>Get your analysis in seconds, not hours. No waiting for legal reviews.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">📱</div>
-                        <h4>Easy to Understand</h4>
-                        <p>Plain English explanations with severity ratings for each finding.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🔒</div>
-                        <h4>Secure & Private</h4>
-                        <p>Your documents are processed securely and never stored permanently.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Pricing Section -->
-            <section class="pricing-section">
-                <h3>Simple, Transparent Pricing</h3>
-                <div class="pricing-grid">
-                    <div class="pricing-card">
-                        <h4>Free</h4>
-                        <div class="price">$0</div>
-                        <ul>
-                            <li>3 document analyses per month</li>
-                            <li>Basic risk assessment</li>
-                            <li>Plain English summaries</li>
-                            <li>Email required for results</li>
-                        </ul>
-                        <a href="/upload" class="btn-outline">Start Free</a>
-                    </div>
-                    <div class="pricing-card featured">
-                        <h4>Pro</h4>
-                        <div class="price">$9.99<span>/month</span></div>
-                        <ul>
-                            <li>Unlimited document analyses</li>
-                            <li>Advanced risk scoring</li>
-                            <li>Side-by-side comparison</li>
-                            <li>Export to PDF/Word/Excel</li>
-                            <li>Priority support</li>
-                        </ul>
-                        <a href="/pricing" class="btn-primary">Upgrade to Pro</a>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-content">
-                <p>&copy; 2025 Small Print Checker. Making contracts understandable for everyone.</p>
-                <div class="footer-links">
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/terms">Terms of Service</a>
-                    <a href="/contact">Contact</a>
-                </div>
-            </div>
-        </footer>
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Spot hidden risks in any contract before you sign</h1>
+        <p class="hero-subtitle">
+            Upload any contract to instantly identify potential risks, hidden fees, and unfair terms—explained in plain English.
+        </p>
+        <div class="hero-actions">
+            <a href="/upload" class="btn-primary btn-large">Analyze Your Contract Free</a>
+        </div>
     </div>
+</section>
 
-    <script src="/static/script.js"></script>
-    <script>
-        let currentUserId = null;
-        let userUsage = null;
+<!-- Features Section -->
+<section class="features-section">
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3>Risk Detection</h3>
+            <p>Identify potential risks and unfavorable terms in your contracts automatically.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✅</div>
+            <h3>Benefit Analysis</h3>
+            <p>Discover favorable terms and benefits you might have missed.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Instant Results</h3>
+            <p>Get your analysis in seconds, not hours of manual review.</p>
+        </div>
+    </div>
+</section>
 
-        // Initialize user management
-        function initializeUser() {
-            // Get user ID from URL parameters or localStorage
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlUserId = urlParams.get('user_id');
-            
-            if (urlUserId) {
-                currentUserId = urlUserId;
-                localStorage.setItem('fineprint_user_id', currentUserId);
-            } else {
-                currentUserId = localStorage.getItem('fineprint_user_id');
-            }
-            
-            // Load user usage if logged in
-            if (currentUserId) {
-                loadUserUsage();
-            } else {
-                showVisitorView();
-            }
-        }
+<!-- How It Works Section -->
+<section class="how-it-works-section">
+    <h2>How It Works</h2>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <h3>Upload Document</h3>
+            <p>Upload your PDF, Word document, or paste text directly</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <h3>AI Analysis</h3>
+            <p>Our AI scans for risks, benefits, and important terms</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <h3>Get Results</h3>
+            <p>Receive detailed analysis with actionable insights</p>
+        </div>
+    </div>
+    <div class="cta-section">
+        <a href="/upload" class="btn-primary">Try It Now</a>
+    </div>
+</section>
 
-        async function loadUserUsage() {
-            try {
-                const response = await fetch(`/api/usage/${currentUserId}`);
-                userUsage = await response.json();
-                displayUserStatus();
-            } catch (error) {
-                console.error('Error loading usage:', error);
-                showVisitorView();
-            }
-        }
-
-        function displayUserStatus() {
-            // User status is now shown in the profile dropdown
-            // This function is kept for compatibility but doesn't need to do anything
-        }
-
-        function showVisitorView() {
-            document.getElementById("visitor-cta").style.display = "block";
-            document.getElementById("free-user-cta").style.display = "none";
-            document.getElementById("paid-user-cta").style.display = "none";
-            
-            // Show PRO badges for paid features
-            document.getElementById("comparison-badge").style.display = "inline-block";
-            document.getElementById("export-badge").style.display = "inline-block";
-        }
-
-        function showFreeUserView() {
-            document.getElementById("visitor-cta").style.display = "none";
-            document.getElementById("free-user-cta").style.display = "block";
-            document.getElementById("paid-user-cta").style.display = "none";
-            
-            const uploadsLeft = (userUsage.monthly_limit || 3) - (userUsage.documents_this_month || 0);
-            document.getElementById("free-uploads-left").textContent = uploadsLeft;
-            
-            // Show PRO badges for paid features
-            document.getElementById("comparison-badge").style.display = "inline-block";
-            document.getElementById("export-badge").style.display = "inline-block";
-        }
-
-        function showPaidUserView() {
-            document.getElementById("visitor-cta").style.display = "none";
-            document.getElementById("free-user-cta").style.display = "none";
-            document.getElementById("paid-user-cta").style.display = "block";
-            
-            // Hide PRO badges for paid users
-            document.getElementById("comparison-badge").style.display = "none";
-            document.getElementById("export-badge").style.display = "none";
-        }
-
-        // Check authentication status on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuthStatus();
-            initializeUser();
-        });
-
-        async function checkAuthStatus() {
-            const token = localStorage.getItem('access_token');
-            if (token) {
-                try {
-                    const response = await fetch('/api/user-subscription-data', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success) {
-                            showAuthenticatedUI(data.user_data);
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.error('Auth check failed:', error);
-                }
-            }
-            
-            showUnauthenticatedUI();
-        }
-
-        function showAuthenticatedUI(userData) {
-            // Show profile dropdown
-            document.getElementById('profileDropdown').style.display = 'block';
-            document.getElementById('mobileProfileSection').style.display = 'block';
-            
-            // Hide auth CTA buttons
-            document.getElementById('authCTA').style.display = 'none';
-            document.getElementById('mobileAuthCTA').style.display = 'none';
-            
-            // Update avatar with user initial
-            const avatar = document.getElementById('profileAvatar');
-            if (userData.email) {
-                avatar.textContent = userData.email.charAt(0).toUpperCase();
-            }
-            
-            // Update user status info in dropdown
-            updateUserStatusInfo(userData);
-            
-            // Show subscription management if user has paid subscription
-            if (userData.subscription === 'paid') {
-                document.getElementById('subscriptionLink').style.display = 'block';
-                document.getElementById('mobileSubscriptionLink').style.display = 'block';
-            }
-        }
-
-        function updateUserStatusInfo(userData) {
-            const planElement = document.getElementById('userPlan');
-            const usageElement = document.getElementById('userUsage');
-            
-            if (planElement && usageElement) {
-                // Update plan status
-                if (userData.subscription === 'paid') {
-                    planElement.textContent = 'Pro';
-                    planElement.className = 'status-value pro';
-                } else {
-                    planElement.textContent = 'Free';
-                    planElement.className = 'status-value free';
-                }
-                
-                // Update usage info
-                const documentsThisMonth = userData.documents_this_month || 0;
-                const monthlyLimit = userData.subscription === 'paid' ? '∞' : '3';
-                usageElement.textContent = `${documentsThisMonth}/${monthlyLimit}`;
-            }
-        }
-
-        function showUnauthenticatedUI() {
-            // Hide profile dropdown
-            document.getElementById('profileDropdown').style.display = 'none';
-            document.getElementById('mobileProfileSection').style.display = 'none';
-            
-            // Show auth CTA buttons
-            document.getElementById('authCTA').style.display = 'flex';
-            document.getElementById('mobileAuthCTA').style.display = 'flex';
-        }
-
-        function logout() {
-            // Remove token from localStorage and cookie
-            localStorage.removeItem('access_token');
-            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            
-            // Show unauthenticated UI
-            showUnauthenticatedUI();
-            
-            // Redirect to home page
-            window.location.href = '/';
-        }
-    </script>
-</body>
-</html>
+<!-- Pricing Preview -->
+<section class="pricing-preview-section">
+    <h2>Simple, Transparent Pricing</h2>
+    <div class="pricing-cards">
+        <div class="pricing-card">
+            <h3>Free</h3>
+            <div class="price">$0<span>/month</span></div>
+            <ul>
+                <li>3 document analyses per month</li>
+                <li>Basic risk detection</li>
+                <li>Quality assessment</li>
+            </ul>
+            <a href="/register" class="btn-secondary">Get Started</a>
+        </div>
+        <div class="pricing-card featured">
+            <h3>Pro</h3>
+            <div class="price">$9.99<span>/month</span></div>
+            <ul>
+                <li>Unlimited document analyses</li>
+                <li>Advanced risk detection</li>
+                <li>Document comparison</li>
+                <li>Export capabilities</li>
+            </ul>
+            <a href="/pricing" class="btn-primary">Upgrade Now</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

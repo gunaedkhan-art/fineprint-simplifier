@@ -263,7 +263,7 @@ async def index(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("home_new.html", {
+    return templates.TemplateResponse("home.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
@@ -314,7 +314,7 @@ async def analysis_page(request: Request):
     if not user_authenticated:
         return RedirectResponse(url="/login", status_code=302)
     
-    return templates.TemplateResponse("analysis_new.html", {
+    return templates.TemplateResponse("analysis.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
@@ -338,7 +338,7 @@ async def compare_page(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("compare_new.html", {
+    return templates.TemplateResponse("compare.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
@@ -362,7 +362,7 @@ async def how_it_works_page(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("how-it-works_new.html", {
+    return templates.TemplateResponse("how-it-works.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
@@ -608,7 +608,7 @@ async def pricing_page(request: Request):
         except Exception:
             pass
     
-    return templates.TemplateResponse("pricing_new.html", {
+    return templates.TemplateResponse("pricing.html", {
         "request": request,
         "user_authenticated": user_authenticated,
         "user": current_user
