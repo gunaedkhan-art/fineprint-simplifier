@@ -24,6 +24,14 @@
     
     <!-- JavaScript -->
     <script src="/static/script.js"></script>
+    <!-- Auth validation script -->
+    <script src="/static/auth-check.js"></script>
+    <script>
+        // Check authentication on every page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthOnPageLoad();
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

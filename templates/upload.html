@@ -847,6 +847,14 @@
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async function() {
+            // Validate token before loading page data
+            const authCheck = await validateAuthToken();
+            if (!authCheck.valid) {
+                clearAuthData();
+                showSessionExpiredMessage();
+                return;
+            }
+            
             await initializeUser();
             // Check for stored results (simplified - no complex timing)
             await checkForStoredResults();

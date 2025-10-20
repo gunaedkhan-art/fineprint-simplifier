@@ -26,11 +26,11 @@
                         <div class="user-status-info" id="userStatusInfo">
                             <div class="status-line">
                                 <span class="status-label">Plan:</span>
-                                <span class="status-value" id="userPlan">{{ user.subscription.title() if user.subscription else 'Free' }}</span>
+                                <span class="status-value" id="userPlan">{{ user.subscription.title() if user and user.subscription else 'Free' }}</span>
                             </div>
                             <div class="status-line">
                                 <span class="status-label">Usage:</span>
-                                <span class="status-value" id="userUsage">{{ user.usage.documents_this_month if user.usage else 0 }}/{{ user.usage.monthly_limit if user.usage else 3 }}</span>
+                                <span class="status-value" id="userUsage">{{ user.usage.documents_this_month if user and user.usage else 0 }}/{{ user.usage.monthly_limit if user and user.usage else 3 }}</span>
                             </div>
                         </div>
                         <a href="/profile" class="profile-link">My Profile</a>
@@ -58,11 +58,11 @@
                         <div class="user-status-info">
                             <div class="status-line">
                                 <span class="status-label">Plan:</span>
-                                <span class="status-value">{{ user.subscription.title() if user.subscription else 'Free' }}</span>
+                                <span class="status-value">{{ user.subscription.title() if user and user.subscription else 'Free' }}</span>
                             </div>
                             <div class="status-line">
                                 <span class="status-label">Usage:</span>
-                                <span class="status-value">{{ user.usage.documents_this_month if user.usage else 0 }}/{{ user.usage.monthly_limit if user.usage else 3 }}</span>
+                                <span class="status-value">{{ user.usage.documents_this_month if user and user.usage else 0 }}/{{ user.usage.monthly_limit if user and user.usage else 3 }}</span>
                             </div>
                         </div>
                         <a href="/profile" class="profile-link">My Profile</a>

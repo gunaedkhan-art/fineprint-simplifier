@@ -1007,6 +1007,28 @@ async def logout_user():
     """Logout user (client-side token removal)"""
     return JSONResponse(content={"success": True, "message": "Logged out successfully"})
 
+@app.get("/api/validate-token")
+async def validate_token(request: Request):
+    """Validate if current token is still valid"""
+    try:
+        current_user = await get_current_user_optional(request)
+        if current_user and current_user.get("user_id"):
+            # Get fresh user data
+            user = user_manager.get_user(current_user["user_id"])
+            if user and user.get("email"):
+                usage = user_manager.get_usage_summary(current_user["user_id"])
+                return JSONResponse(content={
+                    "valid": True,
+                    "user_id": current_user["user_id"],
+                    "email": user.get("email"),
+                    "username": user.get("username"),
+                    "subscription": user.get("subscription", "free"),
+                    "usage": usage
+                })
+        return JSONResponse(content={"valid": False, "reason": "token_expired"}, status_code=401)
+    except Exception as e:
+        return JSONResponse(content={"valid": False, "reason": "token_invalid"}, status_code=401)
+
 @app.post("/api/forgot-password")
 async def forgot_password(request: Request):
     """Send password reset token"""
