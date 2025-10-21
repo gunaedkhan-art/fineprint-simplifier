@@ -815,16 +815,23 @@ async def register_user(request: Request):
         existing_user = user_manager.get_user_by_email(email)
         if existing_user:
             return JSONResponse(
-                content={"error": "User with this email already exists"},
-                status_code=400
+                content={
+                    "error": "Account already exists with this email",
+                    "message": "An account with this email already exists. Please sign in or use a different email.",
+                    "should_login": True
+                },
+                status_code=409  # Conflict
             )
         
         # Check if username already exists
         existing_username = user_manager.get_user_by_username(username)
         if existing_username:
             return JSONResponse(
-                content={"error": "Username already taken"},
-                status_code=400
+                content={
+                    "error": "Username already taken",
+                    "message": "This username is already taken. Please choose a different username."
+                },
+                status_code=409  # Conflict
             )
         
         # Hash password and create user
@@ -833,7 +840,33 @@ async def register_user(request: Request):
         print(f"🔧 REGISTRATION ATTEMPT: username={username}, email={email}")
         print(f"🔧 Password hash created: {bool(password_hash)}")
         
-        user_id, user_data = user_manager.create_authenticated_user(username, email, password_hash)
+        try:
+            user_id, user_data = user_manager.create_authenticated_user(username, email, password_hash)
+        except ValueError as e:
+            # Handle database integrity errors (duplicate email/username)
+            error_msg = str(e)
+            if "email" in error_msg.lower():
+                return JSONResponse(
+                    content={
+                        "error": "Account already exists with this email",
+                        "message": "An account with this email already exists. Please sign in or use a different email.",
+                        "should_login": True
+                    },
+                    status_code=409
+                )
+            elif "username" in error_msg.lower():
+                return JSONResponse(
+                    content={
+                        "error": "Username already taken",
+                        "message": "This username is already taken. Please choose a different username."
+                    },
+                    status_code=409
+                )
+            else:
+                return JSONResponse(
+                    content={"error": error_msg},
+                    status_code=409
+                )
         
         print(f"🔧 create_authenticated_user returned: user_id={user_id}, user_data keys={list(user_data.keys()) if user_data else None}")
         print(f"🔧 user_data email field: {user_data.get('email') if user_data else None}")

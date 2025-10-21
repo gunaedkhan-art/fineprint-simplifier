@@ -155,11 +155,44 @@
                         window.location.href = '/profile';
                     }
                 } else {
-                    throw new Error(data.error || 'Registration failed');
+                    // Handle specific error cases
+                    if (data.should_login) {
+                        // Show message suggesting login
+                        const errorDiv = document.getElementById('error-message');
+                        errorDiv.innerHTML = `
+                            <div style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <strong>Account Already Exists</strong><br>
+                                ${data.message || 'An account with this email already exists.'}
+                                <div style="margin-top: 0.5rem;">
+                                    <a href="/login" style="color: #0066cc; text-decoration: underline;">Click here to sign in instead</a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Show regular error message
+                        const errorDiv = document.getElementById('error-message');
+                        errorDiv.innerHTML = `
+                            <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <strong>Registration Error</strong><br>
+                                ${data.message || data.error || 'Registration failed'}
+                            </div>
+                        `;
+                    }
+                    
+                    // Reset button state
+                    registerBtn.textContent = originalText;
+                    registerBtn.disabled = false;
+                    return;
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                alert('Registration failed: ' + error.message);
+                const errorDiv = document.getElementById('error-message');
+                errorDiv.innerHTML = `
+                    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <strong>Registration Error</strong><br>
+                        ${error.message || 'An unexpected error occurred. Please try again.'}
+                    </div>
+                `;
                 
                 // Reset button state
                 registerBtn.textContent = originalText;

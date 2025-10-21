@@ -77,53 +77,74 @@ class DatabaseManager:
     
     def user_exists(self, user_id: str) -> bool:
         """Check if user exists"""
-        db = self.get_db()
+        db = self.SessionLocal()
         try:
             user = db.query(User).filter(User.user_id == user_id).first()
             return user is not None
+        except Exception as e:
+            print(f"Error checking if user exists: {e}")
+            return False
         finally:
             db.close()
     
     def get_user(self, user_id: str) -> Optional[Dict]:
         """Get user by ID"""
-        db = self.get_db()
+        db = self.SessionLocal()
         try:
             user = db.query(User).filter(User.user_id == user_id).first()
             if user:
                 return self._user_to_dict(user)
+            return None
+        except Exception as e:
+            print(f"Error getting user by ID: {e}")
             return None
         finally:
             db.close()
     
     def get_user_by_email(self, email: str) -> Optional[Dict]:
         """Get user by email"""
-        db = self.get_db()
+        db = self.SessionLocal()
         try:
             user = db.query(User).filter(User.email == email).first()
             if user:
                 return self._user_to_dict(user)
+            return None
+        except Exception as e:
+            print(f"Error getting user by email: {e}")
             return None
         finally:
             db.close()
     
     def get_user_by_username(self, username: str) -> Optional[Dict]:
         """Get user by username"""
-        db = self.get_db()
+        db = self.SessionLocal()
         try:
             user = db.query(User).filter(User.username == username).first()
             if user:
                 return self._user_to_dict(user)
+            return None
+        except Exception as e:
+            print(f"Error getting user by username: {e}")
             return None
         finally:
             db.close()
     
     def create_user(self, user_id: str, email: str, password_hash: str, username: str) -> Dict:
         """Create a new user"""
-        db = self.get_db()
+        from sqlalchemy.exc import IntegrityError
+        
+        db = self.SessionLocal()
         try:
-            # Check if user already exists
-            if self.user_exists(user_id):
-                return self.get_user(user_id)
+            # Check if user already exists by email or username
+            existing_user = db.query(User).filter(
+                (User.email == email) | (User.username == username)
+            ).first()
+            
+            if existing_user:
+                if existing_user.email == email:
+                    raise ValueError(f"User with email {email} already exists")
+                if existing_user.username == username:
+                    raise ValueError(f"Username {username} already taken")
             
             # Create new user
             user = User(
@@ -152,12 +173,20 @@ class DatabaseManager:
             db.refresh(user)
             
             return self._user_to_dict(user)
+        except IntegrityError as e:
+            db.rollback()
+            print(f"Database integrity error: {e}")
+            raise ValueError("User with this email or username already exists")
+        except Exception as e:
+            db.rollback()
+            print(f"Error creating user: {e}")
+            raise
         finally:
             db.close()
     
     def update_user(self, user_id: str, **kwargs) -> bool:
         """Update user data"""
-        db = self.get_db()
+        db = self.SessionLocal()
         try:
             user = db.query(User).filter(User.user_id == user_id).first()
             if not user:
@@ -169,6 +198,10 @@ class DatabaseManager:
             
             db.commit()
             return True
+        except Exception as e:
+            db.rollback()
+            print(f"Error updating user: {e}")
+            return False
         finally:
             db.close()
     
