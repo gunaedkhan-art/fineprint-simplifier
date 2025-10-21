@@ -115,15 +115,7 @@
     <script src="/static/script.js"></script>
     <script>
         // Check authentication status on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Validate token before loading page data
-            const authCheck = await validateAuthToken();
-            if (!authCheck.valid) {
-                clearAuthData();
-                showSessionExpiredMessage();
-                return;
-            }
-            
+        document.addEventListener('DOMContentLoaded', function() {
             checkAuthStatus();
             initializeMobileMenu();
         });

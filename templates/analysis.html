@@ -3,92 +3,92 @@
 {% block title %}Analysis Results - Small Print Checker{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Analysis Results</h1>
+            <div class="page-header">
+                <h1 class="page-title">Analysis Results</h1>
     <p class="page-subtitle">Your document has been analyzed. Review the findings below.</p>
-</div>
+            </div>
 
-<!-- Analysis Results -->
-<div id="results" class="results-section">
-    <!-- Results will be populated by JavaScript -->
-</div>
+            <!-- Analysis Results -->
+            <div id="results" class="results-section">
+                <!-- Results will be populated by JavaScript -->
+            </div>
 
-<!-- Action Buttons -->
-<div class="analysis-actions">
+            <!-- Action Buttons -->
+            <div class="analysis-actions">
     <a href="/upload" class="btn-secondary" onclick="this.href='/upload?user_id=' + new URLSearchParams(window.location.search).get('user_id')">Analyze Another Document</a>
-    <a href="/compare" class="btn-primary">Compare Documents</a>
-</div>
+                <a href="/compare" class="btn-primary">Compare Documents</a>
+            </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-let currentUserId = null;
-let userUsage = null;
+    <script>
+        let currentUserId = null;
+        let userUsage = null;
 
-// Initialize user management
-async function initializeUser() {
+        // Initialize user management
+        async function initializeUser() {
     // Get user ID from URL parameters or localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlUserId = urlParams.get('user_id');
-    
-    if (urlUserId) {
-        currentUserId = urlUserId;
-        localStorage.setItem('fineprint_user_id', currentUserId);
-    } else {
-        currentUserId = localStorage.getItem('fineprint_user_id');
-        if (!currentUserId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('user_id');
+            
+            if (urlUserId) {
+                currentUserId = urlUserId;
+                localStorage.setItem('fineprint_user_id', currentUserId);
+            } else {
+                currentUserId = localStorage.getItem('fineprint_user_id');
+                if (!currentUserId) {
             // Redirect to login if no user ID
-            window.location.href = '/login';
-            return;
+                    window.location.href = '/login';
+                    return;
+                }
+            }
+            
+            await loadUserUsage();
         }
-    }
-    
-    await loadUserUsage();
-}
 
-async function loadUserUsage() {
-    try {
-        const response = await fetch(`/api/usage/${currentUserId}`);
-        userUsage = await response.json();
-    } catch (error) {
-        console.error('Error loading usage:', error);
+        async function loadUserUsage() {
+            try {
+                const response = await fetch(`/api/usage/${currentUserId}`);
+                userUsage = await response.json();
+            } catch (error) {
+                console.error('Error loading usage:', error);
         // Redirect to login if user not found
-        window.location.href = '/login';
-    }
-}
-
-// Load stored analysis results
-async function loadAnalysisResults() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('user_id');
-    
-    if (!userId) {
-        // No user ID, redirect to upload
-        window.location.href = '/upload';
-        return;
-    }
-    
-    const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
-    if (!storedResults) {
-        // No stored results, redirect to upload
-        window.location.href = '/upload';
-        return;
-    }
-    
-    try {
-        const results = JSON.parse(storedResults);
-        const resultsDiv = document.getElementById("results");
-        
-        if (!resultsDiv) {
-            console.error('Results div not found');
-            return;
+                window.location.href = '/login';
+            }
         }
-        
+
+        // Load stored analysis results
+        async function loadAnalysisResults() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            
+            if (!userId) {
+        // No user ID, redirect to upload
+                window.location.href = '/upload';
+                return;
+            }
+            
+            const storedResults = localStorage.getItem(`temp_analysis_${userId}`);
+            if (!storedResults) {
+        // No stored results, redirect to upload
+                window.location.href = '/upload';
+                return;
+            }
+            
+            try {
+                const results = JSON.parse(storedResults);
+                const resultsDiv = document.getElementById("results");
+                
+                if (!resultsDiv) {
+                    console.error('Results div not found');
+                    return;
+                }
+                
         // Clear any existing content
-        resultsDiv.innerHTML = '';
-        
+                resultsDiv.innerHTML = '';
+                
         // Display full analysis results
-        if (results.analysis) {
+                if (results.analysis) {
             // Show success message
             const successMessage = document.createElement('div');
             successMessage.className = 'success-message';
@@ -97,25 +97,25 @@ async function loadAnalysisResults() {
             resultsDiv.appendChild(successMessage);
             
             // Display analysis results
-            displayAnalysisResults(results.analysis);
+                    displayAnalysisResults(results.analysis);
             processAnalysisData(results);
-        } else {
+                } else {
             // Show error message only
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
-            errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
-            resultsDiv.appendChild(errorDiv);
-        }
-        
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;';
+                    errorDiv.innerHTML = '❌ Analysis Failed<br>Unable to analyze the document. Please try again.';
+                    resultsDiv.appendChild(errorDiv);
+                }
+                
         // Clear the stored results
-        localStorage.removeItem(`temp_analysis_${userId}`);
-    } catch (error) {
-        console.error('Error parsing stored results:', error);
+                localStorage.removeItem(`temp_analysis_${userId}`);
+            } catch (error) {
+                console.error('Error parsing stored results:', error);
         // Redirect to upload on error
-        window.location.href = '/upload';
-    }
-}
+                window.location.href = '/upload';
+            }
+        }
 
 // Display analysis results
 function displayAnalysisResults(analysis) {
@@ -126,20 +126,20 @@ function displayAnalysisResults(analysis) {
     
     // Document Quality Assessment
     if (analysis.quality_assessment) {
-        const qualityColors = {
-            'excellent': '#28a745',
-            'good': '#28a745', 
-            'fair': '#ffc107',
-            'poor': '#dc3545'
-        };
+            const qualityColors = {
+                'excellent': '#28a745',
+                'good': '#28a745', 
+                'fair': '#ffc107',
+                'poor': '#dc3545'
+            };
         const qualityColor = qualityColors[analysis.quality_assessment] || '#6c757d';
         
         html += `
             <div class="quality-assessment">
                 <h3 class="quality-title">📊 Document Quality: ${analysis.quality_assessment.charAt(0).toUpperCase() + analysis.quality_assessment.slice(1)}</h3>
                 <p class="quality-details">${analysis.total_pages || 0} pages • ${analysis.total_characters || 0} characters • ${analysis.readable_pages || 0} readable pages</p>
-            </div>
-        `;
+                </div>
+            `;
     }
 
     // Main findings container with two columns
@@ -183,7 +183,7 @@ function displayAnalysisResults(analysis) {
                     
                     html += `
                             </div>
-                        </div>
+                    </div>
                     `;
                 }
             }
@@ -211,16 +211,16 @@ function displayAnalysisResults(analysis) {
         if (Object.keys(goodPoints).length > 0) {
             for (const [category, matches] of Object.entries(goodPoints)) {
                 if (matches && matches.length > 0) {
-                    html += `
+                html += `
                         <div class="finding-category-card benefit-category">
                             <h3 class="category-title">${formatCategoryName(category)}</h3>
                             <div class="finding-items">
-                    `;
-                    
-                    matches.forEach(item => {
-                        const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
-                        const pageNum = item.page || 'N/A';
-                        const score = item.score || 3;
+                `;
+                
+                matches.forEach(item => {
+                    const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
+                    const pageNum = item.page || 'N/A';
+                    const score = item.score || 3;
                         const scoreClass = getBenefitScoreClass(score);
                         html += `
                             <div class="finding-item benefit-item">
@@ -294,18 +294,10 @@ function formatCategoryName(category) {
     return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', async function() {
-    // Validate token before loading page data
-    const authCheck = await validateAuthToken();
-    if (!authCheck.valid) {
-        clearAuthData();
-        showSessionExpiredMessage();
-        return;
-    }
-    
-    await initializeUser();
-    await loadAnalysisResults();
-});
-</script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initializeUser();
+            await loadAnalysisResults();
+        });
+    </script>
 {% endblock %}
