@@ -34,6 +34,9 @@
                             </div>
                         </div>
                         <a href="/profile" class="profile-link">My Profile</a>
+                        {% if user.subscription == 'premium' %}
+                        <a href="/saved-analyses" class="profile-link">My Saved Analyses</a>
+                        {% endif %}
                         {% if user.subscription == 'paid' %}
                         <a href="/subscription-management" class="profile-link" id="subscriptionLink">Manage Subscription</a>
                         {% endif %}
@@ -66,6 +69,9 @@
                             </div>
                         </div>
                         <a href="/profile" class="profile-link">My Profile</a>
+                        {% if user.subscription == 'premium' %}
+                        <a href="/saved-analyses" class="profile-link">My Saved Analyses</a>
+                        {% endif %}
                         {% if user.subscription == 'paid' %}
                         <a href="/subscription-management" class="profile-link">Manage Subscription</a>
                         {% endif %}
@@ -100,6 +106,9 @@
             <!-- Authenticated Mobile Navigation -->
             <div id="mobileProfileSection">
                 <a href="/profile" class="nav-link">My Profile</a>
+                {% if user.subscription == 'premium' %}
+                <a href="/saved-analyses" class="nav-link">My Saved Analyses</a>
+                {% endif %}
                 {% if user.subscription == 'paid' %}
                 <a href="/subscription-management" class="nav-link" id="mobileSubscriptionLink">Manage Subscription</a>
                 {% endif %}

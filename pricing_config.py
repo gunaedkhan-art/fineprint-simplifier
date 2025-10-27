@@ -19,7 +19,8 @@ PAID_TIER_FEATURES = [
     "export_word",
     "export_excel",
     "advanced_analytics",
-    "priority_support"
+    "priority_support",
+    "saved_analyses"
 ]
 
 # Feature descriptions for UI
@@ -34,7 +35,8 @@ FEATURE_DESCRIPTIONS = {
     "export_word": "Export analysis results to Word document",
     "export_excel": "Export analysis results to Excel spreadsheet",
     "advanced_analytics": "Detailed contract scoring and insights",
-    "priority_support": "Priority customer support"
+    "priority_support": "Priority customer support",
+    "saved_analyses": "Save up to 50 analysis results with custom names and notes"
 }
 
 # Pricing information

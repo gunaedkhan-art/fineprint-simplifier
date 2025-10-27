@@ -636,6 +636,40 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Save Analysis Banner -->
+                    <div id="saveAnalysisBanner" class="save-analysis-banner" style="display: none;">
+                        <div class="save-banner-content">
+                            <h3>💾 Save This Analysis</h3>
+                            <div class="save-form">
+                                <div class="form-group">
+                                    <label for="analysisName">Analysis Name:</label>
+                                    <input type="text" id="analysisName" placeholder="Enter a name for this analysis..." />
+                                </div>
+                                <div class="form-group">
+                                    <label for="analysisNotes">Notes (optional):</label>
+                                    <textarea id="analysisNotes" placeholder="Add any notes about this analysis..." rows="2"></textarea>
+                                </div>
+                                <div class="save-actions">
+                                    <button onclick="saveAnalysis()" class="btn-save" id="saveBtn">Save Analysis</button>
+                                    <div class="save-count" id="saveCountDisplay">0 / 50 saved</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upgrade Prompt for Free Users -->
+                    <div id="upgradePrompt" class="upgrade-prompt" style="display: none;">
+                        <div class="upgrade-content">
+                            <h3>💎 Save Your Analysis</h3>
+                            <p>Pro users can save up to 50 analysis results with custom names and notes for future reference.</p>
+                            <div class="upgrade-actions">
+                                <a href="/pricing" class="btn-upgrade">Upgrade to Pro</a>
+                                <button onclick="hideUpgradePrompt()" class="btn-secondary">Maybe Later</button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     ${qualityInfo}
             `;
 
@@ -766,6 +800,9 @@
             
             // Show the legal disclaimer when results are displayed
             document.getElementById("legal-disclaimer-results").style.display = "block";
+            
+            // Show save prompt for users
+            showSavePromptForAnalysis(analysis);
         }
 
         function processAnalysisData(data) {
@@ -890,6 +927,336 @@
                 }
             }
         }
+
+        // Save Analysis Functionality
+        let currentAnalysisData = null;
+        let currentFilename = null;
+
+        function showSavePromptForAnalysis(analysis) {
+            // Store the current analysis data for saving
+            currentAnalysisData = analysis;
+            
+            // Get the filename from the current upload
+            const fileInput = document.getElementById('file');
+            if (fileInput && fileInput.files.length > 0) {
+                currentFilename = fileInput.files[0].name;
+            }
+            
+            // Check user subscription and show appropriate prompt
+            if (userSubscription === 'premium') {
+                showSavePrompt('premium');
+            } else {
+                showSavePrompt('free');
+            }
+        }
+
+        function showSavePrompt(userSubscription) {
+            if (userSubscription === 'premium') {
+                document.getElementById('saveAnalysisBanner').style.display = 'block';
+                document.getElementById('upgradePrompt').style.display = 'none';
+                loadSaveCount();
+            } else {
+                document.getElementById('upgradePrompt').style.display = 'block';
+                document.getElementById('saveAnalysisBanner').style.display = 'none';
+            }
+        }
+
+        function hideUpgradePrompt() {
+            document.getElementById('upgradePrompt').style.display = 'none';
+        }
+
+        function setCurrentAnalysis(analysisData, filename) {
+            currentAnalysisData = analysisData;
+            currentFilename = filename;
+            
+            // Pre-fill the analysis name with filename
+            if (filename) {
+                const nameInput = document.getElementById('analysisName');
+                if (nameInput) {
+                    nameInput.value = filename.replace(/\.[^/.]+$/, ""); // Remove extension
+                }
+            }
+        }
+
+        async function loadSaveCount() {
+            try {
+                const response = await fetch(`/api/saved-analyses?user_id=${currentUserId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const countDisplay = document.getElementById('saveCountDisplay');
+                    if (countDisplay) {
+                        countDisplay.textContent = `${data.total_count} / 50 saved`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading save count:', error);
+            }
+        }
+
+        async function saveAnalysis() {
+            const nameInput = document.getElementById('analysisName');
+            const notesInput = document.getElementById('analysisNotes');
+            const saveBtn = document.getElementById('saveBtn');
+            
+            if (!nameInput || !currentAnalysisData) {
+                alert('No analysis data to save');
+                return;
+            }
+            
+            const analysisName = nameInput.value.trim();
+            if (!analysisName) {
+                alert('Please enter a name for this analysis');
+                return;
+            }
+            
+            const notes = notesInput ? notesInput.value.trim() : '';
+            
+            // Disable save button to prevent double-clicks
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('analysis_name', analysisName);
+                formData.append('original_filename', currentFilename || 'Unknown file');
+                formData.append('notes', notes);
+                formData.append('analysis_data', JSON.stringify(currentAnalysisData));
+                formData.append('user_id', currentUserId);
+                
+                const response = await fetch('/api/save-analysis', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message
+                    showSaveSuccess(data.message, data.save_count);
+                    
+                    // Update save count
+                    const countDisplay = document.getElementById('saveCountDisplay');
+                    if (countDisplay) {
+                        countDisplay.textContent = `${data.save_count} / 50 saved`;
+                    }
+                    
+                    // Clear form
+                    nameInput.value = '';
+                    if (notesInput) notesInput.value = '';
+                } else {
+                    if (data.upgrade_required) {
+                        // Show upgrade prompt instead
+                        document.getElementById('saveAnalysisBanner').style.display = 'none';
+                        document.getElementById('upgradePrompt').style.display = 'block';
+                    } else {
+                        alert('Error saving analysis: ' + (data.error || 'Unknown error'));
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving analysis:', error);
+                alert('Network error saving analysis. Please try again.');
+            } finally {
+                // Re-enable save button
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Analysis';
+            }
+        }
+
+        function showSaveSuccess(message, saveCount) {
+            // Create a temporary success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'save-success-message';
+            successDiv.innerHTML = `
+                <div class="success-content">
+                    <span class="success-icon">✅</span>
+                    <span class="success-text">${message}</span>
+                </div>
+            `;
+            
+            // Insert after the save banner
+            const saveBanner = document.getElementById('saveAnalysisBanner');
+            saveBanner.parentNode.insertBefore(successDiv, saveBanner.nextSibling);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 3000);
+        }
     </script>
+
+    <style>
+        /* Save Analysis Banner Styles */
+        .save-analysis-banner, .upgrade-prompt {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .save-banner-content h3, .upgrade-content h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1.3rem;
+        }
+
+        .save-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group textarea {
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-group input::placeholder, .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .save-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-save {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-save:hover:not(:disabled) {
+            background: #229954;
+        }
+
+        .btn-save:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .save-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .upgrade-content p {
+            margin: 0 0 1rem 0;
+            opacity: 0.9;
+        }
+
+        .upgrade-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-upgrade {
+            background: #f39c12;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-upgrade:hover {
+            background: #e67e22;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .save-success-message {
+            background: #27ae60;
+            color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .success-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .success-icon {
+            font-size: 1.2rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .save-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .save-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .upgrade-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
 </body>
 </html>

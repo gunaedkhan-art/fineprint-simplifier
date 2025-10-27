@@ -158,6 +158,14 @@ except Exception as e:
         print(f"✗ Both user_management systems failed: {e2}")
         user_manager = None
 
+# Import database manager
+try:
+    from database import db_manager
+    print("✓ database manager imported successfully")
+except Exception as e:
+    print(f"✗ database manager import failed: {e}")
+    db_manager = None
+
 try:
     from auth import auth_manager, get_current_user_optional
     print("✓ auth imported successfully")
@@ -228,7 +236,7 @@ async def lifespan(app):
         
         # Initialize database
         try:
-            from database import init_database
+            from database import init_database, db_manager
             init_database()
             print("✓ Database initialized successfully")
         except Exception as e:
@@ -1207,7 +1215,8 @@ async def get_pattern_descriptions():
 async def update_pattern_description(request: Request):
     """Update a pattern description (admin only)"""
     # Check admin authentication
-    admin = get_current_admin(request)
+    from admin import check_admin_auth
+    admin = check_admin_auth(request)
     if not admin:
         return JSONResponse(
             content={"error": "Admin authentication required"},
@@ -1565,6 +1574,12 @@ async def payment_success(request: Request, session_id: str = None, email: str =
             "error": "Payment verification failed - payment not completed"
         })
         
+    except ImportError:
+        print("Stripe not available - payment processing disabled")
+        return templates.TemplateResponse("payment_error.html", {
+            "request": request,
+            "error": "Payment processing not available - Stripe not configured"
+        })
     except Exception as e:
         print(f"Payment success error: {e}")
         return templates.TemplateResponse("payment_error.html", {
@@ -1691,6 +1706,12 @@ async def stripe_webhook(request: Request):
         
         return JSONResponse(content={"status": "success"})
         
+    except ImportError:
+        print("Stripe not available - webhook processing disabled")
+        return JSONResponse(
+            content={"error": "Webhook processing not available - Stripe not configured"},
+            status_code=500
+        )
     except Exception as e:
         print(f"Webhook error: {str(e)}")
         return JSONResponse(
@@ -2640,6 +2661,308 @@ def find_document_differences(analysis1, analysis2):
         })
     
     return differences
+
+
+# Saved Analysis API Endpoints
+@app.post("/api/save-analysis")
+async def save_analysis(
+    request: Request,
+    analysis_name: str = Form(...),
+    original_filename: str = Form(...),
+    notes: str = Form(None),
+    analysis_data: str = Form(...),  # JSON string
+    user_id: str = Form(...)
+):
+    """Save analysis for premium users only"""
+    try:
+        # Check if user exists and is premium
+        if not user_manager:
+            return JSONResponse(
+                content={"success": False, "error": "User management not available"},
+                status_code=500
+            )
+        
+        user = user_manager.get_user(user_id)
+        if not user:
+            return JSONResponse(
+                content={"success": False, "error": "User not found"},
+                status_code=404
+            )
+        
+        # Check if user is premium
+        if user.get("subscription") != "premium":
+            return JSONResponse(
+                content={
+                    "success": False, 
+                    "error": "Premium subscription required",
+                    "upgrade_required": True,
+                    "message": "This feature is available for Pro users only. Upgrade to save your analyses."
+                },
+                status_code=403
+            )
+        
+        # Check save limit (50 saves)
+        if not db_manager:
+            return JSONResponse(
+                content={"success": False, "error": "Database not available"},
+                status_code=500
+            )
+        
+        current_count = db_manager.count_user_saved_analyses(user_id)
+        if current_count >= 50:
+            return JSONResponse(
+                content={
+                    "success": False,
+                    "error": "Save limit reached",
+                    "message": "You've reached the maximum of 50 saved analyses. Delete some to save new ones."
+                },
+                status_code=400
+            )
+        
+        # Parse analysis data
+        import json
+        try:
+            analysis_json = json.loads(analysis_data)
+        except json.JSONDecodeError:
+            return JSONResponse(
+                content={"success": False, "error": "Invalid analysis data format"},
+                status_code=400
+            )
+        
+        # Save the analysis
+        saved_analysis = db_manager.create_saved_analysis(
+            user_id=user_id,
+            analysis_name=analysis_name,
+            original_filename=original_filename,
+            notes=notes or "",
+            analysis_data=analysis_json
+        )
+        
+        if saved_analysis:
+            return JSONResponse(content={
+                "success": True,
+                "saved_analysis": {
+                    "id": saved_analysis["id"],
+                    "analysis_name": saved_analysis["analysis_name"],
+                    "original_filename": saved_analysis["original_filename"],
+                    "created_at": saved_analysis["created_at"]
+                },
+                "save_count": current_count + 1,
+                "message": "Analysis saved successfully!"
+            })
+        else:
+            return JSONResponse(
+                content={"success": False, "error": "Failed to save analysis"},
+                status_code=500
+            )
+            
+    except Exception as e:
+        print(f"Error saving analysis: {e}")
+        return JSONResponse(
+            content={"success": False, "error": "Internal server error"},
+            status_code=500
+        )
+
+
+@app.get("/api/saved-analyses")
+async def get_saved_analyses(user_id: str):
+    """Get user's saved analyses (metadata only)"""
+    try:
+        if not user_manager:
+            return JSONResponse(
+                content={"success": False, "error": "User management not available"},
+                status_code=500
+            )
+        
+        user = user_manager.get_user(user_id)
+        if not user:
+            return JSONResponse(
+                content={"success": False, "error": "User not found"},
+                status_code=404
+            )
+        
+        # Get saved analyses
+        if not db_manager:
+            return JSONResponse(
+                content={"success": False, "error": "Database not available"},
+                status_code=500
+            )
+        
+        analyses = db_manager.get_saved_analyses(user_id)
+        
+        # Return metadata only (no full analysis data)
+        metadata = []
+        for analysis in analyses:
+            metadata.append({
+                "id": analysis["id"],
+                "analysis_name": analysis["analysis_name"],
+                "original_filename": analysis["original_filename"],
+                "created_at": analysis["created_at"],
+                "updated_at": analysis["updated_at"]
+            })
+        
+        return JSONResponse(content={
+            "success": True,
+            "analyses": metadata,
+            "total_count": len(metadata)
+        })
+        
+    except Exception as e:
+        print(f"Error getting saved analyses: {e}")
+        return JSONResponse(
+            content={"success": False, "error": "Internal server error"},
+            status_code=500
+        )
+
+
+@app.get("/api/saved-analysis/{analysis_id}")
+async def get_saved_analysis(analysis_id: int, user_id: str):
+    """Get specific saved analysis by ID"""
+    try:
+        if not user_manager:
+            return JSONResponse(
+                content={"success": False, "error": "User management not available"},
+                status_code=500
+            )
+        
+        user = user_manager.get_user(user_id)
+        if not user:
+            return JSONResponse(
+                content={"success": False, "error": "User not found"},
+                status_code=404
+            )
+        
+        # Get the saved analysis
+        if not db_manager:
+            return JSONResponse(
+                content={"success": False, "error": "Database not available"},
+                status_code=500
+            )
+        
+        analysis = db_manager.get_saved_analysis(analysis_id, user_id)
+        if not analysis:
+            return JSONResponse(
+                content={"success": False, "error": "Analysis not found"},
+                status_code=404
+            )
+        
+        return JSONResponse(content={
+            "success": True,
+            "analysis": analysis
+        })
+        
+    except Exception as e:
+        print(f"Error getting saved analysis: {e}")
+        return JSONResponse(
+            content={"success": False, "error": "Internal server error"},
+            status_code=500
+        )
+
+
+@app.put("/api/saved-analysis/{analysis_id}")
+async def update_saved_analysis(
+    analysis_id: int,
+    user_id: str,
+    analysis_name: str = Form(None),
+    notes: str = Form(None)
+):
+    """Update saved analysis name and/or notes"""
+    try:
+        if not user_manager:
+            return JSONResponse(
+                content={"success": False, "error": "User management not available"},
+                status_code=500
+            )
+        
+        user = user_manager.get_user(user_id)
+        if not user:
+            return JSONResponse(
+                content={"success": False, "error": "User not found"},
+                status_code=404
+            )
+        
+        # Update the saved analysis
+        if not db_manager:
+            return JSONResponse(
+                content={"success": False, "error": "Database not available"},
+                status_code=500
+            )
+        
+        success = db_manager.update_saved_analysis(
+            analysis_id=analysis_id,
+            user_id=user_id,
+            analysis_name=analysis_name,
+            notes=notes
+        )
+        
+        if success:
+            return JSONResponse(content={
+                "success": True,
+                "message": "Analysis updated successfully!"
+            })
+        else:
+            return JSONResponse(
+                content={"success": False, "error": "Analysis not found or update failed"},
+                status_code=404
+            )
+        
+    except Exception as e:
+        print(f"Error updating saved analysis: {e}")
+        return JSONResponse(
+            content={"success": False, "error": "Internal server error"},
+            status_code=500
+        )
+
+
+@app.delete("/api/saved-analysis/{analysis_id}")
+async def delete_saved_analysis(analysis_id: int, user_id: str):
+    """Delete saved analysis"""
+    try:
+        if not user_manager:
+            return JSONResponse(
+                content={"success": False, "error": "User management not available"},
+                status_code=500
+            )
+        
+        user = user_manager.get_user(user_id)
+        if not user:
+            return JSONResponse(
+                content={"success": False, "error": "User not found"},
+                status_code=404
+            )
+        
+        # Delete the saved analysis
+        if not db_manager:
+            return JSONResponse(
+                content={"success": False, "error": "Database not available"},
+                status_code=500
+            )
+        
+        success = db_manager.delete_saved_analysis(analysis_id, user_id)
+        
+        if success:
+            return JSONResponse(content={
+                "success": True,
+                "message": "Analysis deleted successfully!"
+            })
+        else:
+            return JSONResponse(
+                content={"success": False, "error": "Analysis not found or delete failed"},
+                status_code=404
+            )
+        
+    except Exception as e:
+        print(f"Error deleting saved analysis: {e}")
+        return JSONResponse(
+            content={"success": False, "error": "Internal server error"},
+            status_code=500
+        )
+
+
+@app.get("/saved-analyses")
+async def saved_analyses_page(request: Request):
+    """Saved analyses dashboard page"""
+    return templates.TemplateResponse("saved_analyses.html", {"request": request})
 
 
 if __name__ == "__main__":

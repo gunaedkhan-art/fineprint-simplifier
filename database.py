@@ -1,11 +1,11 @@
 # database.py - Database configuration and connection management
 
 import os
-from sqlalchemy import create_engine, Column, String, Integer, DateTime, Boolean, Text, JSON
+from sqlalchemy import create_engine, Column, String, Integer, DateTime, Boolean, Text, JSON, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker, Session, relationship
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import json
 
 # Database configuration
@@ -55,6 +55,24 @@ class User(Base):
         "abandoned_upgrades": 0,
         "upgrade_abandoned_at": None
     })
+
+class SavedAnalysis(Base):
+    __tablename__ = "saved_analyses"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String, ForeignKey("users.user_id"), nullable=False)
+    analysis_name = Column(String(255), nullable=False)
+    original_filename = Column(String(255), nullable=True)
+    notes = Column(Text, nullable=True)
+    analysis_data = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Add indexes for performance
+    __table_args__ = (
+        Index('idx_saved_analyses_user_id', 'user_id'),
+        Index('idx_saved_analyses_created_at', 'created_at'),
+    )
 
 class DatabaseManager:
     """Database manager for user operations"""
@@ -267,6 +285,141 @@ class DatabaseManager:
             "subscription_expires": user.subscription_expires.isoformat() if user.subscription_expires else None,
             "usage": user.usage_data or {},
             "upgrade_tracking": user.upgrade_tracking_data or {}
+        }
+    
+    # Saved Analysis Methods
+    def create_saved_analysis(self, user_id: str, analysis_name: str, original_filename: str, 
+                            notes: str, analysis_data: Dict) -> Optional[Dict]:
+        """Create a new saved analysis"""
+        db = self.SessionLocal()
+        try:
+            saved_analysis = SavedAnalysis(
+                user_id=user_id,
+                analysis_name=analysis_name,
+                original_filename=original_filename,
+                notes=notes,
+                analysis_data=analysis_data,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            
+            db.add(saved_analysis)
+            db.commit()
+            db.refresh(saved_analysis)
+            
+            return self._saved_analysis_to_dict(saved_analysis)
+        except Exception as e:
+            db.rollback()
+            print(f"Error creating saved analysis: {e}")
+            return None
+        finally:
+            db.close()
+    
+    def get_saved_analyses(self, user_id: str, limit: int = 50, offset: int = 0) -> List[Dict]:
+        """Get user's saved analyses (metadata only)"""
+        db = self.SessionLocal()
+        try:
+            analyses = db.query(SavedAnalysis).filter(
+                SavedAnalysis.user_id == user_id
+            ).order_by(SavedAnalysis.created_at.desc()).offset(offset).limit(limit).all()
+            
+            return [self._saved_analysis_to_dict(analysis) for analysis in analyses]
+        except Exception as e:
+            print(f"Error getting saved analyses: {e}")
+            return []
+        finally:
+            db.close()
+    
+    def get_saved_analysis(self, analysis_id: int, user_id: str) -> Optional[Dict]:
+        """Get specific saved analysis by ID"""
+        db = self.SessionLocal()
+        try:
+            analysis = db.query(SavedAnalysis).filter(
+                SavedAnalysis.id == analysis_id,
+                SavedAnalysis.user_id == user_id
+            ).first()
+            
+            if analysis:
+                return self._saved_analysis_to_dict(analysis)
+            return None
+        except Exception as e:
+            print(f"Error getting saved analysis: {e}")
+            return None
+        finally:
+            db.close()
+    
+    def update_saved_analysis(self, analysis_id: int, user_id: str, 
+                            analysis_name: str = None, notes: str = None) -> bool:
+        """Update saved analysis name and/or notes"""
+        db = self.SessionLocal()
+        try:
+            analysis = db.query(SavedAnalysis).filter(
+                SavedAnalysis.id == analysis_id,
+                SavedAnalysis.user_id == user_id
+            ).first()
+            
+            if not analysis:
+                return False
+            
+            if analysis_name is not None:
+                analysis.analysis_name = analysis_name
+            if notes is not None:
+                analysis.notes = notes
+            
+            analysis.updated_at = datetime.utcnow()
+            db.commit()
+            return True
+        except Exception as e:
+            db.rollback()
+            print(f"Error updating saved analysis: {e}")
+            return False
+        finally:
+            db.close()
+    
+    def delete_saved_analysis(self, analysis_id: int, user_id: str) -> bool:
+        """Delete saved analysis"""
+        db = self.SessionLocal()
+        try:
+            analysis = db.query(SavedAnalysis).filter(
+                SavedAnalysis.id == analysis_id,
+                SavedAnalysis.user_id == user_id
+            ).first()
+            
+            if analysis:
+                db.delete(analysis)
+                db.commit()
+                return True
+            return False
+        except Exception as e:
+            db.rollback()
+            print(f"Error deleting saved analysis: {e}")
+            return False
+        finally:
+            db.close()
+    
+    def count_user_saved_analyses(self, user_id: str) -> int:
+        """Count user's saved analyses"""
+        db = self.SessionLocal()
+        try:
+            count = db.query(SavedAnalysis).filter(SavedAnalysis.user_id == user_id).count()
+            return count
+        except Exception as e:
+            print(f"Error counting saved analyses: {e}")
+            return 0
+        finally:
+            db.close()
+    
+    def _saved_analysis_to_dict(self, analysis: SavedAnalysis) -> Dict:
+        """Convert SavedAnalysis model to dictionary"""
+        return {
+            "id": analysis.id,
+            "user_id": analysis.user_id,
+            "analysis_name": analysis.analysis_name,
+            "original_filename": analysis.original_filename,
+            "notes": analysis.notes,
+            "analysis_data": analysis.analysis_data,
+            "created_at": analysis.created_at.isoformat() if analysis.created_at else None,
+            "updated_at": analysis.updated_at.isoformat() if analysis.updated_at else None
         }
 
 # Global database manager instance
