@@ -3,6 +3,33 @@
 ## ⚠️ Current Status
 Your application is currently using SQLite, which **WILL LOSE ALL DATA** on every Railway deployment.
 
+## 🚨 URGENT: Still Seeing SQLite Warning?
+
+If you've added PostgreSQL but still see the SQLite warning:
+
+### Check #1: Is PostgreSQL Service Added?
+1. In Railway Dashboard, look for a service named **"PostgreSQL"** in your project
+2. If you don't see it, you need to add it (see Step 1 below)
+
+### Check #2: Is DATABASE_URL Set?
+1. In Railway Dashboard → Your Project → **Variables** tab
+2. Look for a variable named `DATABASE_URL`
+3. **If missing:** Railway hasn't automatically set it up
+4. **To fix:** 
+   - Click on your PostgreSQL service
+   - Go to the **"Connect"** tab
+   - Copy the connection string (starts with `postgresql://`)
+   - Go back to your main service → Variables tab
+   - Add new variable: Name = `DATABASE_URL`, Value = (paste the connection string)
+   - Redeploy
+
+### Check #3: Did You Redeploy?
+After adding the variable, you MUST redeploy:
+1. Go to your main service in Railway
+2. Click the "..." menu → **"Redeploy"**
+3. Wait for deployment to complete
+4. Check logs for: `✅ Using PostgreSQL - data will persist across deployments`
+
 ## ✅ Quick Setup (5 minutes)
 
 ### Step 1: Add PostgreSQL Database to Railway
