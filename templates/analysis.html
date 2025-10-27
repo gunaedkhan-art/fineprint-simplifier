@@ -24,6 +24,7 @@
     <script>
         let currentUserId = null;
         let userUsage = null;
+        let patternDescriptions = {};
 
         // Initialize user management
         async function initializeUser() {
@@ -167,16 +168,41 @@ function displayAnalysisResults(analysis) {
                             <div class="finding-items">
                     `;
                     
-                    matches.forEach(item => {
+                    matches.forEach((item, index) => {
                         const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
                         const pageNum = item.page || 'N/A';
                         const score = item.score || 3;
                         const scoreClass = getRiskScoreClass(score);
+                        const findingId = `risk-${category}-${index}`;
+                        const description = getDescription(category);
+                        
                         html += `
                             <div class="finding-item risk-item">
                                 <div class="finding-text">${matchText}</div>
                                 <div class="finding-page">Page ${pageNum}</div>
                                 <div class="finding-score ${scoreClass}">Risk Score: ${score}/5</div>
+                                
+                                <div class="finding-description-toggle" onclick="toggleDescription('${findingId}')">
+                                    <span class="toggle-icon">▼</span> Why this matters
+                                </div>
+                                <div class="finding-description" id="desc-${findingId}" style="display: none;">
+                                    <div class="desc-section">
+                                        <strong>What it means:</strong>
+                                        <p>${description.short}</p>
+                                    </div>
+                                    ${description.why_matters ? `
+                                    <div class="desc-section">
+                                        <strong>Why it matters:</strong>
+                                        <p>${description.why_matters}</p>
+                                    </div>
+                                    ` : ''}
+                                    ${description.watch_for ? `
+                                    <div class="desc-section">
+                                        <strong>What to watch for:</strong>
+                                        <p>${description.watch_for}</p>
+                                    </div>
+                                    ` : ''}
+                                </div>
                             </div>
                         `;
                     });
@@ -217,19 +243,44 @@ function displayAnalysisResults(analysis) {
                             <div class="finding-items">
                 `;
                 
-                matches.forEach(item => {
+                matches.forEach((item, index) => {
                     const matchText = typeof item === 'string' ? item : item.match || item.phrase || 'Unknown';
                     const pageNum = item.page || 'N/A';
                     const score = item.score || 3;
-                        const scoreClass = getBenefitScoreClass(score);
-                        html += `
-                            <div class="finding-item benefit-item">
-                                <div class="finding-text">${matchText}</div>
-                                <div class="finding-page">Page ${pageNum}</div>
-                                <div class="finding-score ${scoreClass}">Benefit Score: ${score}/5</div>
+                    const scoreClass = getBenefitScoreClass(score);
+                    const findingId = `benefit-${category}-${index}`;
+                    const description = getDescription(category);
+                    
+                    html += `
+                        <div class="finding-item benefit-item">
+                            <div class="finding-text">${matchText}</div>
+                            <div class="finding-page">Page ${pageNum}</div>
+                            <div class="finding-score ${scoreClass}">Benefit Score: ${score}/5</div>
+                            
+                            <div class="finding-description-toggle" onclick="toggleDescription('${findingId}')">
+                                <span class="toggle-icon">▼</span> Why this matters
                             </div>
-                        `;
-                    });
+                            <div class="finding-description" id="desc-${findingId}" style="display: none;">
+                                <div class="desc-section">
+                                    <strong>What it means:</strong>
+                                    <p>${description.short}</p>
+                                </div>
+                                ${description.why_matters ? `
+                                <div class="desc-section">
+                                    <strong>Why it matters:</strong>
+                                    <p>${description.why_matters}</p>
+                                </div>
+                                ` : ''}
+                                ${description.watch_for ? `
+                                <div class="desc-section">
+                                    <strong>What to watch for:</strong>
+                                    <p>${description.watch_for}</p>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
                     
                     html += `
                             </div>
@@ -294,8 +345,53 @@ function formatCategoryName(category) {
     return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
+        // Load pattern descriptions
+        async function loadPatternDescriptions() {
+            try {
+                const response = await fetch('/api/pattern-descriptions');
+                if (response.ok) {
+                    patternDescriptions = await response.json();
+                    console.log('Pattern descriptions loaded:', Object.keys(patternDescriptions).length);
+                }
+            } catch (error) {
+                console.warn('Could not load pattern descriptions:', error);
+            }
+        }
+
+        // Get description for a pattern category
+        function getDescription(category) {
+            const desc = patternDescriptions[category];
+            if (!desc) {
+                return {
+                    short: "No description available",
+                    why_matters: "",
+                    watch_for: ""
+                };
+            }
+            // Handle both old format (string) and new format (object)
+            if (typeof desc === 'string') {
+                return { short: desc, why_matters: "", watch_for: "" };
+            }
+            return desc;
+        }
+
+        // Toggle description visibility
+        function toggleDescription(findingId) {
+            const desc = document.getElementById('desc-' + findingId);
+            const toggle = desc.previousElementSibling.querySelector('.toggle-icon');
+            
+            if (desc.style.display === 'none') {
+                desc.style.display = 'block';
+                toggle.textContent = '▲';
+            } else {
+                desc.style.display = 'none';
+                toggle.textContent = '▼';
+            }
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async function() {
+            await loadPatternDescriptions();
             await initializeUser();
             await loadAnalysisResults();
         });

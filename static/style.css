@@ -4186,3 +4186,94 @@ h1.logo {
         padding: var(--space-3);
     }
 }
+
+/* Pattern Description Styles */
+.finding-description-toggle {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: rgba(37, 99, 235, 0.05);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    user-select: none;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+}
+
+.finding-description-toggle:hover {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+.toggle-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    font-size: 0.8rem;
+    margin-right: var(--space-2);
+}
+
+.finding-description {
+    margin-top: var(--space-2);
+    padding: var(--space-4);
+    background: var(--surface-color);
+    border-left: 3px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.finding-description .desc-section {
+    margin-bottom: var(--space-3);
+}
+
+.finding-description .desc-section:last-child {
+    margin-bottom: 0;
+}
+
+.finding-description strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: var(--space-1);
+    font-weight: 600;
+}
+
+.finding-description p {
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.risk-item .finding-description {
+    border-left-color: #dc2626;
+}
+
+.benefit-item .finding-description {
+    border-left-color: #16a34a;
+}
+
+/* Mobile responsive for descriptions */
+@media (max-width: 640px) {
+    .finding-description-toggle {
+        padding: var(--space-2);
+        font-size: 0.85rem;
+    }
+    
+    .finding-description {
+        padding: var(--space-3);
+        font-size: 0.85rem;
+    }
+}

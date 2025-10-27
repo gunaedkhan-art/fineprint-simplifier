@@ -1,23 +1,117 @@
 {
-  "early_termination_fee": "Charges applied if you cancel the service before the contract ends",
-  "automatic_renewal": "Contract automatically renews unless you actively cancel it",
-  "arbitration_clause": "Requires disputes to be settled through arbitration instead of court",
-  "late_payment_penalties": "Additional fees charged for late or missed payments",
-  "non_refundable": "Payments that cannot be refunded under any circumstances",
-  "limited_liability": "Limits the company's responsibility for damages or losses",
-  "service_availability_disclaimer": "No guarantee that the service will always be available",
-  "unilateral_modification": "Company can change terms without your consent",
-  "hidden_charges": "Additional fees that may not be immediately obvious",
-  "data_sharing": "Your data may be shared with third parties",
-  "rights_limitation": "Restrictions on your legal rights or ability to take action",
-  "grace_period": "Time period where you can cancel without penalties",
-  "money_back_guarantee": "Promise to refund your money if not satisfied",
-  "data_protection": "Commitments to protect and secure your personal data",
-  "limitation_of_liability": "Clear limits on company liability (can be good if reasonable)",
-  "no_win_no_fee": "You only pay if the service succeeds",
-  "fee_caps": "Maximum limits on fees you can be charged",
-  "cost_protection": "Protection against unexpected cost increases",
-  "cooling_off": "Period where you can cancel without penalty",
-  "transparency": "Clear and upfront disclosure of terms and conditions"
+  "early_termination_fee": {
+    "short": "Charges applied if you cancel the service before the contract ends",
+    "why_matters": "Can result in significant unexpected costs if your circumstances change or you're not satisfied with the service",
+    "watch_for": "Check if fees are proportional to remaining contract time, if they decrease over time, or if there are valid exemptions like job relocation or health issues",
+    "examples": ["Canceling gym membership early", "Breaking apartment lease", "Ending phone contract before term"]
+  },
+  "automatic_renewal": {
+    "short": "Contract automatically renews unless you actively cancel it",
+    "why_matters": "You may be charged for another term without realizing it, and cancellation windows can be very short",
+    "watch_for": "Look for renewal notice requirements, cancellation deadlines, and whether you need to cancel in writing or by phone",
+    "examples": ["Gym memberships", "Software subscriptions", "Insurance policies", "Magazine subscriptions"]
+  },
+  "arbitration_clause": {
+    "short": "Requires disputes to be settled through arbitration instead of court",
+    "why_matters": "Arbitration often favors companies, limits your legal rights, and may prevent class action lawsuits",
+    "watch_for": "Check if arbitration is mandatory, who chooses the arbitrator, and whether you can opt out within a certain timeframe",
+    "examples": ["Employment contracts", "Credit card agreements", "Service contracts", "Purchase agreements"]
+  },
+  "late_payment_penalties": {
+    "short": "Additional fees charged for late or missed payments",
+    "why_matters": "Can quickly add up and compound, making it harder to catch up on payments",
+    "watch_for": "Look for grace periods, maximum penalty amounts, and whether penalties can exceed the original debt",
+    "examples": ["Credit card late fees", "Mortgage late charges", "Utility bill penalties", "Loan payment fees"]
+  },
+  "non_refundable": {
+    "short": "Payments that cannot be refunded under any circumstances",
+    "why_matters": "You lose money even if the service is never provided or is unsatisfactory",
+    "watch_for": "Check if there are exceptions for service failures, fraud, or if the company goes out of business",
+    "examples": ["Application fees", "Processing fees", "Deposits", "Membership fees"]
+  },
+  "limited_liability": {
+    "short": "Limits the company's responsibility for damages or losses",
+    "why_matters": "May prevent you from recovering full damages if something goes wrong with the service",
+    "watch_for": "Check if limits are reasonable, if they exclude gross negligence, and whether you can purchase additional protection",
+    "examples": ["Software licenses", "Service agreements", "Event tickets", "Online platforms"]
+  },
+  "service_availability_disclaimer": {
+    "short": "No guarantee that the service will always be available",
+    "why_matters": "You may pay for services you can't use, with no recourse or refund",
+    "watch_for": "Look for uptime guarantees, compensation for outages, and whether maintenance windows are reasonable",
+    "examples": ["Online services", "Cloud platforms", "Mobile apps", "Streaming services"]
+  },
+  "unilateral_modification": {
+    "short": "Company can change terms without your consent",
+    "why_matters": "Terms you agreed to can change to your disadvantage, with no way to opt out",
+    "watch_for": "Check if there are notice requirements, whether you can cancel without penalty, and if changes are reasonable",
+    "examples": ["Social media platforms", "Banking agreements", "Software terms", "Service contracts"]
+  },
+  "data_sharing": {
+    "short": "Your data may be shared with third parties",
+    "why_matters": "Your personal information could be sold or shared without your knowledge, affecting your privacy",
+    "watch_for": "Look for opt-out options, what data is shared, and whether you can request data deletion",
+    "examples": ["Social media", "Online retailers", "Apps and websites", "Financial services"]
+  },
+  "recurring_charges": {
+    "short": "Automatic billing for ongoing services",
+    "why_matters": "You may be charged for services you no longer want or use",
+    "watch_for": "Check billing frequency, cancellation requirements, and whether charges can increase without notice",
+    "examples": ["Subscription services", "Membership fees", "Insurance premiums", "Software licenses"]
+  },
+  "grace_period": {
+    "short": "Time period where you can cancel without penalties",
+    "why_matters": "Gives you a chance to try the service risk-free and cancel if it doesn't meet your needs",
+    "watch_for": "Check the length of the grace period, what constitutes cancellation, and whether you get a full refund",
+    "examples": ["Gym memberships", "Insurance policies", "Service contracts", "Software subscriptions"]
+  },
+  "money_back_guarantee": {
+    "short": "Promise to refund your money if not satisfied",
+    "why_matters": "Reduces risk by allowing you to get your money back if the service doesn't work as promised",
+    "watch_for": "Check the timeframe for claims, what constitutes satisfaction, and any conditions or exclusions",
+    "examples": ["Product warranties", "Service guarantees", "Course refunds", "Software trials"]
+  },
+  "data_protection": {
+    "short": "Commitments to protect and secure your personal data",
+    "why_matters": "Ensures your sensitive information is handled responsibly and reduces risk of data breaches",
+    "watch_for": "Look for specific security measures, breach notification requirements, and your rights regarding your data",
+    "examples": ["GDPR compliance", "Encryption standards", "Access controls", "Data retention policies"]
+  },
+  "limitation_of_liability": {
+    "short": "Clear limits on company liability (can be good if reasonable)",
+    "why_matters": "When reasonable, protects both parties by setting clear expectations about responsibility",
+    "watch_for": "Check if limits are fair, exclude gross negligence, and whether they're proportional to the service value",
+    "examples": ["Professional services", "Software licenses", "Event hosting", "Consulting agreements"]
+  },
+  "no_win_no_fee": {
+    "short": "You only pay if the service succeeds",
+    "why_matters": "Aligns the service provider's interests with yours and reduces your financial risk",
+    "watch_for": "Check what constitutes 'success', if there are any upfront costs, and what happens if you lose",
+    "examples": ["Legal representation", "Debt collection", "Insurance claims", "Investment services"]
+  },
+  "fee_caps": {
+    "short": "Maximum limits on fees you can be charged",
+    "why_matters": "Prevents excessive charges and gives you predictable cost expectations",
+    "watch_for": "Check if caps are reasonable, whether they include all fees, and if they adjust for inflation",
+    "examples": ["Legal fees", "Financial advice", "Real estate commissions", "Consulting rates"]
+  },
+  "cost_protection": {
+    "short": "Protection against unexpected cost increases",
+    "why_matters": "Prevents budget surprises and ensures you can afford the service throughout the contract",
+    "watch_for": "Look for price freeze periods, advance notice requirements, and whether you can cancel if costs increase",
+    "examples": ["Insurance premiums", "Service contracts", "Membership fees", "Subscription rates"]
+  },
+  "cooling_off": {
+    "short": "Period where you can cancel without penalty",
+    "why_matters": "Gives you time to reconsider your decision and cancel if you change your mind",
+    "watch_for": "Check the length of the cooling-off period, what constitutes cancellation, and whether you get a full refund",
+    "examples": ["Door-to-door sales", "Online purchases", "Service contracts", "Insurance policies"]
+  },
+  "transparency": {
+    "short": "Clear and upfront disclosure of terms and conditions",
+    "why_matters": "Helps you make informed decisions and understand exactly what you're agreeing to",
+    "watch_for": "Look for plain language explanations, easy-to-find terms, and whether important details are highlighted",
+    "examples": ["Fee structures", "Cancellation policies", "Service limitations", "Rights and responsibilities"]
+  }
 }
 
