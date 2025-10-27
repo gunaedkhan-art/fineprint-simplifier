@@ -100,7 +100,7 @@
                                 </div>
                                 <div class="discount-details">
                                     <p class="discount-title">Limited Time Offer!</p>
-                                    <p class="discount-subtitle">This discount expires in <span id="discountTimeLeft">5:00</span></p>
+                                    <p class="discount-subtitle">This discount expires in <span id="discountTimeLeft" class="countdown-timer">5:00</span></p>
                                 </div>
                             </div>
 
@@ -1054,7 +1054,32 @@
                 
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
-                timeLeftElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                timeLeftElement.textContent = timeString;
+                
+                // Add urgency effects
+                if (timeLeft <= 60) { // Last minute
+                    timeLeftElement.style.background = '#c0392b';
+                    timeLeftElement.style.animation = 'pulse 0.5s infinite';
+                    timeLeftElement.style.border = '2px solid #fff';
+                } else if (timeLeft <= 120) { // Last 2 minutes
+                    timeLeftElement.style.background = '#e67e22';
+                    timeLeftElement.style.animation = 'pulse 0.8s infinite';
+                }
+                
+                // Add warning text for last 30 seconds
+                if (timeLeft <= 30) {
+                    const subtitle = timeLeftElement.parentElement;
+                    if (!subtitle.querySelector('.urgent-warning')) {
+                        const warning = document.createElement('span');
+                        warning.className = 'urgent-warning';
+                        warning.textContent = ' ⚠️ HURRY!';
+                        warning.style.color = '#e74c3c';
+                        warning.style.fontWeight = 'bold';
+                        subtitle.appendChild(warning);
+                    }
+                }
             }
             
             // Update immediately
@@ -1527,6 +1552,22 @@
             margin: 0;
             opacity: 0.9;
             font-size: 1rem;
+        }
+
+        .countdown-timer {
+            background: #e74c3c;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         .upgrade-actions {
