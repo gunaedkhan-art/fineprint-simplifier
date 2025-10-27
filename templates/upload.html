@@ -70,6 +70,58 @@
                         </button>
                     </form>
 
+                    <!-- Usage Limit Upgrade Prompt -->
+                    <div id="usageLimitPrompt" class="usage-limit-prompt" style="display: none;">
+                        <div class="upgrade-prompt-content">
+                            <div class="upgrade-header">
+                                <div class="upgrade-icon">🚀</div>
+                                <h3>You've Reached Your Monthly Limit</h3>
+                                <p class="usage-info">
+                                    You've used <span id="currentUsage">0</span>/<span id="monthlyLimit">3</span> documents this month
+                                </p>
+                            </div>
+                            
+                            <div class="upgrade-benefits">
+                                <h4>Upgrade to Pro for:</h4>
+                                <ul class="benefits-list">
+                                    <li>✅ <strong>Unlimited</strong> document analyses</li>
+                                    <li>✅ <strong>Advanced risk scoring</strong> with color-coded badges</li>
+                                    <li>✅ <strong>Save up to 50</strong> analysis results</li>
+                                    <li>✅ <strong>Export to PDF/Word/Excel</strong></li>
+                                    <li>✅ <strong>Side-by-side comparison</strong> of documents</li>
+                                    <li>✅ <strong>Priority support</strong></li>
+                                </ul>
+                            </div>
+
+                            <div class="discount-offer" id="discountOffer" style="display: none;">
+                                <div class="discount-badge">
+                                    <span class="discount-percentage" id="discountPercentage">10%</span>
+                                    <span class="discount-text">OFF</span>
+                                </div>
+                                <div class="discount-details">
+                                    <p class="discount-title">Limited Time Offer!</p>
+                                    <p class="discount-subtitle">This discount expires in <span id="discountTimeLeft">5:00</span></p>
+                                </div>
+                            </div>
+
+                            <div class="upgrade-actions">
+                                <a href="#" id="upgradeNowBtn" class="btn-upgrade-primary">
+                                    <span class="upgrade-price">
+                                        <span class="original-price" id="originalPrice">$9.99</span>
+                                        <span class="discounted-price" id="discountedPrice" style="display: none;">$8.99</span>
+                                        <span class="price-period">/month</span>
+                                    </span>
+                                    <span class="upgrade-text">Upgrade to Pro</span>
+                                </a>
+                                <button onclick="hideUsageLimitPrompt()" class="btn-secondary">Maybe Later</button>
+                            </div>
+
+                            <div class="upgrade-footer">
+                                <p>✅ Cancel anytime • ✅ 30-day money-back guarantee</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Text Input Form -->
                     <form id="text-form" class="text-form" style="display: none;">
                         <input type="hidden" id="text-user-id-input" name="user_id" value="">
@@ -350,7 +402,7 @@
                 } else {
                     // Handle error responses
                     if (data.error === "Monthly limit reached") {
-                        alert(`You've used ${data.usage?.documents_this_month || 0}/${data.usage?.monthly_limit || 3} documents this month. Upgrade to continue analyzing documents.`);
+                        showUsageLimitPrompt(data);
                     } else if (data.requires_account) {
                         // Show account creation prompt instead of generic error
                         showAccountRequiredPrompt();
@@ -928,9 +980,105 @@
             }
         }
 
-        // Save Analysis Functionality
-        let currentAnalysisData = null;
-        let currentFilename = null;
+        // Usage Limit Upgrade Prompt Functions
+        let discountTimer = null;
+
+        function showUsageLimitPrompt(data) {
+            // Update usage info
+            document.getElementById('currentUsage').textContent = data.usage?.documents_this_month || 0;
+            document.getElementById('monthlyLimit').textContent = data.usage?.monthly_limit || 3;
+            
+            // Show discount offer if available
+            if (data.discount_offer) {
+                showDiscountOffer(data.discount_offer);
+            }
+            
+            // Show the prompt
+            document.getElementById('usageLimitPrompt').style.display = 'block';
+            
+            // Scroll to the prompt
+            document.getElementById('usageLimitPrompt').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }
+
+        function hideUsageLimitPrompt() {
+            document.getElementById('usageLimitPrompt').style.display = 'none';
+            if (discountTimer) {
+                clearInterval(discountTimer);
+                discountTimer = null;
+            }
+        }
+
+        function showDiscountOffer(discountData) {
+            const discountOffer = document.getElementById('discountOffer');
+            const discountPercentage = document.getElementById('discountPercentage');
+            const originalPrice = document.getElementById('originalPrice');
+            const discountedPrice = document.getElementById('discountedPrice');
+            
+            // Show discount offer
+            discountOffer.style.display = 'flex';
+            discountPercentage.textContent = discountData.percentage + '%';
+            
+            // Calculate discounted price
+            const originalPriceValue = 9.99;
+            const discountedPriceValue = originalPriceValue * (1 - discountData.percentage / 100);
+            
+            // Update prices
+            originalPrice.style.textDecoration = 'line-through';
+            originalPrice.style.opacity = '0.6';
+            discountedPrice.textContent = '$' + discountedPriceValue.toFixed(2);
+            discountedPrice.style.display = 'inline';
+            
+            // Start countdown timer
+            startDiscountCountdown(discountData.expires_at);
+            
+            // Update upgrade button with discount code
+            const upgradeBtn = document.getElementById('upgradeNowBtn');
+            upgradeBtn.href = `/pricing?discount=${discountData.code}`;
+        }
+
+        function startDiscountCountdown(expiresAt) {
+            const timeLeftElement = document.getElementById('discountTimeLeft');
+            
+            function updateCountdown() {
+                const now = Math.floor(Date.now() / 1000);
+                const timeLeft = expiresAt - now;
+                
+                if (timeLeft <= 0) {
+                    // Discount expired
+                    hideDiscountOffer();
+                    return;
+                }
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timeLeftElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // Update immediately
+            updateCountdown();
+            
+            // Update every second
+            discountTimer = setInterval(updateCountdown, 1000);
+        }
+
+        function hideDiscountOffer() {
+            const discountOffer = document.getElementById('discountOffer');
+            const originalPrice = document.getElementById('originalPrice');
+            const discountedPrice = document.getElementById('discountedPrice');
+            
+            discountOffer.style.display = 'none';
+            originalPrice.style.textDecoration = 'none';
+            originalPrice.style.opacity = '1';
+            discountedPrice.style.display = 'none';
+            
+            if (discountTimer) {
+                clearInterval(discountTimer);
+                discountTimer = null;
+            }
+        }
 
         function showSavePromptForAnalysis(analysis) {
             // Store the current analysis data for saving
@@ -1255,6 +1403,213 @@
             
             .upgrade-actions {
                 flex-direction: column;
+            }
+        }
+
+        /* Usage Limit Upgrade Prompt Styles */
+        .usage-limit-prompt {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .upgrade-prompt-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .upgrade-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .upgrade-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .upgrade-header h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .usage-info {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .upgrade-benefits {
+            margin-bottom: 2rem;
+        }
+
+        .upgrade-benefits h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .benefits-list li {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 1rem;
+            border-left: 3px solid #27ae60;
+        }
+
+        .discount-offer {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            border: 2px solid #f39c12;
+        }
+
+        .discount-badge {
+            background: #f39c12;
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 80px;
+            font-weight: bold;
+        }
+
+        .discount-percentage {
+            display: block;
+            font-size: 1.8rem;
+            line-height: 1;
+        }
+
+        .discount-text {
+            font-size: 0.9rem;
+        }
+
+        .discount-details {
+            flex: 1;
+        }
+
+        .discount-title {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .discount-subtitle {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .upgrade-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-upgrade-primary {
+            background: #27ae60;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-upgrade-primary:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .upgrade-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .original-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .discounted-price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #f39c12;
+        }
+
+        .price-period {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .upgrade-text {
+            font-size: 1rem;
+        }
+
+        .upgrade-footer {
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .usage-limit-prompt {
+                padding: 1.5rem;
+                margin: 1rem 0;
+            }
+
+            .benefits-list {
+                grid-template-columns: 1fr;
+            }
+
+            .discount-offer {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .upgrade-actions {
+                flex-direction: column;
+            }
+
+            .btn-upgrade-primary {
+                padding: 1.25rem 2rem;
             }
         }
     </style>

@@ -90,4 +90,89 @@
         <li>30-day money-back guarantee</li>
     </ul>
 </div>
+
+<script>
+// Handle discount parameter from URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const discountCode = urlParams.get('discount');
+    
+    if (discountCode && discountCode.startsWith('LIMIT10_')) {
+        showDiscountOffer();
+    }
+});
+
+function showDiscountOffer() {
+    // Add discount styling to Pro plan
+    const proCard = document.querySelector('.pricing-card.featured');
+    const priceElement = proCard.querySelector('.amount');
+    const originalPrice = priceElement.textContent;
+    
+    // Create discount elements
+    const discountBadge = document.createElement('div');
+    discountBadge.className = 'discount-badge';
+    discountBadge.innerHTML = `
+        <span class="discount-percentage">10%</span>
+        <span class="discount-text">OFF</span>
+    `;
+    
+    const discountPrice = document.createElement('span');
+    discountPrice.className = 'discounted-price';
+    discountPrice.textContent = '$8.99';
+    
+    const originalPriceSpan = document.createElement('span');
+    originalPriceSpan.className = 'original-price';
+    originalPriceSpan.textContent = originalPrice;
+    originalPriceSpan.style.textDecoration = 'line-through';
+    originalPriceSpan.style.opacity = '0.6';
+    
+    // Update price display
+    priceElement.innerHTML = '';
+    priceElement.appendChild(originalPriceSpan);
+    priceElement.appendChild(discountPrice);
+    
+    // Add discount badge to card
+    proCard.style.position = 'relative';
+    proCard.appendChild(discountBadge);
+    
+    // Add discount styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .discount-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #f39c12;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+            z-index: 10;
+        }
+        
+        .discount-percentage {
+            display: block;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+        
+        .discount-text {
+            font-size: 0.8rem;
+        }
+        
+        .discounted-price {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        .pricing-card.featured {
+            border: 2px solid #f39c12;
+            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.2);
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
 {% endblock %}

@@ -1896,13 +1896,22 @@ async def analyze(request: Request, file: UploadFile = File(...), user_id: str =
             
             # Check if user can upload (within limits)
             if not user_manager.can_upload_document(user_id):
+                # Generate time-limited discount for high-conversion moment
+                import time
+                discount_expires = int(time.time()) + (5 * 60)  # 5 minutes from now
+                
                 return JSONResponse(
                     content={
                         "success": False,
                         "error": "Monthly limit reached",
                         "upgrade_required": True,
                         "usage": usage_status,
-                        "message": f"You've used {usage_status.get('documents_this_month', 0)}/{usage_status.get('monthly_limit', 3)} documents this month. Upgrade to continue analyzing documents."
+                        "message": f"You've used {usage_status.get('documents_this_month', 0)}/{usage_status.get('monthly_limit', 3)} documents this month. Upgrade to continue analyzing documents.",
+                        "discount_offer": {
+                            "percentage": 10,
+                            "expires_at": discount_expires,
+                            "code": f"LIMIT10_{user_id[:8]}"
+                        }
                     }, 
                     status_code=429
                 )
