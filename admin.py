@@ -520,3 +520,87 @@ async def export_user_data(user_id: str, auth: Dict[str, Any] = Depends(check_ad
         return {"success": True, "user_data": export_data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error exporting user data: {str(e)}")
+
+@router.post("/api/save-description")
+async def save_description(request: Request, data: dict):
+    """Save or update a pattern description"""
+    admin = await get_current_admin(request)
+    if not admin:
+        return JSONResponse(
+            content={"error": "Unauthorized"},
+            status_code=401
+        )
+    
+    try:
+        pattern_key = data.get('pattern_key')
+        if not pattern_key:
+            return JSONResponse(
+                content={"error": "Pattern key is required"},
+                status_code=400
+            )
+        
+        # Load existing descriptions
+        try:
+            with open('pattern_descriptions.json', 'r') as f:
+                descriptions = json.load(f)
+        except FileNotFoundError:
+            descriptions = {}
+        
+        # Update description
+        descriptions[pattern_key] = {
+            "short": data.get('short', ''),
+            "why_matters": data.get('why_matters', ''),
+            "watch_for": data.get('watch_for', ''),
+            "examples": data.get('examples', [])
+        }
+        
+        # Save back to file
+        with open('pattern_descriptions.json', 'w') as f:
+            json.dump(descriptions, f, indent=2)
+        
+        return JSONResponse(content={"success": True})
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500
+        )
+
+@router.post("/api/delete-description")
+async def delete_description(request: Request, data: dict):
+    """Delete a pattern description"""
+    admin = await get_current_admin(request)
+    if not admin:
+        return JSONResponse(
+            content={"error": "Unauthorized"},
+            status_code=401
+        )
+    
+    try:
+        pattern_key = data.get('pattern_key')
+        if not pattern_key:
+            return JSONResponse(
+                content={"error": "Pattern key is required"},
+                status_code=400
+            )
+        
+        # Load existing descriptions
+        try:
+            with open('pattern_descriptions.json', 'r') as f:
+                descriptions = json.load(f)
+        except FileNotFoundError:
+            return JSONResponse(content={"success": True})  # Already deleted
+        
+        # Remove description
+        if pattern_key in descriptions:
+            del descriptions[pattern_key]
+            
+            # Save back to file
+            with open('pattern_descriptions.json', 'w') as f:
+                json.dump(descriptions, f, indent=2)
+        
+        return JSONResponse(content={"success": True})
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500
+        )

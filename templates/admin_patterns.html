@@ -264,6 +264,129 @@
             color: #721c24;
             margin-bottom: 20px;
         }
+        
+        /* Description Management Styles */
+        .descriptions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .descriptions-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        
+        .descriptions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .description-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .description-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .description-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .description-header h4 {
+            margin: 0;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+        
+        .description-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .description-content {
+            color: #495057;
+            line-height: 1.6;
+        }
+        
+        .description-content .desc-section {
+            margin-bottom: 12px;
+        }
+        
+        .description-content .desc-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .description-content strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .description-content p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .description-content ul {
+            margin: 4px 0 0 0;
+            padding-left: 20px;
+        }
+        
+        .description-content li {
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .edit-description-btn {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .edit-description-btn:hover {
+            background: #e0a800;
+        }
+        
+        @media (max-width: 768px) {
+            .descriptions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .descriptions-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -317,25 +440,59 @@
         
         <div class="pattern-management">
             <h2>📝 Pattern Descriptions</h2>
-            <p style="color: #6c757d; margin-bottom: 20px;">Add helpful descriptions for pattern categories to help users understand what each finding means.</p>
+            <p style="color: #6c757d; margin-bottom: 20px;">Manage comprehensive descriptions for pattern categories to help users understand what each finding means.</p>
             
-            <div class="form-group">
-                <label for="descPattern">Pattern Category</label>
-                <input type="text" id="descPattern" name="descPattern" placeholder="e.g., arbitration_clause" list="patternCategories">
-                <datalist id="patternCategories">
-                    <!-- Will be populated by JavaScript -->
-                </datalist>
+            <div class="pattern-tabs">
+                <button class="pattern-tab active" data-tab="descriptions">View Descriptions</button>
+                <button class="pattern-tab" data-tab="add-description">Add/Edit Description</button>
             </div>
             
-            <div class="form-group">
-                <label for="descText">Description</label>
-                <textarea id="descText" name="descText" placeholder="Enter a user-friendly description..." style="min-height: 80px;"></textarea>
+            <div id="descriptions-tab" class="pattern-content active">
+                <div class="descriptions-header">
+                    <h3>Existing Pattern Descriptions</h3>
+                    <button onclick="switchToAddTab()" class="add-pattern-btn">Add New Description</button>
+                </div>
+                
+                <div class="descriptions-grid" id="descriptionsGrid">
+                    <!-- Populated by JavaScript -->
+                </div>
             </div>
             
-            <button onclick="saveDescription()" class="add-pattern-btn">Save Description</button>
-            
-            <div id="descriptionsDisplay" style="margin-top: 20px;">
-                <!-- Existing descriptions will be loaded here -->
+            <div id="add-description-tab" class="pattern-content">
+                <h3>Add/Edit Pattern Description</h3>
+                
+                <div class="form-group">
+                    <label for="descPattern">Pattern Category</label>
+                    <input type="text" id="descPattern" name="descPattern" placeholder="e.g., arbitration_clause" list="patternCategories">
+                    <datalist id="patternCategories">
+                        <!-- Will be populated by JavaScript -->
+                    </datalist>
+                </div>
+                
+                <div class="form-group">
+                    <label for="descShort">Short Description</label>
+                    <textarea id="descShort" name="descShort" placeholder="Brief explanation of what this pattern means..." style="min-height: 60px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="descWhyMatters">Why It Matters</label>
+                    <textarea id="descWhyMatters" name="descWhyMatters" placeholder="Explain why this pattern is important for users..." style="min-height: 80px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="descWatchFor">What to Watch For</label>
+                    <textarea id="descWatchFor" name="descWatchFor" placeholder="Specific concerns or benefits users should be aware of..." style="min-height: 80px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="descExamples">Examples (one per line)</label>
+                    <textarea id="descExamples" name="descExamples" placeholder="Enter examples, one per line..." style="min-height: 60px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <button onclick="saveDescription()" class="add-pattern-btn">Save Description</button>
+                    <button onclick="switchToViewTab()" class="btn-secondary" style="margin-left: 10px;">Cancel</button>
+                </div>
             </div>
         </div>
         
@@ -522,51 +679,137 @@
         
         // Display descriptions
         function displayDescriptions(descriptions) {
-            const container = document.getElementById('descriptionsDisplay');
+            const container = document.getElementById('descriptionsGrid');
             
             if (Object.keys(descriptions).length === 0) {
-                container.innerHTML = '<p style="color: #6c757d; font-style: italic;">No descriptions yet. Add one above!</p>';
+                container.innerHTML = '<p style="color: #6c757d; font-style: italic; grid-column: 1 / -1;">No descriptions yet. Click "Add New Description" to get started!</p>';
                 return;
             }
             
-            let html = '<h3 style="margin: 20px 0 10px 0;">Existing Descriptions:</h3>';
-            html += '<div style="display: grid; gap: 12px;">';
+            let html = '';
             
             for (const [key, desc] of Object.entries(descriptions)) {
-                html += `
-                    <div class="pattern-item" style="display: flex; flex-direction: column; align-items: flex-start;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
-                            <strong style="color: #667eea;">${formatCategoryName(key)}</strong>
-                            <button class="pattern-action-btn delete-btn" onclick="deleteDescription('${key}')">Delete</button>
-                        </div>
-                        <span style="color: #495057; font-size: 0.9rem;">${desc}</span>
-                    </div>
-                `;
+                html += createDescriptionCard(key, desc);
             }
             
-            html += '</div>';
             container.innerHTML = html;
+        }
+        
+        // Create description card
+        function createDescriptionCard(key, desc) {
+            // Handle both old format (string) and new format (object)
+            const description = typeof desc === 'string' ? 
+                { short: desc, why_matters: '', watch_for: '', examples: [] } : 
+                desc;
+            
+            const examplesHtml = description.examples && description.examples.length > 0 ? 
+                `<ul>${description.examples.map(ex => `<li>${ex}</li>`).join('')}</ul>` : 
+                '<p style="font-style: italic; color: #6c757d;">No examples provided</p>';
+            
+            return `
+                <div class="description-card">
+                    <div class="description-header">
+                        <h4>${formatCategoryName(key)}</h4>
+                        <div class="description-actions">
+                            <button class="pattern-action-btn edit-description-btn" onclick="editDescription('${key}')">Edit</button>
+                            <button class="pattern-action-btn delete-btn" onclick="deleteDescription('${key}')">Delete</button>
+                        </div>
+                    </div>
+                    <div class="description-content">
+                        <div class="desc-section">
+                            <strong>What it means:</strong>
+                            <p>${description.short || 'No description provided'}</p>
+                        </div>
+                        ${description.why_matters ? `
+                        <div class="desc-section">
+                            <strong>Why it matters:</strong>
+                            <p>${description.why_matters}</p>
+                        </div>
+                        ` : ''}
+                        ${description.watch_for ? `
+                        <div class="desc-section">
+                            <strong>What to watch for:</strong>
+                            <p>${description.watch_for}</p>
+                        </div>
+                        ` : ''}
+                        <div class="desc-section">
+                            <strong>Examples:</strong>
+                            ${examplesHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Edit description
+        function editDescription(pattern) {
+            // Switch to add/edit tab
+            switchToAddTab();
+            
+            // Load existing description data
+            loadDescriptionForEdit(pattern);
+        }
+        
+        // Load description for editing
+        async function loadDescriptionForEdit(pattern) {
+            try {
+                const response = await fetch('/api/pattern-descriptions');
+                const descriptions = await response.json();
+                
+                const desc = descriptions[pattern];
+                if (desc) {
+                    const description = typeof desc === 'string' ? 
+                        { short: desc, why_matters: '', watch_for: '', examples: [] } : 
+                        desc;
+                    
+                    document.getElementById('descPattern').value = pattern;
+                    document.getElementById('descShort').value = description.short || '';
+                    document.getElementById('descWhyMatters').value = description.why_matters || '';
+                    document.getElementById('descWatchFor').value = description.watch_for || '';
+                    document.getElementById('descExamples').value = description.examples ? description.examples.join('\n') : '';
+                }
+            } catch (error) {
+                console.error('Error loading description for edit:', error);
+                showMessage('Error loading description for editing', 'error');
+            }
         }
         
         // Save description
         async function saveDescription() {
             const pattern = document.getElementById('descPattern').value.trim();
-            const description = document.getElementById('descText').value.trim();
+            const short = document.getElementById('descShort').value.trim();
+            const whyMatters = document.getElementById('descWhyMatters').value.trim();
+            const watchFor = document.getElementById('descWatchFor').value.trim();
+            const examplesText = document.getElementById('descExamples').value.trim();
             
             if (!pattern) {
                 showMessage('Please enter a pattern category', 'error');
                 return;
             }
             
+            if (!short) {
+                showMessage('Please enter a short description', 'error');
+                return;
+            }
+            
+            const examples = examplesText ? examplesText.split('\n').map(ex => ex.trim()).filter(ex => ex) : [];
+            
+            const descriptionData = {
+                short: short,
+                why_matters: whyMatters,
+                watch_for: watchFor,
+                examples: examples
+            };
+            
             try {
-                const response = await fetch('/api/pattern-descriptions', {
+                const response = await fetch('/admin/api/save-description', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         pattern_key: pattern,
-                        description: description
+                        ...descriptionData
                     })
                 });
                 
@@ -574,8 +817,8 @@
                 
                 if (result.success) {
                     showMessage('Description saved successfully!', 'success');
-                    document.getElementById('descPattern').value = '';
-                    document.getElementById('descText').value = '';
+                    clearDescriptionForm();
+                    switchToViewTab();
                     loadDescriptions();
                 } else {
                     showMessage('Error saving description: ' + result.error, 'error');
@@ -592,14 +835,13 @@
             }
             
             try {
-                const response = await fetch('/api/pattern-descriptions', {
+                const response = await fetch('/admin/api/delete-description', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        pattern_key: pattern,
-                        description: ''  // Empty to delete
+                        pattern_key: pattern
                     })
                 });
                 
@@ -614,6 +856,33 @@
             } catch (error) {
                 showMessage('Error deleting description: ' + error.message, 'error');
             }
+        }
+        
+        // Clear description form
+        function clearDescriptionForm() {
+            document.getElementById('descPattern').value = '';
+            document.getElementById('descShort').value = '';
+            document.getElementById('descWhyMatters').value = '';
+            document.getElementById('descWatchFor').value = '';
+            document.getElementById('descExamples').value = '';
+        }
+        
+        // Switch to add tab
+        function switchToAddTab() {
+            document.querySelectorAll('.pattern-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.pattern-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('[data-tab="add-description"]').classList.add('active');
+            document.getElementById('add-description-tab').classList.add('active');
+        }
+        
+        // Switch to view tab
+        function switchToViewTab() {
+            document.querySelectorAll('.pattern-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.pattern-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('[data-tab="descriptions"]').classList.add('active');
+            document.getElementById('descriptions-tab').classList.add('active');
         }
         
         // Populate pattern categories for autocomplete
@@ -655,7 +924,7 @@
             ).join(' ');
         }
         
-        // Edit description when clicking on pattern category
+        // Auto-load description when pattern category is selected
         document.getElementById('descPattern').addEventListener('input', async function() {
             const pattern = this.value.trim();
             if (!pattern) return;
@@ -664,8 +933,22 @@
                 const response = await fetch('/api/pattern-descriptions');
                 const descriptions = await response.json();
                 
-                if (descriptions[pattern]) {
-                    document.getElementById('descText').value = descriptions[pattern];
+                const desc = descriptions[pattern];
+                if (desc) {
+                    const description = typeof desc === 'string' ? 
+                        { short: desc, why_matters: '', watch_for: '', examples: [] } : 
+                        desc;
+                    
+                    document.getElementById('descShort').value = description.short || '';
+                    document.getElementById('descWhyMatters').value = description.why_matters || '';
+                    document.getElementById('descWatchFor').value = description.watch_for || '';
+                    document.getElementById('descExamples').value = description.examples ? description.examples.join('\n') : '';
+                } else {
+                    // Clear form if no description exists
+                    document.getElementById('descShort').value = '';
+                    document.getElementById('descWhyMatters').value = '';
+                    document.getElementById('descWatchFor').value = '';
+                    document.getElementById('descExamples').value = '';
                 }
             } catch (error) {
                 console.error('Error loading description:', error);
