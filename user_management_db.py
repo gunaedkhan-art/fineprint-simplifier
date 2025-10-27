@@ -88,15 +88,27 @@ class UserManager:
     
     def authenticate_user(self, email: str, password: str) -> Optional[Dict]:
         """Authenticate user with email and password"""
+        print(f"🔐 AUTHENTICATE: Attempting to authenticate email: {email}")
         user = self.db.get_user_by_email(email)
+        print(f"🔐 AUTHENTICATE: User found: {user is not None}")
+        
         if not user:
+            print(f"🔐 AUTHENTICATE: No user found with email: {email}")
             return None
+        
+        print(f"🔐 AUTHENTICATE: User ID: {user.get('user_id')}, Has password_hash: {bool(user.get('password_hash'))}")
         
         # Import auth_manager here to avoid circular imports
         from auth import auth_manager
-        if auth_manager and auth_manager.verify_password(password, user.get("password_hash")):
-            return user
+        if auth_manager:
+            password_valid = auth_manager.verify_password(password, user.get("password_hash"))
+            print(f"🔐 AUTHENTICATE: Password verification result: {password_valid}")
+            if password_valid:
+                return user
+        else:
+            print(f"🔐 AUTHENTICATE: auth_manager is None")
         
+        print(f"🔐 AUTHENTICATE: Authentication failed for email: {email}")
         return None
     
     def update_password(self, email: str, new_password_hash: str) -> bool:
