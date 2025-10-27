@@ -72,8 +72,34 @@ class DatabaseManager:
             db.close()
     
     def create_tables(self):
-        """Create all database tables"""
-        Base.metadata.create_all(bind=self.engine)
+        """Create all database tables (only if they don't exist)"""
+        # Use checkfirst=True to prevent dropping existing tables
+        # This prevents data loss on redeployment
+        Base.metadata.create_all(bind=self.engine, checkfirst=True)
+    
+    def test_connection(self):
+        """Test database connection and check persistence"""
+        try:
+            db = self.SessionLocal()
+            try:
+                # Check if we can query the database
+                from sqlalchemy import text
+                result = db.execute(text("SELECT 1")).scalar()
+                print(f"✅ Database connection successful: {DATABASE_URL[:50]}...")
+                
+                # Check if we're using PostgreSQL (persistent) or SQLite (ephemeral)
+                if DATABASE_URL.startswith("postgres"):
+                    print("✅ Using PostgreSQL - data will persist across deployments")
+                else:
+                    print("⚠️ Using SQLite - data will NOT persist on Railway deployments")
+                    print("⚠️ Add a PostgreSQL database to Railway to enable persistence")
+                
+                return True
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"❌ Database connection failed: {e}")
+            return False
     
     def user_exists(self, user_id: str) -> bool:
         """Check if user exists"""
@@ -251,6 +277,8 @@ def init_database():
     """Initialize database tables"""
     db_manager.create_tables()
     print("✅ Database tables created successfully")
+    # Test connection and warn about persistence
+    db_manager.test_connection()
 
 if __name__ == "__main__":
     init_database()
